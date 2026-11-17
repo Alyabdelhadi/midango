@@ -44,7 +44,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Catalog.Court", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -59,6 +58,11 @@ namespace Midango.Api.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<decimal>("HourlyPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("hourly_price");
 
                     b.Property<bool>("Indoor")
                         .HasColumnType("boolean")
@@ -99,7 +103,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Catalog.CourtFeature", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -159,10 +162,45 @@ namespace Midango.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Midango.Api.Catalog.PriceBand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("court_id");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer")
+                        .HasColumnName("day");
+
+                    b.Property<TimeOnly>("From")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("from");
+
+                    b.Property<decimal>("HourlyPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("hourly_price");
+
+                    b.Property<TimeOnly>("To")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("to");
+
+                    b.HasKey("Id")
+                        .HasName("pk_price_bands");
+
+                    b.HasIndex("CourtId", "Day")
+                        .HasDatabaseName("ix_price_bands_court_id_day");
+
+                    b.ToTable("price_bands", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -213,7 +251,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Identity.Customer", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -245,7 +282,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Identity.OtpChallenge", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -289,7 +325,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Identity.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -337,7 +372,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Identity.StaffMember", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -399,7 +433,6 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Venues.Venue", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -416,6 +449,12 @@ namespace Midango.Api.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("CurrencyCode")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency_code");
 
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision")
@@ -446,6 +485,11 @@ namespace Midango.Api.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("time_zone_id");
+
+                    b.Property<decimal>("VatPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("vat_percent");
 
                     b.HasKey("Id")
                         .HasName("pk_venues");
@@ -505,6 +549,16 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_opening_hours_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.PriceBand", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.Court", null)
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_price_bands_courts_court_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Identity.StaffMember", b =>

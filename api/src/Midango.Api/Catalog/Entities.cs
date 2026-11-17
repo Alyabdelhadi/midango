@@ -37,6 +37,9 @@ public sealed class Court
     public required string NameAr { get; set; }
     public bool Indoor { get; set; }
 
+    /// VAT-inclusive price per hour outside any peak/off-peak period.
+    public decimal HourlyPrice { get; set; }
+
     /// Always features of this court's category.
     public List<CourtFeature> Features { get; set; } = [];
     public int SortOrder { get; set; }
@@ -55,4 +58,17 @@ public sealed class OpeningHours
 
     /// Closes <= Opens means the venue closes after midnight (e.g. 16:00–02:00).
     public TimeOnly Closes { get; set; }
+}
+
+/// A peak or off-peak price for one court on one day. To <= From means it runs past midnight.
+public sealed class PriceBand
+{
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid CourtId { get; init; }
+    public DayOfWeek Day { get; init; }
+    public TimeOnly From { get; init; }
+    public TimeOnly To { get; init; }
+
+    /// VAT-inclusive price per hour during this period.
+    public decimal HourlyPrice { get; init; }
 }

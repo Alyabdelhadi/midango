@@ -17,6 +17,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<CourtFeature> CourtFeatures => Set<CourtFeature>();
     public DbSet<Court> Courts => Set<Court>();
     public DbSet<OpeningHours> OpeningHours => Set<OpeningHours>();
+    public DbSet<PriceBand> PriceBands => Set<PriceBand>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -27,6 +28,8 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(v => v.AddressEn).HasMaxLength(200);
             e.Property(v => v.AddressAr).HasMaxLength(200);
             e.Property(v => v.TimeZoneId).HasMaxLength(64);
+            e.Property(v => v.CurrencyCode).HasMaxLength(3);
+            e.Property(v => v.VatPercent).HasPrecision(5, 2);
         });
 
         b.Entity<Customer>(e =>
@@ -83,6 +86,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         {
             e.Property(c => c.NameEn).HasMaxLength(60);
             e.Property(c => c.NameAr).HasMaxLength(60);
+            e.Property(c => c.HourlyPrice).HasPrecision(10, 2);
             e.HasOne<Venue>().WithMany().HasForeignKey(c => c.VenueId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<SportCategory>().WithMany().HasForeignKey(c => c.CategoryId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(c => c.Features).WithMany().UsingEntity(j => j.ToTable("court_feature_links"));
@@ -94,6 +98,13 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.ToTable("opening_hours", t => t.HasCheckConstraint("ck_opening_hours_not_empty", "opens <> closes"));
             e.HasKey(h => new { h.VenueId, h.Day });
             e.HasOne<Venue>().WithMany().HasForeignKey(h => h.VenueId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<PriceBand>(e =>
+        {
+            e.Property(p => p.HourlyPrice).HasPrecision(10, 2);
+            e.HasOne<Court>().WithMany().HasForeignKey(p => p.CourtId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(p => new { p.CourtId, p.Day });
         });
 
         // Ids are created in code (Guid.CreateVersion7). Left as "generated on add", EF treats a new entity
