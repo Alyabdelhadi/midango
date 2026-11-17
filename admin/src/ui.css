@@ -141,7 +141,9 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 /* Prices */
 .period-row { display: grid; gap: 10px; padding-block: 12px; border-block-end: 1px solid var(--mg-line); }
 .period-row:last-of-type { border-block-end: 0; }
-.period-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+/* Top-aligned so a hint under one field never lifts it above its neighbours; buttons drop by one label height. */
+.period-fields { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.period-fields > .mg-button-wrap { padding-block-start: 22px; }
 .period-fields .mg-field { width: 160px; }
 .quote { display: grid; gap: 4px; }
 .quote-line { margin: 0; font: var(--mg-text-title-m); color: var(--mg-navy); }

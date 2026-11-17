@@ -59,7 +59,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const money = useCallback(
     (amount: number, currency: string) =>
-      new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-SA', { style: 'currency', currency }).format(amount),
+      // Western digits in Arabic too, so amounts match the times and minutes printed next to them.
+      new Intl.NumberFormat(lang === 'ar' ? 'ar-SA-u-nu-latn' : 'en-SA', { style: 'currency', currency }).format(amount),
     [lang],
   );
 
