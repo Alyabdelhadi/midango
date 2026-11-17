@@ -8,6 +8,19 @@ public enum BookingStatus
     Cancelled,
 }
 
+public enum BookingKind
+{
+    Booking,
+    /// Time taken off sale by the venue (maintenance, private event). No customer, no price.
+    Block,
+}
+
+public enum BookingSource
+{
+    App,
+    Staff,
+}
+
 public sealed class Booking
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -15,12 +28,24 @@ public sealed class Booking
     /// Short code read out at the desk, e.g. "K7Q2MX".
     public required string Reference { get; set; }
     public Guid VenueId { get; init; }
-    public Guid CourtId { get; init; }
-    public Guid CustomerId { get; init; }
+    public Guid CourtId { get; set; }
+
+    /// Null for walk-ins without a phone and for blocks.
+    public Guid? CustomerId { get; init; }
+
+    /// Walk-in booked at the desk without a phone number. Never set together with CustomerId.
+    public string? GuestName { get; init; }
+
+    public BookingKind Kind { get; init; } = BookingKind.Booking;
+    public BookingSource Source { get; init; } = BookingSource.App;
+    public Guid? CreatedByStaffId { get; init; }
+
+    /// Staff note (walk-in detail, block reason). Never shown to the customer.
+    public string? Note { get; set; }
 
     /// UTC instants. Npgsql only writes offset-0 values to timestamptz.
-    public DateTimeOffset StartsAt { get; init; }
-    public DateTimeOffset EndsAt { get; init; }
+    public DateTimeOffset StartsAt { get; set; }
+    public DateTimeOffset EndsAt { get; set; }
     public int Minutes { get; init; }
 
     /// Price snapshot at booking time, VAT-inclusive. Later price changes never touch it.
@@ -33,9 +58,12 @@ public sealed class Booking
     public DateTimeOffset CreatedAt { get; init; }
 
     /// Cancelling after this instant is allowed but marked late.
-    public DateTimeOffset FreeCancellationUntil { get; init; }
+    public DateTimeOffset FreeCancellationUntil { get; set; }
     public DateTimeOffset? CancelledAt { get; set; }
     public bool LateCancellation { get; set; }
+
+    /// Cancelled by the venue; never counts against the customer.
+    public bool CancelledByVenue { get; set; }
 }
 
 public static class BookingReference

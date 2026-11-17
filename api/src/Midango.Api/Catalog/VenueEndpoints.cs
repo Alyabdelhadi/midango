@@ -25,12 +25,12 @@ public static class VenueEndpoints
     /// missingForPublish holds keys the client translates: "address", "location", "hours", "courts".
     public sealed record VenueDto(
         Guid Id, string NameEn, string NameAr, string? AddressEn, string? AddressAr,
-        double? Latitude, double? Longitude, string TimeZoneId, string CurrencyCode, decimal VatPercent, bool Published,
+        double? Latitude, double? Longitude, string TimeZoneId, string CurrencyCode, decimal VatPercent, int FreeCancellationHours, bool Published,
         IReadOnlyList<HoursDto> Hours, IReadOnlyList<CourtDto> Courts, IReadOnlyList<string> MissingForPublish);
 
     public sealed record VenueInput(
         string? NameEn, string? NameAr, string? AddressEn, string? AddressAr,
-        double? Latitude, double? Longitude, string? TimeZoneId);
+        double? Latitude, double? Longitude, string? TimeZoneId, int? FreeCancellationHours);
 
     public sealed record CourtInput(
         Guid CategoryId, string? NameEn, string? NameAr, bool Indoor, decimal HourlyPrice,
@@ -60,6 +60,7 @@ public static class VenueEndpoints
             venue.Latitude = input.Latitude;
             venue.Longitude = input.Longitude;
             venue.TimeZoneId = input.TimeZoneId ?? venue.TimeZoneId;
+            venue.FreeCancellationHours = input.FreeCancellationHours ?? venue.FreeCancellationHours;
 
             if (await PublishGuardAsync(db, venue, null, null, ct) is { } refused) return refused;
             await db.SaveChangesAsync(ct);
@@ -186,7 +187,7 @@ public static class VenueEndpoints
 
         return new VenueDto(
             venue.Id, venue.NameEn, venue.NameAr, venue.AddressEn, venue.AddressAr,
-            venue.Latitude, venue.Longitude, venue.TimeZoneId, venue.CurrencyCode, venue.VatPercent, venue.Published,
+            venue.Latitude, venue.Longitude, venue.TimeZoneId, venue.CurrencyCode, venue.VatPercent, venue.FreeCancellationHours, venue.Published,
             hours.Select(h => new HoursDto(h.Day, h.Opens, h.Closes)).ToList(),
             courts.Select(c => CourtDto.From(c, bands.Where(b => b.CourtId == c.Id))).ToList(),
             MissingForPublish(venue, hours.Count, courts.Count(c => c.Active)));
@@ -205,6 +206,8 @@ public static class VenueEndpoints
             return "Pick the venue's location on the map.";
         if (input.TimeZoneId is not null && !TimeZoneInfo.TryFindSystemTimeZoneById(input.TimeZoneId, out _))
             return "Choose a valid time zone.";
+        if (input.FreeCancellationHours is < 0 or > 168)
+            return "Free cancellation must be between 0 and 168 hours before the start.";
         return null;
     }
 

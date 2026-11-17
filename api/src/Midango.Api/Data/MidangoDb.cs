@@ -114,7 +114,19 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         b.Entity<Booking>(e =>
         {
             // The no-overlap exclusion constraint is added by hand in the Bookings migration (EF can't express it).
-            e.ToTable("bookings", t => t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at"));
+            e.ToTable("bookings", t =>
+            {
+                t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at");
+                // A booking is for exactly one of: an account or a walk-in. A block is for nobody.
+                t.HasCheckConstraint("ck_bookings_party",
+                    "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR " +
+                    "(kind = 'Booking' AND (customer_id IS NULL) <> (guest_name IS NULL))");
+            });
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Source).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.GuestName).HasMaxLength(60);
+            e.Property(x => x.Note).HasMaxLength(200);
+            e.HasIndex(x => new { x.VenueId, x.StartsAt });
             e.Property(x => x.Reference).HasMaxLength(12);
             e.HasIndex(x => x.Reference).IsUnique();
             e.Property(x => x.Currency).HasMaxLength(3);

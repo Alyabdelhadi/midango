@@ -19,7 +19,8 @@ public static class BookingEndpoints
         Guid CourtId, string CourtNameEn, string CourtNameAr,
         DateTimeOffset StartsAt, DateTimeOffset EndsAt, int Minutes,
         decimal Total, decimal Net, decimal Vat, string Currency, string PaymentMethod,
-        BookingStatus Status, DateTimeOffset FreeCancellationUntil, bool LateCancellation, DateTimeOffset? CancelledAt);
+        BookingStatus Status, DateTimeOffset FreeCancellationUntil, bool LateCancellation, DateTimeOffset? CancelledAt,
+        bool CancelledByVenue);
 
     public sealed record MyBookingsDto(IReadOnlyList<BookingDto> Upcoming, IReadOnlyList<BookingDto> History);
 
@@ -63,6 +64,8 @@ public static class BookingEndpoints
             var booking = new Booking
             {
                 Reference = BookingReference.New(),
+                Kind = BookingKind.Booking,
+                Source = BookingSource.App,
                 VenueId = venue.Id,
                 CourtId = court.Id,
                 CustomerId = customerId,
@@ -78,22 +81,7 @@ public static class BookingEndpoints
             };
             db.Bookings.Add(booking);
 
-            for (var attempt = 1; ; attempt++)
-            {
-                try
-                {
-                    await db.SaveChangesAsync(ct);
-                    break;
-                }
-                catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ExclusionViolation })
-                {
-                    return ApiErrors.Fail(409, "Someone just booked this time. Pick another one.");
-                }
-                catch (DbUpdateException ex) when (attempt < 3 && ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
-                {
-                    booking.Reference = BookingReference.New(); // reference collision: draw again
-                }
-            }
+            if (await BookingStore.SaveAsync(db, [booking], ct) is { } failed) return failed;
 
             var dto = (await LoadAsync(db, db.Bookings.Where(b => b.Id == booking.Id), ct)).Single();
             return Results.Json(dto, statusCode: 201);
@@ -150,7 +138,33 @@ public static class BookingEndpoints
             return new BookingDto(
                 b.Id, b.Reference, b.VenueId, r.VenueEn, r.VenueAr, b.CourtId, r.CourtEn, r.CourtAr,
                 Local(b.StartsAt), Local(b.EndsAt), b.Minutes, b.Total, b.Net, b.Vat, b.Currency, CashAtVenue,
-                b.Status, Local(b.FreeCancellationUntil), b.LateCancellation, b.CancelledAt is { } c ? Local(c) : null);
+                b.Status, Local(b.FreeCancellationUntil), b.LateCancellation, b.CancelledAt is { } c ? Local(c) : null,
+                b.CancelledByVenue);
         }).ToList();
+    }
+}
+
+public static class BookingStore
+{
+    /// Saves pending changes. Returns a 409 when a booking overlaps a confirmed one (exclusion constraint),
+    /// redraws references on the rare collision, and returns null on success.
+    public static async Task<IResult?> SaveAsync(MidangoDb db, IReadOnlyList<Booking> added, CancellationToken ct)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return null;
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.ExclusionViolation })
+            {
+                return ApiErrors.Fail(409, "Someone just booked this time. Pick another one.");
+            }
+            catch (DbUpdateException ex) when (attempt < 3 && ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+            {
+                foreach (var b in added) b.Reference = BookingReference.New();
+            }
+        }
     }
 }

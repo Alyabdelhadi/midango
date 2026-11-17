@@ -58,4 +58,16 @@ public static class Slots
             && localStart.AddMinutes(minutes) <= p.Closes
             && (localStart - p.Opens).TotalMinutes % StepMinutes == 0;
     }
+
+    /// The local window a "day" covers on the schedule, list and Today: the opening period,
+    /// or the calendar day when the venue is closed.
+    public static (DateTime From, DateTime To) DayWindow(DateOnly day, IReadOnlyList<OpeningHours> hours) =>
+        Period(day, hours) ?? (day.ToDateTime(TimeOnly.MinValue), day.ToDateTime(TimeOnly.MinValue).AddDays(1));
+
+    /// The business day a local moment belongs to: 01:00 is still "yesterday" while yesterday's period runs.
+    public static DateOnly BusinessDay(DateTime local, IReadOnlyList<OpeningHours> hours)
+    {
+        var day = DateOnly.FromDateTime(local);
+        return Period(day.AddDays(-1), hours) is { } p && local < p.Closes ? day.AddDays(-1) : day;
+    }
 }

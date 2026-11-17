@@ -52,6 +52,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("cancelled_at");
 
+                    b.Property<bool>("CancelledByVenue")
+                        .HasColumnType("boolean")
+                        .HasColumnName("cancelled_by_venue");
+
                     b.Property<Guid>("CourtId")
                         .HasColumnType("uuid")
                         .HasColumnName("court_id");
@@ -60,13 +64,17 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("CreatedByStaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_staff_id");
+
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)")
                         .HasColumnName("currency");
 
-                    b.Property<Guid>("CustomerId")
+                    b.Property<Guid?>("CustomerId")
                         .HasColumnType("uuid")
                         .HasColumnName("customer_id");
 
@@ -77,6 +85,17 @@ namespace Midango.Api.Data.Migrations
                     b.Property<DateTimeOffset>("FreeCancellationUntil")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("free_cancellation_until");
+
+                    b.Property<string>("GuestName")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("guest_name");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
 
                     b.Property<bool>("LateCancellation")
                         .HasColumnType("boolean")
@@ -91,11 +110,22 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("net");
 
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("note");
+
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasMaxLength(12)
                         .HasColumnType("character varying(12)")
                         .HasColumnName("reference");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("source");
 
                     b.Property<DateTimeOffset>("StartsAt")
                         .HasColumnType("timestamp with time zone")
@@ -128,18 +158,20 @@ namespace Midango.Api.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_bookings_reference");
 
-                    b.HasIndex("VenueId")
-                        .HasDatabaseName("ix_bookings_venue_id");
-
                     b.HasIndex("CourtId", "StartsAt")
                         .HasDatabaseName("ix_bookings_court_id_starts_at");
 
                     b.HasIndex("CustomerId", "StartsAt")
                         .HasDatabaseName("ix_bookings_customer_id_starts_at");
 
+                    b.HasIndex("VenueId", "StartsAt")
+                        .HasDatabaseName("ix_bookings_venue_id_starts_at");
+
                     b.ToTable("bookings", null, t =>
                         {
                             t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at");
+
+                            t.HasCheckConstraint("ck_bookings_party", "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR (kind = 'Booking' AND (customer_id IS NULL) <> (guest_name IS NULL))");
                         });
                 });
 
@@ -633,7 +665,6 @@ namespace Midango.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("fk_bookings_customers_customer_id");
 
                     b.HasOne("Midango.Api.Venues.Venue", null)

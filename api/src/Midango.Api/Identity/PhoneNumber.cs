@@ -12,7 +12,9 @@ public readonly record struct PhoneNumber
     public string E164 { get; }
 
     /// "•••• 4567": the only form venue staff ever see (decision Q2).
-    public string Masked => $"•••• {E164[^4..]}";
+    public string Masked => Mask(E164);
+
+    public static string Mask(string e164) => $"•••• {e164[^4..]}";
 
     /// Accepts local ("0551234567") or international ("+966551234567") input; Saudi Arabia is the default region.
     public static bool TryParse(string? input, out PhoneNumber phone)
