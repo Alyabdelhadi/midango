@@ -22,6 +22,194 @@ namespace Midango.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CourtCourtFeature", b =>
+                {
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("court_id");
+
+                    b.Property<Guid>("FeaturesId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("features_id");
+
+                    b.HasKey("CourtId", "FeaturesId")
+                        .HasName("pk_court_feature_links");
+
+                    b.HasIndex("FeaturesId")
+                        .HasDatabaseName("ix_court_feature_links_features_id");
+
+                    b.ToTable("court_feature_links", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.Court", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("Indoor")
+                        .HasColumnType("boolean")
+                        .HasColumnName("indoor");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name_ar");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name_en");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_courts");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_courts_category_id");
+
+                    b.HasIndex("VenueId", "SortOrder")
+                        .HasDatabaseName("ix_courts_venue_id_sort_order");
+
+                    b.ToTable("courts", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.CourtFeature", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name_ar");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name_en");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_court_features");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_court_features_category_id");
+
+                    b.ToTable("court_features", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.OpeningHours", b =>
+                {
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("integer")
+                        .HasColumnName("day");
+
+                    b.Property<TimeOnly>("Closes")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("closes");
+
+                    b.Property<TimeOnly>("Opens")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("opens");
+
+                    b.HasKey("VenueId", "Day")
+                        .HasName("pk_opening_hours");
+
+                    b.ToTable("opening_hours", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_opening_hours_not_empty", "opens <> closes");
+                        });
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.PrimitiveCollection<int[]>("DurationsMinutes")
+                        .IsRequired()
+                        .HasColumnType("integer[]")
+                        .HasColumnName("durations_minutes");
+
+                    b.Property<string>("IconKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("icon_key");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name_ar");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name_en");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sport_categories");
+
+                    b.ToTable("sport_categories", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_sport_categories_durations", "cardinality(durations_minutes) BETWEEN 1 AND 4");
+                        });
+                });
+
             modelBuilder.Entity("Midango.Api.Identity.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -215,9 +403,27 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("AddressAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("address_ar");
+
+                    b.Property<string>("AddressEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("address_en");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("latitude");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision")
+                        .HasColumnName("longitude");
 
                     b.Property<string>("NameAr")
                         .IsRequired()
@@ -231,10 +437,74 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(120)")
                         .HasColumnName("name_en");
 
+                    b.Property<bool>("Published")
+                        .HasColumnType("boolean")
+                        .HasColumnName("published");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("time_zone_id");
+
                     b.HasKey("Id")
                         .HasName("pk_venues");
 
                     b.ToTable("venues", (string)null);
+                });
+
+            modelBuilder.Entity("CourtCourtFeature", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.Court", null)
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_court_feature_links_courts_court_id");
+
+                    b.HasOne("Midango.Api.Catalog.CourtFeature", null)
+                        .WithMany()
+                        .HasForeignKey("FeaturesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_court_feature_links_court_features_features_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.Court", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.SportCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_courts_sport_categories_category_id");
+
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_courts_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.CourtFeature", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.SportCategory", null)
+                        .WithMany("Features")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_court_features_sport_categories_category_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.OpeningHours", b =>
+                {
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_opening_hours_venues_venue_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Identity.StaffMember", b =>
@@ -244,6 +514,11 @@ namespace Midango.Api.Data.Migrations
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_staff_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>
+                {
+                    b.Navigation("Features");
                 });
 #pragma warning restore 612, 618
         }

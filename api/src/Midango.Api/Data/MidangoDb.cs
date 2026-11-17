@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Midango.Api.Catalog;
 using Midango.Api.Identity;
 using Midango.Api.Venues;
 
@@ -11,6 +12,10 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<StaffMember> Staff => Set<StaffMember>();
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<SportCategory> SportCategories => Set<SportCategory>();
+    public DbSet<CourtFeature> CourtFeatures => Set<CourtFeature>();
+    public DbSet<Court> Courts => Set<Court>();
+    public DbSet<OpeningHours> OpeningHours => Set<OpeningHours>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -18,6 +23,9 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         {
             e.Property(v => v.NameEn).HasMaxLength(120);
             e.Property(v => v.NameAr).HasMaxLength(120);
+            e.Property(v => v.AddressEn).HasMaxLength(200);
+            e.Property(v => v.AddressAr).HasMaxLength(200);
+            e.Property(v => v.TimeZoneId).HasMaxLength(64);
         });
 
         b.Entity<Customer>(e =>
@@ -52,6 +60,39 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasIndex(t => t.TokenHash).IsUnique();
             e.Property(t => t.SubjectKind).HasConversion<string>().HasMaxLength(16);
             e.HasIndex(t => new { t.SubjectKind, t.SubjectId });
+        });
+
+        b.Entity<SportCategory>(e =>
+        {
+            e.ToTable("sport_categories", t => t.HasCheckConstraint(
+                "ck_sport_categories_durations", "cardinality(durations_minutes) BETWEEN 1 AND 4"));
+            e.Property(c => c.NameEn).HasMaxLength(60);
+            e.Property(c => c.NameAr).HasMaxLength(60);
+            e.Property(c => c.IconKey).HasMaxLength(40);
+            e.HasMany(c => c.Features).WithOne().HasForeignKey(f => f.CategoryId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<CourtFeature>(e =>
+        {
+            e.Property(f => f.NameEn).HasMaxLength(60);
+            e.Property(f => f.NameAr).HasMaxLength(60);
+        });
+
+        b.Entity<Court>(e =>
+        {
+            e.Property(c => c.NameEn).HasMaxLength(60);
+            e.Property(c => c.NameAr).HasMaxLength(60);
+            e.HasOne<Venue>().WithMany().HasForeignKey(c => c.VenueId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<SportCategory>().WithMany().HasForeignKey(c => c.CategoryId).OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(c => c.Features).WithMany().UsingEntity(j => j.ToTable("court_feature_links"));
+            e.HasIndex(c => new { c.VenueId, c.SortOrder });
+        });
+
+        b.Entity<OpeningHours>(e =>
+        {
+            e.ToTable("opening_hours", t => t.HasCheckConstraint("ck_opening_hours_not_empty", "opens <> closes"));
+            e.HasKey(h => new { h.VenueId, h.Day });
+            e.HasOne<Venue>().WithMany().HasForeignKey(h => h.VenueId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
