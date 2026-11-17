@@ -33,7 +33,8 @@ public sealed class Booking
     /// Null for walk-ins without a phone and for blocks.
     public Guid? CustomerId { get; init; }
 
-    /// Walk-in booked at the desk without a phone number. Never set together with CustomerId.
+    /// The name staff typed at the desk; set on every staff booking, with or without an account.
+    /// Staff see this rather than the account's own name, so typing a phone number never reveals who owns it.
     public string? GuestName { get; init; }
 
     public BookingKind Kind { get; init; } = BookingKind.Booking;

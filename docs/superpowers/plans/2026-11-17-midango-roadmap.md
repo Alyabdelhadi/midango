@@ -29,7 +29,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M3b | Business shell & catalog screens ✅ done | Business sign-in + forced password change + CORS; i18n EN/AR in React; sidebar (only items that work); sport categories screen; first-run venue setup wizard; courts & hours screens | M3a |
 | M4 | Prices ✅ done | Weekly price board per court (days × time bands), price preview line ("Fri 20:00, 90 min = SAR 270"), VAT handling | M3 |
 | M5 | Availability & booking engine ✅ done | Slot calculation across courts and durations; database-enforced no-overlap (exclusion constraint); short hold while the confirm sheet is open; create / cancel booking with *cash at venue*; cancellation window | M4 |
-| M6a | Venue operations API | Schedule, staff and walk-in bookings, blocked time, move, cancel, bookings search, customers (masked phone), Today numbers, free-cancellation setting | M5 |
+| M6a | Venue operations API ✅ done | Schedule, staff and walk-in bookings, blocked time, move, cancel, bookings search, customers (masked phone), Today numbers, free-cancellation setting | M5 |
 | M6b | Business: Schedule, Bookings, Customers, Today | The court × time grid (click to book, drag to move, block time), booking side panel with state-driven primary action, Bookings list with quick filters, Customers (name + masked phone), Today numbers | M6a |
 | M7 | MIDANGO Desk | Counter screen: Now & next list, *Take cash & check in*, walk-ins, QR lookup, undo, mark no-show | M6 |
 | M8 | MIDANGO App: booking | Play tab (sport chips from categories, venue cards with open times), filters, venue page, confirm sheet, confirmation with QR, Bookings tab, cancel, Profile, guest browsing with sign-in at confirm, Arabic | M5 (M2 for sign-in) |

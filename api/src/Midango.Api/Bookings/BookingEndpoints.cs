@@ -161,9 +161,16 @@ public static class BookingStore
             {
                 return ApiErrors.Fail(409, "Someone just booked this time. Pick another one.");
             }
-            catch (DbUpdateException ex) when (attempt < 3 && ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+            catch (DbUpdateException ex) when (attempt < 3 && ex.InnerException is PostgresException
+                   { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_bookings_reference" })
             {
                 foreach (var b in added) b.Reference = BookingReference.New();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                   { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_customers_phone_e164" })
+            {
+                // Two desks created an account for the same new number at once; the retry finds it.
+                return ApiErrors.Fail(409, "This customer was just added from another screen. Try again.");
             }
         }
     }

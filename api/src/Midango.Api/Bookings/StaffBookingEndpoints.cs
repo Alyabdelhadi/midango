@@ -81,9 +81,9 @@ public static class StaffBookingEndpoints
 
             var now = clock.GetUtcNow();
             var start = body.Start.ToUniversalTime();
-            var local = VenueClock.ToLocal(start, VenueClock.Zone(venue));
-            if (await TimeErrorAsync(db, venue.Id, local, start, body.Minutes, now, ct) is { } timeError)
+            if (await TimeErrorAsync(db, venue, start, body.Minutes, now, ct) is { } timeError)
                 return ApiErrors.Fail(400, timeError);
+            var local = VenueClock.ToLocal(start, VenueClock.Zone(venue));
 
             Guid? customerId = null;
             if (hasPhone)
@@ -111,7 +111,7 @@ public static class StaffBookingEndpoints
                 VenueId = venue.Id,
                 CourtId = court.Id,
                 CustomerId = customerId,
-                GuestName = hasPhone ? null : name,
+                GuestName = name,
                 Note = Blank(body.Note),
                 StartsAt = start,
                 EndsAt = start.AddMinutes(body.Minutes),
@@ -142,8 +142,7 @@ public static class StaffBookingEndpoints
 
             var now = clock.GetUtcNow();
             var start = body.Start.ToUniversalTime();
-            var local = VenueClock.ToLocal(start, VenueClock.Zone(venue));
-            if (await TimeErrorAsync(db, venue.Id, local, start, body.Minutes, now, ct) is { } timeError)
+            if (await TimeErrorAsync(db, venue, start, body.Minutes, now, ct) is { } timeError)
                 return ApiErrors.Fail(400, timeError);
 
             var blocks = courtIds.Select(courtId => new Booking
@@ -191,8 +190,7 @@ public static class StaffBookingEndpoints
             }
 
             var start = body.Start.ToUniversalTime();
-            var local = VenueClock.ToLocal(start, VenueClock.Zone(venue));
-            if (await TimeErrorAsync(db, venue.Id, local, start, booking.Minutes, now, ct) is { } timeError)
+            if (await TimeErrorAsync(db, venue, start, booking.Minutes, now, ct) is { } timeError)
                 return ApiErrors.Fail(400, timeError);
 
             booking.CourtId = target.Id;
@@ -249,13 +247,15 @@ public static class StaffBookingEndpoints
             {
                 var pattern = $"%{Like(term)}%";
                 var reference = term.ToUpperInvariant();
-                var phoneTail = term.Length >= 4 && term.All(char.IsAsciiDigit) ? term : null;
+                var (phoneTail, phoneExact) = PhoneTerm(term);
+                // Account names only match on app bookings, the same rule as what staff are shown (LoadAsync).
                 query = query.Where(b =>
                     b.Reference == reference
                     || (b.GuestName != null && EF.Functions.ILike(b.GuestName, pattern))
                     || db.Customers.Any(c => c.Id == b.CustomerId
-                        && ((c.Name != null && EF.Functions.ILike(c.Name, pattern))
-                            || (phoneTail != null && c.PhoneE164.EndsWith(phoneTail)))));
+                        && ((b.Source == BookingSource.App && c.Name != null && EF.Functions.ILike(c.Name, pattern))
+                            || (phoneTail != null && c.PhoneE164.EndsWith(phoneTail))
+                            || c.PhoneE164 == phoneExact)));
             }
 
             return Results.Ok(await LoadAsync(db, venue, query.OrderBy(b => b.StartsAt).Take(500), ct));
@@ -281,24 +281,30 @@ public static class StaffBookingEndpoints
             return new StaffBookingDto(
                 b.Id, b.Reference, b.Kind, b.Source, b.CourtId, r.CourtEn, r.CourtAr,
                 Local(b.StartsAt), Local(b.EndsAt), b.Minutes, b.Total, b.Currency, b.Status,
-                b.CustomerId, r.CustomerName ?? b.GuestName, r.Phone is null ? null : PhoneNumber.Mask(r.Phone), b.Note,
+                b.CustomerId, b.GuestName ?? r.CustomerName, r.Phone is null ? null : PhoneNumber.Mask(r.Phone), b.Note,
                 b.LateCancellation, b.CancelledByVenue, Local(b.CreatedAt));
         }).ToList();
     }
 
     /// Staff timing rules shared by booking, blocking and moving. Returns an error sentence or null.
     private static async Task<string?> TimeErrorAsync(
-        MidangoDb db, Guid venueId, DateTime local, DateTimeOffset start, int minutes, DateTimeOffset now, CancellationToken ct)
+        MidangoDb db, Venue venue, DateTimeOffset start, int minutes, DateTimeOffset now, CancellationToken ct)
     {
         if (minutes < 30 || minutes > 720 || minutes % 30 != 0)
             return "Choose a length in steps of 30 minutes, up to 12 hours.";
-        if (start.AddMinutes(minutes) <= now) return "That time has already passed.";
+        // Range checks come first: an absurd start (year 9999) would overflow the time-zone conversion.
         if (start > now.AddDays(StaffMaxDaysAhead)) return $"Book within the next {StaffMaxDaysAhead} days.";
-        var hours = await db.OpeningHours.AsNoTracking().Where(h => h.VenueId == venueId).ToListAsync(ct);
-        return Slots.Bookable(local, minutes, hours)
+        if (start.AddMinutes(minutes) <= now) return "That time has already passed.";
+        var hours = await db.OpeningHours.AsNoTracking().Where(h => h.VenueId == venue.Id).ToListAsync(ct);
+        return Slots.Bookable(VenueClock.ToLocal(start, VenueClock.Zone(venue)), minutes, hours)
             ? null
             : "Pick a start on the half-hour grid inside opening hours, ending by closing time.";
     }
+
+    /// A search term as a phone: the trailing digits staff typed (4+), and the full number when it parses.
+    internal static (string? Tail, string? Exact) PhoneTerm(string term) => (
+        term.Length >= 4 && term.All(char.IsAsciiDigit) ? term : null,
+        PhoneNumber.TryParse(term, out var phone) ? phone.E164 : null);
 
     private static string? NoteError(string? note) =>
         note is { Length: > 200 } ? "Keep the note under 200 characters." : null;

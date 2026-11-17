@@ -117,10 +117,10 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.ToTable("bookings", t =>
             {
                 t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at");
-                // A booking is for exactly one of: an account or a walk-in. A block is for nobody.
+                // A booking is for someone (an account, a name typed at the desk, or both). A block is for nobody.
                 t.HasCheckConstraint("ck_bookings_party",
                     "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR " +
-                    "(kind = 'Booking' AND (customer_id IS NULL) <> (guest_name IS NULL))");
+                    "(kind = 'Booking' AND (customer_id IS NOT NULL OR guest_name IS NOT NULL))");
             });
             e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
             e.Property(x => x.Source).HasConversion<string>().HasMaxLength(16);

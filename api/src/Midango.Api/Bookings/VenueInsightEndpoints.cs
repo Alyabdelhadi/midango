@@ -33,18 +33,24 @@ public static class VenueInsightEndpoints
                     Bookings = g.Count(b => b.Status == BookingStatus.Confirmed),
                     Cancellations = g.Count(b => b.Status == BookingStatus.Cancelled),
                     Last = g.Max(b => b.StartsAt),
+                    BookedInApp = g.Any(b => b.Source == BookingSource.App),
+                    // ponytail: any name the desk typed for them (alphabetically last), not the latest one.
+                    DeskName = g.Max(b => b.GuestName),
                 });
+            // The account's own name only once the customer booked here in the app; until then the venue sees
+            // the name its staff typed, so typing a phone number never reveals who owns it.
             var rows = from s in stats
                        join c in db.Customers on s.CustomerId equals c.Id
-                       select new { c.Id, c.Name, c.PhoneE164, s.Bookings, s.Cancellations, s.Last };
+                       select new { c.Id, Name = s.BookedInApp ? c.Name : s.DeskName, c.PhoneE164, s.Bookings, s.Cancellations, s.Last };
 
             var term = q?.Trim();
             if (!string.IsNullOrEmpty(term))
             {
                 var pattern = $"%{StaffBookingEndpoints.Like(term)}%";
-                var phoneTail = term.Length >= 4 && term.All(char.IsAsciiDigit) ? term : null;
+                var (phoneTail, phoneExact) = StaffBookingEndpoints.PhoneTerm(term);
                 rows = rows.Where(r => (r.Name != null && EF.Functions.ILike(r.Name, pattern))
-                                       || (phoneTail != null && r.PhoneE164.EndsWith(phoneTail)));
+                                       || (phoneTail != null && r.PhoneE164.EndsWith(phoneTail))
+                                       || r.PhoneE164 == phoneExact);
             }
 
             var list = await rows.OrderByDescending(r => r.Last).Take(200).AsNoTracking().ToListAsync(ct);
@@ -56,10 +62,18 @@ public static class VenueInsightEndpoints
         {
             if (!PhoneNumber.TryParse(phone, out var parsed)) return ApiErrors.Fail(400, "Enter a valid mobile number.");
             var venueId = user.StaffVenueId()!.Value;
+            var here = db.Bookings.Where(b => b.VenueId == venueId && b.Kind == BookingKind.Booking);
             var customer = await db.Customers.AsNoTracking()
-                .Where(c => c.PhoneE164 == parsed.E164
-                            && db.Bookings.Any(b => b.CustomerId == c.Id && b.VenueId == venueId))
-                .Select(c => new { c.Id, c.Name, c.PhoneE164 })
+                .Where(c => c.PhoneE164 == parsed.E164 && here.Any(b => b.CustomerId == c.Id))
+                .Select(c => new
+                {
+                    c.Id,
+                    // Same naming rule as the customers list.
+                    Name = here.Any(b => b.CustomerId == c.Id && b.Source == BookingSource.App)
+                        ? c.Name
+                        : here.Where(b => b.CustomerId == c.Id).Max(b => b.GuestName),
+                    c.PhoneE164,
+                })
                 .SingleOrDefaultAsync(ct);
             return customer is null
                 ? ApiErrors.Fail(404, "No customer with that number has booked here yet.")

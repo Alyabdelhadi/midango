@@ -171,7 +171,7 @@ namespace Midango.Api.Data.Migrations
                         {
                             t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at");
 
-                            t.HasCheckConstraint("ck_bookings_party", "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR (kind = 'Booking' AND (customer_id IS NULL) <> (guest_name IS NULL))");
+                            t.HasCheckConstraint("ck_bookings_party", "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR (kind = 'Booking' AND (customer_id IS NOT NULL OR guest_name IS NOT NULL))");
                         });
                 });
 

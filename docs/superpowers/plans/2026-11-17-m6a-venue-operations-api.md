@@ -778,7 +778,9 @@ $mine = Call GET /me/bookings -Token $omar -Expect 200
 Check ($mine.upcoming.Count -eq 1 -and $mine.upcoming[0].reference -eq $b1.reference) 'customer signs in with that number and sees the desk booking'
 Call PUT /me @{ name = 'Omar A.' } -Token $omar -Expect 200 | Out-Null
 $again = Call POST /venue/bookings @{ courtId = $c2; start = (At $date '22:00'); minutes = 60; name = 'Someone else'; phone = $phone } -Token $desk -Expect 201
-Check ($again.customerName -eq 'Omar A.') "an existing customer's own name is never overwritten"
+Check ($again.customerName -eq 'Someone else') 'staff see the name they typed, not the account name'
+Check ((Call GET /me -Token $omar -Expect 200).name -eq 'Omar A.') "the customer's own name is never overwritten"
+Call POST /venue/bookings @{ courtId = $c1; start = '9999-12-31T20:00:00+03:00'; minutes = 60; name = 'Far' } -Token $desk -Expect 400 | Out-Null
 
 # 3. Blocks
 $blocks = @(Call POST /venue/blocks @{ courtIds = @($c1, $c2); start = (At $date '16:00'); minutes = 120; note = 'Resurfacing' } -Token $desk -Expect 201)
@@ -832,6 +834,8 @@ Check ($list.Count -eq 4 -and @($list | Where-Object kind -eq 'Block').Count -eq
 Check ($list[0].startsAt -le $list[-1].startsAt) 'sorted by start'
 Check (@(Call GET "/venue/bookings?from=$date&status=Cancelled" -Token $desk -Expect 200).Count -eq 1) 'status filter'
 Check (@(Call GET "/venue/bookings?from=$date&q=$tail" -Token $desk -Expect 200).Count -eq 2) 'search by last 4 digits'
+Check (@(Call GET "/venue/bookings?from=$date&q=$phone" -Token $desk -Expect 200).Count -eq 2) 'search by the full local number'
+Check (@(Call GET "/venue/bookings?from=$date&q=Omar%20A" -Token $desk -Expect 200).Count -eq 0) 'account name of a desk-booked customer is not searchable'
 Check (@(Call GET "/venue/bookings?from=$date&q=khal" -Token $desk -Expect 200).Count -eq 1) 'search walk-in name, case-insensitive'
 Check (@(Call GET "/venue/bookings?from=$date&q=$($b1.reference.ToLower())" -Token $desk -Expect 200).Count -eq 1) 'search by reference'
 Check (@(Call GET "/venue/bookings?from=$date&q=%25" -Token $desk -Expect 200).Count -eq 0) 'a % in the search is literal'
@@ -840,11 +844,13 @@ Call GET "/venue/bookings?from=$date&to=$($day.AddDays(70).ToString('yyyy-MM-dd'
 # 9. Customers and lookup
 $cust = @(Call GET /venue/customers -Token $desk -Expect 200)
 Check ($cust.Count -eq 2) 'two customers with accounts (the walk-in is not a customer)'
-$omarRow = $cust | Where-Object name -eq 'Omar A.'
+$omarRow = $cust | Where-Object phoneMasked -eq "•••• $tail"
 Check ($omarRow.bookings -eq 2 -and $omarRow.phoneMasked -eq "•••• $tail") 'Omar: 2 bookings, masked phone'
+Check ($omarRow.name -ne 'Omar A.' -and ($cust | Where-Object name -eq 'Lina')) 'desk-only customer shows a typed name; app customer shows her own'
 Check (@(Call GET "/venue/customers?q=lin" -Token $desk -Expect 200).Count -eq 1) 'customer search by name'
+Check (@(Call GET "/venue/customers?q=$phone" -Token $desk -Expect 200).Count -eq 1) 'customer search by full number'
 $found = Call GET "/venue/customers/lookup?phone=$phone" -Token $desk -Expect 200
-Check ($found.name -eq 'Omar A.' -and $found.phoneMasked -eq "•••• $tail" -and -not ($found | ConvertTo-Json).Contains($phone.Substring(1))) 'lookup returns name and masked phone only'
+Check ($found.name -ne 'Omar A.' -and $found.phoneMasked -eq "•••• $tail" -and -not ($found | ConvertTo-Json).Contains($phone.Substring(1))) 'lookup returns name and masked phone only'
 Call GET "/venue/customers/lookup?phone=$(NewPhone)" -Token $desk -Expect 404 | Out-Null
 Call GET "/venue/customers/lookup?phone=abc" -Token $desk -Expect 400 | Out-Null
 
@@ -867,7 +873,7 @@ $env:PGPASSWORD = 'midango_dev'
 Remove-Item Env:PGPASSWORD
 ```
 
-Expected: both fail with `violates check constraint "ck_bookings_party"`.
+Expected: both fail with `violates check constraint "ck_bookings_party"`. (After the review fix below, the first statement clears both `guest_name` and `customer_id`.)
 
 - [ ] **Step 4:** Wait 60 s (auth rate limit), re-run the M5 script (`Failures: 0`), stop the API, tick M6a in the roadmap, and commit.
 
@@ -880,3 +886,12 @@ Expected: both fail with `violates check constraint "ck_bookings_party"`.
 - Multi-day closures (Eid): block each day for now.
 - Check-in and cash taken: M7.
 - Who cancelled (staff id) is not stored; `cancelledByVenue` is enough for M9.
+
+## Review fixes (applied after Task 3, migration `StaffBookingNames`)
+
+An independent review found four issues; all fixed and re-verified:
+
+1. **Name probing.** Booking with any phone showed staff the account's own name, so staff could probe numbers for names. Now every staff booking stores the typed name in `guest_name` (the check constraint allows an account *and* a typed name), staff see `guestName ?? accountName`, the customers list and lookup show the account name only once that customer has booked here in the app, and bookings search matches account names only on app bookings.
+2. **Full-number search.** `0551234567` now matches (parsed to E.164) in bookings and customers search, besides the last-4+ digits.
+3. **Same new phone twice at once** returned 500. `BookingStore` now only redraws references on `ix_bookings_reference` and maps `ix_customers_phone_e164` to a 409 "try again".
+4. **Absurd start** (year 9999) returned 500; range checks now run before the time-zone conversion.
