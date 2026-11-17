@@ -1,0 +1,63 @@
+.sg {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  display: grid;
+  gap: 32px;
+}
+
+.sg-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sg-header h1 {
+  font: var(--mg-text-title-l);
+  flex: 1;
+}
+
+.sg h2 {
+  font: var(--mg-text-title-m);
+  margin-block-end: 12px;
+}
+
+.sg p {
+  margin: 0 0 8px;
+}
+
+.sg-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.sg-swatch {
+  background: var(--mg-white);
+  border: 1px solid var(--mg-line);
+  border-radius: var(--mg-radius);
+  overflow: hidden;
+  font: var(--mg-text-caption);
+}
+
+.sg-swatch div {
+  height: 48px;
+}
+
+.sg-swatch span {
+  display: block;
+  padding: 6px 8px;
+}
+
+.sg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.sg-row .mg-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

@@ -1,0 +1,36 @@
+/* Midango brand tokens (web). Source: docs/research/midango-design-research.html, decisions D1–D10. */
+:root {
+  /* Color: lime is a fill only, always with navy content on top (D1). */
+  --mg-lime: #a8ff00;
+  --mg-navy: #071329;
+  --mg-slate: #202b43;
+  --mg-muted: #5b6478;
+  --mg-cyan: #00cdeb;      /* gradients and links on navy only */
+  --mg-cyan-ink: #00788a;  /* links and focus on light surfaces (D2) */
+  --mg-cloud: #f5f7fa;
+  --mg-white: #ffffff;
+  --mg-line: #e3e7ee;
+  --mg-disabled-bg: #e7eaf2;
+  --mg-error: #d92d20;
+  --mg-error-bg: #fef0ef;
+  --mg-warning: #b54708;
+  --mg-warning-bg: #fff4e5;
+  --mg-success-bg: #f3ffe0; /* lime tint for "Checked in" */
+
+  /* Type (D5). Arabic falls back to IBM Plex Sans Arabic in every stack. */
+  --mg-font-display: "Space Grotesk", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --mg-font-ui: Inter, "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  /* Web type scale: size / line-height */
+  --mg-text-display: 700 32px/40px var(--mg-font-display);
+  --mg-text-title-l: 700 24px/32px var(--mg-font-display);
+  --mg-text-title-m: 500 18px/26px var(--mg-font-display);
+  --mg-text-numeric: 500 14px/20px var(--mg-font-display);
+  --mg-text-body: 400 14px/22px var(--mg-font-ui);
+  --mg-text-label: 600 13px/18px var(--mg-font-ui);
+  --mg-text-caption: 500 12px/16px var(--mg-font-ui);
+
+  /* Shape */
+  --mg-radius: 8px;
+  --mg-control-height: 40px;
+}

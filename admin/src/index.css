@@ -1,0 +1,30 @@
+@import "./theme/tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--mg-cloud);
+  color: var(--mg-slate);
+  font: var(--mg-text-body);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--mg-navy);
+  margin: 0;
+}
+
+a {
+  color: var(--mg-cyan-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--mg-cyan-ink);
+  outline-offset: 2px;
+}

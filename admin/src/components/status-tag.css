@@ -1,0 +1,33 @@
+.mg-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font: var(--mg-text-caption);
+  white-space: nowrap;
+}
+
+.mg-tag--free {
+  background: var(--mg-white);
+  color: var(--mg-slate);
+  border: 1px solid var(--mg-line);
+}
+
+.mg-tag--pay-at-venue {
+  background: var(--mg-warning-bg);
+  color: var(--mg-warning);
+}
+
+.mg-tag--paid {
+  background: var(--mg-disabled-bg);
+  color: var(--mg-navy);
+}
+
+.mg-tag--checked-in {
+  background: var(--mg-success-bg);
+  color: var(--mg-navy);
+}
+
+.mg-tag--blocked {
+  background: repeating-linear-gradient(135deg, var(--mg-disabled-bg) 0 6px, var(--mg-white) 6px 12px);
+  color: var(--mg-muted);
+}

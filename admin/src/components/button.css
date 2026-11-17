@@ -1,0 +1,49 @@
+.mg-button-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mg-button {
+  height: var(--mg-control-height);
+  padding-inline: 16px;
+  border-radius: var(--mg-radius);
+  border: 0;
+  font: var(--mg-text-label);
+  cursor: pointer;
+}
+
+.mg-button--primary {
+  background: var(--mg-lime);
+  color: var(--mg-navy);
+}
+
+.mg-button--secondary {
+  background: var(--mg-white);
+  color: var(--mg-navy);
+  border: 1.5px solid var(--mg-navy);
+}
+
+.mg-button--text {
+  background: transparent;
+  color: var(--mg-cyan-ink);
+  text-decoration: underline;
+  padding-inline: 4px;
+}
+
+.mg-button--destructive {
+  background: var(--mg-error);
+  color: var(--mg-white);
+}
+
+.mg-button:disabled {
+  background: var(--mg-disabled-bg);
+  color: var(--mg-muted);
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
+.mg-button-reason {
+  font: var(--mg-text-caption);
+  color: var(--mg-muted);
+}
