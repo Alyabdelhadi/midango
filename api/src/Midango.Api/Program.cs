@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
@@ -105,5 +106,7 @@ app.MapAdminEndpoints();
 app.MapCategoryEndpoints();
 app.MapVenueEndpoints();
 app.MapPriceEndpoints();
+app.MapAvailabilityEndpoints();
+app.MapBookingEndpoints();
 
 app.Run();
