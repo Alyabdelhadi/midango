@@ -9,7 +9,7 @@ public static class StaffEndpoints
 {
     public sealed record LoginBody(string? Email, string? Password);
     public sealed record StaffSignInResponse(
-        string AccessToken, DateTimeOffset AccessExpiresAt, string RefreshToken, bool MustChangePassword);
+        string AccessToken, DateTimeOffset AccessExpiresAt, string? RefreshToken, bool MustChangePassword);
     public sealed record StaffMeResponse(
         Guid Id, string Email, string DisplayName, StaffRole Role, Guid? VenueId, bool MustChangePassword);
     public sealed record ChangePasswordBody(string? CurrentPassword, string? NewPassword);
@@ -17,7 +17,7 @@ public static class StaffEndpoints
     public static void MapStaffEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapPost("/staff/auth/login", async (
-            LoginBody body, MidangoDb db, IPasswordHasher<StaffMember> hasher, TokenService tokens, CancellationToken ct) =>
+            HttpContext http, LoginBody body, MidangoDb db, IPasswordHasher<StaffMember> hasher, TokenService tokens, CancellationToken ct) =>
         {
             var email = StaffAccounts.NormaliseEmail(body.Email);
             var staff = email is null ? null : await db.Staff.SingleOrDefaultAsync(s => s.Email == email && s.Active, ct);
@@ -26,7 +26,7 @@ public static class StaffEndpoints
 
             var pair = await tokens.IssueAsync(SubjectKind.Staff, staff!.Id, AppClaims.For(staff), ct);
             return Results.Ok(new StaffSignInResponse(
-                pair.AccessToken, pair.AccessExpiresAt, pair.RefreshToken, staff.MustChangePassword));
+                pair.AccessToken, pair.AccessExpiresAt, SessionCookie.Deliver(http, pair), staff.MustChangePassword));
         }).RequireRateLimiting(Policies.AuthRateLimit);
 
         var me = app.MapGroup("/staff/me").RequireAuthorization(Policies.Staff);
@@ -42,7 +42,7 @@ public static class StaffEndpoints
         });
 
         me.MapPost("/password", async (
-            ChangePasswordBody body, ClaimsPrincipal user, MidangoDb db,
+            HttpContext http, ChangePasswordBody body, ClaimsPrincipal user, MidangoDb db,
             IPasswordHasher<StaffMember> hasher, TokenService tokens, CancellationToken ct) =>
         {
             var id = user.SubjectId();
@@ -59,7 +59,8 @@ public static class StaffEndpoints
             // Sign out every other device, then give this one a fresh session.
             await tokens.RevokeAllAsync(SubjectKind.Staff, staff.Id, ct);
             var pair = await tokens.IssueAsync(SubjectKind.Staff, staff.Id, AppClaims.For(staff), ct);
-            return Results.Ok(new StaffSignInResponse(pair.AccessToken, pair.AccessExpiresAt, pair.RefreshToken, false));
+            return Results.Ok(new StaffSignInResponse(
+                pair.AccessToken, pair.AccessExpiresAt, SessionCookie.Deliver(http, pair), false));
         });
     }
 }

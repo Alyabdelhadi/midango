@@ -11,11 +11,20 @@ public static class TokenEndpoints
     {
         var auth = app.MapGroup("/auth");
 
-        auth.MapPost("/refresh", async (RefreshBody body, TokenService tokens, MidangoDb db, CancellationToken ct) =>
+        // Mobile sends the token in the body; the web sends an empty body and the cookie comes along.
+        auth.MapPost("/refresh", async (
+            RefreshBody body, HttpContext http, TokenService tokens, MidangoDb db, CancellationToken ct) =>
         {
-            if (string.IsNullOrEmpty(body.RefreshToken)) return ApiErrors.Fail(401, "Please sign in again.");
-            var spent = await tokens.SpendAsync(body.RefreshToken, ct);
-            if (spent is null) return ApiErrors.Fail(401, "Please sign in again.");
+            var fromCookie = string.IsNullOrEmpty(body.RefreshToken);
+            var raw = fromCookie ? http.Request.Cookies[SessionCookie.Name] : body.RefreshToken;
+            if (string.IsNullOrEmpty(raw)) return ApiErrors.Fail(401, "Please sign in again.");
+
+            var spent = await tokens.SpendAsync(raw, ct);
+            if (spent is null)
+            {
+                if (fromCookie) SessionCookie.Clear(http);
+                return ApiErrors.Fail(401, "Please sign in again.");
+            }
 
             // Claims are rebuilt from the database, so a role change or deactivation takes effect here.
             IReadOnlyList<Claim>? claims = spent.SubjectKind switch
@@ -28,14 +37,24 @@ public static class TokenEndpoints
                     : null,
                 _ => null,
             };
-            if (claims is null) return ApiErrors.Fail(401, "Please sign in again.");
+            if (claims is null)
+            {
+                if (fromCookie) SessionCookie.Clear(http);
+                return ApiErrors.Fail(401, "Please sign in again.");
+            }
 
-            return Results.Ok(await tokens.IssueAsync(spent.SubjectKind, spent.SubjectId, claims, ct));
+            var pair = await tokens.IssueAsync(spent.SubjectKind, spent.SubjectId, claims, ct);
+            if (!fromCookie) return Results.Ok(pair);
+
+            SessionCookie.Write(http, pair);
+            return Results.Ok(new SessionCookie.SessionResponse(pair.AccessToken, pair.AccessExpiresAt, null));
         });
 
-        auth.MapPost("/logout", async (RefreshBody body, TokenService tokens, CancellationToken ct) =>
+        auth.MapPost("/logout", async (RefreshBody body, HttpContext http, TokenService tokens, CancellationToken ct) =>
         {
-            if (!string.IsNullOrEmpty(body.RefreshToken)) await tokens.RevokeAsync(body.RefreshToken, ct);
+            var raw = string.IsNullOrEmpty(body.RefreshToken) ? http.Request.Cookies[SessionCookie.Name] : body.RefreshToken;
+            if (!string.IsNullOrEmpty(raw)) await tokens.RevokeAsync(raw, ct);
+            SessionCookie.Clear(http);
             return Results.NoContent();
         });
     }
