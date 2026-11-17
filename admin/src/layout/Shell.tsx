@@ -1,4 +1,4 @@
-import { Building2, MapPin, Shapes, Users, type LucideIcon } from 'lucide-react';
+import { Building2, MapPin, Shapes, Tag, Users, type LucideIcon } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 import { Button } from '../components/Button';
 import { LanguageToggle } from '../components/LanguageToggle';
@@ -14,6 +14,7 @@ const NAV: NavItem[] = [
   { to: '/categories', label: 'navCategories', icon: Shapes, roles: ['PlatformOperator'] },
   { to: '/venues', label: 'navVenues', icon: Building2, roles: ['PlatformOperator'] },
   { to: '/venue', label: 'navVenue', icon: MapPin, roles: ['VenueManager', 'DeskStaff'] },
+  { to: '/prices', label: 'navPrices', icon: Tag, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/staff', label: 'navStaff', icon: Users, roles: ['VenueManager'] },
 ];
 

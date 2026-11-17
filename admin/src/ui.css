@@ -137,3 +137,12 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .auth-card { display: grid; gap: 14px; width: min(380px, 100%); padding: 28px; background: var(--mg-white); border: 1px solid var(--mg-line); border-radius: 12px; }
 .auth-card h1 { font: var(--mg-text-title-l); }
 .auth-card p { margin: 0; color: var(--mg-muted); }
+
+/* Prices */
+.period-row { display: grid; gap: 10px; padding-block: 12px; border-block-end: 1px solid var(--mg-line); }
+.period-row:last-of-type { border-block-end: 0; }
+.period-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.period-fields .mg-field { width: 160px; }
+.quote { display: grid; gap: 4px; }
+.quote-line { margin: 0; font: var(--mg-text-title-m); color: var(--mg-navy); }
+.quote-segments { margin: 4px 0 0; padding-inline-start: 18px; color: var(--mg-slate); }

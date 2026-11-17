@@ -34,18 +34,38 @@ export const DAYS: Day[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursda
 /** Times are "HH:mm:ss" on the wire. */
 export type Hours = { day: Day; opens: string; closes: string };
 
+/** A peak or off-peak period. Times are "HH:mm:ss"; to <= from runs past midnight. */
+export type Band = { day: Day; from: string; to: string; hourlyPrice: number };
+
+export type QuoteSegment = { from: string; to: string; hourlyPrice: number; amount: number };
+
+export type Quote = {
+  courtId: string;
+  day: Day;
+  start: string;
+  minutes: number;
+  total: number;
+  net: number;
+  vat: number;
+  vatPercent: number;
+  currency: string;
+  segments: QuoteSegment[];
+};
+
 export type Court = {
   id: string;
   categoryId: string;
   nameEn: string;
   nameAr: string;
   indoor: boolean;
+  hourlyPrice: number;
   featureIds: string[];
   sortOrder: number;
   active: boolean;
+  bands: Band[];
 };
 
-export type CourtInput = Omit<Court, 'id'>;
+export type CourtInput = Omit<Court, 'id' | 'bands'>;
 
 export type MissingItem = 'address' | 'location' | 'hours' | 'courts';
 export const CHECKLIST: MissingItem[] = ['address', 'location', 'hours', 'courts'];
@@ -59,6 +79,8 @@ export type Venue = {
   latitude: number | null;
   longitude: number | null;
   timeZoneId: string;
+  currencyCode: string;
+  vatPercent: number;
   published: boolean;
   hours: Hours[];
   courts: Court[];

@@ -21,7 +21,7 @@ export function CourtsSection({
   /** Throws on failure so the dialog can show the error next to the form. */
   onSave: (courtId: string | null, input: CourtInput) => Promise<void>;
 }) {
-  const { t, name } = useI18n();
+  const { t, name, money } = useI18n();
   const [editing, setEditing] = useState<Court | 'new' | null>(null);
   const categoryById = new Map(categories.map((c) => [c.id, c]));
 
@@ -58,6 +58,7 @@ export function CourtsSection({
               <th>{t('court')}</th>
               <th>{t('sport')}</th>
               <th>{t('setting')}</th>
+              <th>{t('pricePerHour')}</th>
               <th>{t('courtFeatures')}</th>
               <th>{t('status')}</th>
               {canEdit && (
@@ -84,6 +85,7 @@ export function CourtsSection({
                     )}
                   </td>
                   <td>{court.indoor ? t('indoor') : t('outdoor')}</td>
+                  <td className="numeric">{t('perHour', { price: money(court.hourlyPrice, venue.currencyCode) })}</td>
                   <td>{featureNames(court)}</td>
                   <td>
                     <Pill tone={court.active ? 'success' : 'warning'}>{court.active ? t('courtOpen') : t('courtClosed')}</Pill>
@@ -141,6 +143,7 @@ function CourtForm({
           nameEn: court.nameEn,
           nameAr: court.nameAr,
           indoor: court.indoor,
+          hourlyPrice: court.hourlyPrice,
           featureIds: court.featureIds,
           sortOrder: court.sortOrder,
           active: court.active,
@@ -150,6 +153,7 @@ function CourtForm({
           nameEn: '',
           nameAr: '',
           indoor: false,
+          hourlyPrice: 0,
           featureIds: [],
           sortOrder: nextSortOrder,
           active: true,
@@ -199,6 +203,18 @@ function CourtForm({
         <input type="checkbox" checked={draft.indoor} onChange={(e) => set({ indoor: e.target.checked })} />
         {t('indoor')}
       </label>
+      <Field label={t('pricePerHour')}>
+        <input
+          type="number"
+          required
+          min={1}
+          max={10000}
+          step="0.01"
+          inputMode="decimal"
+          value={draft.hourlyPrice || ''}
+          onChange={(e) => set({ hourlyPrice: Number(e.target.value) })}
+        />
+      </Field>
       {category && category.features.length > 0 && (
         <fieldset className="mg-fieldset">
           <legend>{t('courtFeatures')}</legend>

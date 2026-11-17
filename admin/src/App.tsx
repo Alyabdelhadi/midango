@@ -4,6 +4,7 @@ import { Shell } from './layout/Shell';
 import { AuthProvider, useAuth } from './lib/auth';
 import { I18nProvider } from './lib/i18n';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { PricesPage } from './pages/PricesPage';
 import { SignInPage } from './pages/SignInPage';
 import { StaffPage } from './pages/StaffPage';
 import { VenuePage } from './pages/venue/VenuePage';
@@ -13,6 +14,11 @@ import { Styleguide } from './Styleguide';
 function VenueRoute() {
   const { staff } = useAuth();
   return <VenuePage canEdit={staff?.role === 'VenueManager'} />;
+}
+
+function PricesRoute() {
+  const { staff } = useAuth();
+  return <PricesPage canEdit={staff?.role === 'VenueManager'} />;
 }
 
 export default function App() {
@@ -47,6 +53,14 @@ export default function App() {
                   element={
                     <RequireRole roles={['VenueManager', 'DeskStaff']}>
                       <VenueRoute />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="prices"
+                  element={
+                    <RequireRole roles={['VenueManager', 'DeskStaff']}>
+                      <PricesRoute />
                     </RequireRole>
                   }
                 />

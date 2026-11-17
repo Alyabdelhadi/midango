@@ -12,6 +12,8 @@ type I18n = {
   t: (key: MessageKey, vars?: Record<string, string | number>) => string;
   /** The name in the interface language, from any { nameEn, nameAr } record. */
   name: (item: { nameEn: string; nameAr: string }) => string;
+  /** Currency amount in the interface language, e.g. "SAR 240.00" / "٢٤٠٫٠٠ ر.س.‏". */
+  money: (amount: number, currency: string) => string;
 };
 
 const I18nContext = createContext<I18n | null>(null);
@@ -55,7 +57,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [lang],
   );
 
-  return <I18nContext.Provider value={{ lang, setLang, t, name }}>{children}</I18nContext.Provider>;
+  const money = useCallback(
+    (amount: number, currency: string) =>
+      new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-SA', { style: 'currency', currency }).format(amount),
+    [lang],
+  );
+
+  return <I18nContext.Provider value={{ lang, setLang, t, name, money }}>{children}</I18nContext.Provider>;
 }
 
 export function useI18n(): I18n {
