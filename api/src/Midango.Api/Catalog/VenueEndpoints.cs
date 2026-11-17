@@ -10,19 +10,22 @@ public static class VenueEndpoints
 {
     public sealed record HoursDto(DayOfWeek Day, TimeOnly Opens, TimeOnly Closes);
 
+    public sealed record BandDto(DayOfWeek Day, TimeOnly From, TimeOnly To, decimal HourlyPrice);
+
     public sealed record CourtDto(
-        Guid Id, Guid CategoryId, string NameEn, string NameAr, bool Indoor,
-        IReadOnlyList<Guid> FeatureIds, int SortOrder, bool Active)
+        Guid Id, Guid CategoryId, string NameEn, string NameAr, bool Indoor, decimal HourlyPrice,
+        IReadOnlyList<Guid> FeatureIds, int SortOrder, bool Active, IReadOnlyList<BandDto> Bands)
     {
-        public static CourtDto From(Court c) => new(
-            c.Id, c.CategoryId, c.NameEn, c.NameAr, c.Indoor,
-            c.Features.Select(f => f.Id).ToList(), c.SortOrder, c.Active);
+        public static CourtDto From(Court c, IEnumerable<PriceBand> bands) => new(
+            c.Id, c.CategoryId, c.NameEn, c.NameAr, c.Indoor, c.HourlyPrice,
+            c.Features.Select(f => f.Id).ToList(), c.SortOrder, c.Active,
+            bands.OrderBy(b => b.Day).ThenBy(b => b.From).Select(b => new BandDto(b.Day, b.From, b.To, b.HourlyPrice)).ToList());
     }
 
     /// missingForPublish holds keys the client translates: "address", "location", "hours", "courts".
     public sealed record VenueDto(
         Guid Id, string NameEn, string NameAr, string? AddressEn, string? AddressAr,
-        double? Latitude, double? Longitude, string TimeZoneId, bool Published,
+        double? Latitude, double? Longitude, string TimeZoneId, string CurrencyCode, decimal VatPercent, bool Published,
         IReadOnlyList<HoursDto> Hours, IReadOnlyList<CourtDto> Courts, IReadOnlyList<string> MissingForPublish);
 
     public sealed record VenueInput(
@@ -30,7 +33,8 @@ public static class VenueEndpoints
         double? Latitude, double? Longitude, string? TimeZoneId);
 
     public sealed record CourtInput(
-        Guid CategoryId, string? NameEn, string? NameAr, bool Indoor, Guid[]? FeatureIds, int SortOrder, bool Active);
+        Guid CategoryId, string? NameEn, string? NameAr, bool Indoor, decimal HourlyPrice,
+        Guid[]? FeatureIds, int SortOrder, bool Active);
 
     public static void MapVenueEndpoints(this IEndpointRouteBuilder app)
     {
@@ -169,7 +173,7 @@ public static class VenueEndpoints
                 extensions: new Dictionary<string, object?> { ["missing"] = missing });
     }
 
-    private static async Task<VenueDto?> LoadAsync(MidangoDb db, Guid venueId, CancellationToken ct)
+    internal static async Task<VenueDto?> LoadAsync(MidangoDb db, Guid venueId, CancellationToken ct)
     {
         var venue = await db.Venues.AsNoTracking().SingleOrDefaultAsync(v => v.Id == venueId, ct);
         if (venue is null) return null;
@@ -177,11 +181,14 @@ public static class VenueEndpoints
         var courts = await db.Courts.AsNoTracking().Include(c => c.Features)
             .Where(c => c.VenueId == venueId).OrderBy(c => c.SortOrder).ThenBy(c => c.NameEn).ToListAsync(ct);
 
+        var courtIds = courts.Select(c => c.Id).ToList();
+        var bands = await db.PriceBands.AsNoTracking().Where(b => courtIds.Contains(b.CourtId)).ToListAsync(ct);
+
         return new VenueDto(
             venue.Id, venue.NameEn, venue.NameAr, venue.AddressEn, venue.AddressAr,
-            venue.Latitude, venue.Longitude, venue.TimeZoneId, venue.Published,
+            venue.Latitude, venue.Longitude, venue.TimeZoneId, venue.CurrencyCode, venue.VatPercent, venue.Published,
             hours.Select(h => new HoursDto(h.Day, h.Opens, h.Closes)).ToList(),
-            courts.Select(CourtDto.From).ToList(),
+            courts.Select(c => CourtDto.From(c, bands.Where(b => b.CourtId == c.Id))).ToList(),
             MissingForPublish(venue, hours.Count, courts.Count(c => c.Active)));
     }
 
@@ -206,6 +213,8 @@ public static class VenueEndpoints
     {
         if (!Input.Bilingual(input.NameEn, input.NameAr, 60))
             return "Enter the court name in English and Arabic, up to 60 characters each.";
+        if (!Pricing.ValidPrice(input.HourlyPrice))
+            return "Enter the court's price per hour between 1 and 10,000, with at most 2 decimals.";
 
         var category = await db.SportCategories.Include(c => c.Features).SingleOrDefaultAsync(c => c.Id == input.CategoryId, ct);
         if (category is null || (!category.Active && category.Id != court.CategoryId))
@@ -220,6 +229,7 @@ public static class VenueEndpoints
         court.NameEn = input.NameEn!.Trim();
         court.NameAr = input.NameAr!.Trim();
         court.Indoor = input.Indoor;
+        court.HourlyPrice = input.HourlyPrice;
         court.SortOrder = input.SortOrder;
         court.Active = input.Active;
         court.Features.Clear();

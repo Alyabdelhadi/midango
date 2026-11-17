@@ -104,5 +104,6 @@ app.MapStaffEndpoints();
 app.MapAdminEndpoints();
 app.MapCategoryEndpoints();
 app.MapVenueEndpoints();
+app.MapPriceEndpoints();
 
 app.Run();
