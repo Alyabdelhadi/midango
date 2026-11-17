@@ -109,5 +109,6 @@ app.MapPriceEndpoints();
 app.MapAvailabilityEndpoints();
 app.MapBookingEndpoints();
 app.MapStaffBookingEndpoints();
+app.MapVenueInsightEndpoints();
 
 app.Run();
