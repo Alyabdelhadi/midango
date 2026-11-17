@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
 using Npgsql;
@@ -99,5 +100,7 @@ app.MapTokenEndpoints();
 app.MapCustomerEndpoints();
 app.MapStaffEndpoints();
 app.MapAdminEndpoints();
+app.MapCategoryEndpoints();
+app.MapVenueEndpoints();
 
 app.Run();
