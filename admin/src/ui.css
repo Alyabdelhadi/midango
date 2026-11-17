@@ -68,7 +68,7 @@
 @media (max-width: 640px) { .mg-table { display: block; overflow-x: auto; } }
 
 /* Forms */
-.mg-field { display: grid; gap: 4px; min-width: 0; }
+.mg-field { display: grid; gap: 4px; min-width: 0; align-content: start; }
 .mg-field-label { font: var(--mg-text-label); color: var(--mg-navy); }
 .mg-field-hint { font: var(--mg-text-caption); color: var(--mg-muted); }
 input:not([type='checkbox']):not([type='radio']), select {

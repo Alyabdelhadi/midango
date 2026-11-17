@@ -165,7 +165,7 @@ public static class VenueEndpoints
         var missing = MissingForPublish(venue, openDays.Value, activeCourts.Value);
         return missing.Count == 0
             ? null
-            : Results.Problem(statusCode: 409, title: "A published venue can't lose this. Unpublish it first.",
+            : Results.Problem(statusCode: 409, title: "A live venue must keep its address, map location, opening hours and at least one open court. Unpublish it first to change that.",
                 extensions: new Dictionary<string, object?> { ["missing"] = missing });
     }
 
