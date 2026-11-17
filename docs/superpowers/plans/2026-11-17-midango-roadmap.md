@@ -23,7 +23,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 
 | # | Plan | Delivers | Depends on |
 |---|---|---|---|
-| **M1** | **Foundations** | Repo; brand assets; API host with a database health check; React admin and Flutter app projects carrying the approved tokens, fonts, buttons, status tags and slot chip, each with a styleguide screen working in English and Arabic | — |
+| **M1** | **Foundations** ✅ done | Repo; brand assets; API host with a database health check; React admin and Flutter app projects carrying the approved tokens, fonts, buttons, status tags and slot chip, each with a styleguide screen working in English and Arabic | — |
 | M2 | Identity & access | Customer sign-in by phone OTP (SMS provider choice needed); staff accounts with three roles: *platform operator*, *venue manager*, *desk staff*; every venue query scoped to the staff member's venue; masked phone value type | M1 |
 | M3 | Catalog & Business shell | Sport categories screen (platform operator: EN/AR names, icon key, court features, default durations, order, active); venues, courts, opening hours; Business sidebar (only items that work); first-run venue setup wizard; i18n in React | M2 |
 | M4 | Prices | Weekly price board per court (days × time bands), price preview line ("Fri 20:00, 90 min = SAR 270"), VAT handling | M3 |
