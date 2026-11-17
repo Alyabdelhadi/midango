@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Midango.Api.Catalog;
 using Midango.Api.Identity;
 using Midango.Api.Venues;
@@ -94,5 +95,14 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasKey(h => new { h.VenueId, h.Day });
             e.HasOne<Venue>().WithMany().HasForeignKey(h => h.VenueId).OnDelete(DeleteBehavior.Cascade);
         });
+
+        // Ids are created in code (Guid.CreateVersion7). Left as "generated on add", EF treats a new entity
+        // reached through a navigation with its id already set as an existing row, sends an UPDATE that
+        // matches nothing, and throws a concurrency error. Never-generated makes EF insert it.
+        foreach (var entity in b.Model.GetEntityTypes())
+        {
+            if (entity.FindPrimaryKey()?.Properties is [{ Name: "Id" } key] && key.ClrType == typeof(Guid))
+                key.ValueGenerated = ValueGenerated.Never;
+        }
     }
 }

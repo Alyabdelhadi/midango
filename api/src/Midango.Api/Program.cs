@@ -27,6 +27,8 @@ builder.Services.AddSingleton<IPasswordHasher<StaffMember>, PasswordHasher<Staff
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<OtpService>();
 builder.Services.AddProblemDetails();
+// Malformed request bodies are 400 in every environment (Development otherwise throws and returns 500).
+builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false);
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
