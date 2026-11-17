@@ -36,7 +36,10 @@ class SlotChip extends StatelessWidget {
           onTap: available ? onTap : null,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 64, minHeight: 44),
+            // widthFactor/heightFactor 1: size to the label, don't stretch to the parent's width.
             child: Center(
+              widthFactor: 1,
+              heightFactor: 1,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
