@@ -19,6 +19,9 @@ public sealed class Venue
     /// Prices are VAT-inclusive; this is the rate used to show the VAT portion.
     public decimal VatPercent { get; set; } = 15m;
 
+    /// Customers cancel for free until this many hours before the start; later counts as a late cancellation.
+    public int FreeCancellationHours { get; set; } = 24;
+
     /// Visible in the app. Only allowed when nothing is missing (see VenueEndpoints.MissingForPublish).
     public bool Published { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;

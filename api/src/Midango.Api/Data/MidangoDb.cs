@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Identity;
 using Midango.Api.Venues;
@@ -18,9 +19,12 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<Court> Courts => Set<Court>();
     public DbSet<OpeningHours> OpeningHours => Set<OpeningHours>();
     public DbSet<PriceBand> PriceBands => Set<PriceBand>();
+    public DbSet<Booking> Bookings => Set<Booking>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        b.HasPostgresExtension("btree_gist");
+
         b.Entity<Venue>(e =>
         {
             e.Property(v => v.NameEn).HasMaxLength(120);
@@ -105,6 +109,24 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(p => p.HourlyPrice).HasPrecision(10, 2);
             e.HasOne<Court>().WithMany().HasForeignKey(p => p.CourtId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(p => new { p.CourtId, p.Day });
+        });
+
+        b.Entity<Booking>(e =>
+        {
+            // The no-overlap exclusion constraint is added by hand in the Bookings migration (EF can't express it).
+            e.ToTable("bookings", t => t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at"));
+            e.Property(x => x.Reference).HasMaxLength(12);
+            e.HasIndex(x => x.Reference).IsUnique();
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Total).HasPrecision(10, 2);
+            e.Property(x => x.Net).HasPrecision(10, 2);
+            e.Property(x => x.Vat).HasPrecision(10, 2);
+            e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Court>().WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.CourtId, x.StartsAt });
+            e.HasIndex(x => new { x.CustomerId, x.StartsAt });
         });
 
         // Ids are created in code (Guid.CreateVersion7). Left as "generated on add", EF treats a new entity

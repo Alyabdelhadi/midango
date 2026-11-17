@@ -20,6 +20,7 @@ namespace Midango.Api.Data.Migrations
                 .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "btree_gist");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("CourtCourtFeature", b =>
@@ -39,6 +40,107 @@ namespace Midango.Api.Data.Migrations
                         .HasDatabaseName("ix_court_feature_links_features_id");
 
                     b.ToTable("court_feature_links", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Bookings.Booking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("court_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<DateTimeOffset>("EndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ends_at");
+
+                    b.Property<DateTimeOffset>("FreeCancellationUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("free_cancellation_until");
+
+                    b.Property<bool>("LateCancellation")
+                        .HasColumnType("boolean")
+                        .HasColumnName("late_cancellation");
+
+                    b.Property<int>("Minutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("minutes");
+
+                    b.Property<decimal>("Net")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("net");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("reference");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("starts_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("total");
+
+                    b.Property<decimal>("Vat")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("vat");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bookings");
+
+                    b.HasIndex("Reference")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bookings_reference");
+
+                    b.HasIndex("VenueId")
+                        .HasDatabaseName("ix_bookings_venue_id");
+
+                    b.HasIndex("CourtId", "StartsAt")
+                        .HasDatabaseName("ix_bookings_court_id_starts_at");
+
+                    b.HasIndex("CustomerId", "StartsAt")
+                        .HasDatabaseName("ix_bookings_customer_id_starts_at");
+
+                    b.ToTable("bookings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at");
+                        });
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.Court", b =>
@@ -456,6 +558,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(3)")
                         .HasColumnName("currency_code");
 
+                    b.Property<int>("FreeCancellationHours")
+                        .HasColumnType("integer")
+                        .HasColumnName("free_cancellation_hours");
+
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision")
                         .HasColumnName("latitude");
@@ -512,6 +618,30 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_court_feature_links_court_features_features_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Bookings.Booking", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.Court", null)
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bookings_courts_court_id");
+
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bookings_customers_customer_id");
+
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bookings_venues_venue_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.Court", b =>
