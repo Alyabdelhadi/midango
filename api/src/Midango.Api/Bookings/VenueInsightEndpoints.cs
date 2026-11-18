@@ -54,8 +54,10 @@ public static class VenueInsightEndpoints
             }
 
             var list = await rows.OrderByDescending(r => r.Last).Take(200).AsNoTracking().ToListAsync(ct);
+            // Like every staff time: in the venue's own offset, not UTC.
+            var zone = VenueClock.Zone(await db.Venues.AsNoTracking().SingleAsync(v => v.Id == venueId, ct));
             return Results.Ok(list.Select(r => new VenueCustomerDto(
-                r.Id, r.Name, PhoneNumber.Mask(r.PhoneE164), r.Bookings, r.Cancellations, r.Last)));
+                r.Id, r.Name, PhoneNumber.Mask(r.PhoneE164), r.Bookings, r.Cancellations, TimeZoneInfo.ConvertTime(r.Last, zone))));
         });
 
         venueStaff.MapGet("/customers/lookup", async (string? phone, ClaimsPrincipal user, MidangoDb db, CancellationToken ct) =>

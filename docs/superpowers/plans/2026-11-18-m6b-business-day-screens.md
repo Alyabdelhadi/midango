@@ -1493,3 +1493,11 @@ Fix what fails, re-check, tick M6b in the roadmap, commit, merge.
 - Resizing a booking by dragging its edge (length changes = cancel and rebook for now).
 - Price preview in the new-booking dialog (the booking toast and panel show the price).
 - Customer detail page / booking history per customer.
+
+## Walkthrough fixes (Task 5)
+
+- Time ranges reversed in Arabic (`17:00–16:00`): every range is now wrapped in `<bdi dir="ltr">`.
+- Customers `lastBookingAt` came back in UTC; the API now converts it to the venue's offset.
+- A refused move said the customer-app sentence; staff now get "That court already has a booking in that time. Nothing was moved."
+- `.mg-button` on a router `<Link>` was underlined and misaligned; buttons are now inline-flex, centred, no underline.
+

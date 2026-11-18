@@ -67,7 +67,7 @@ function PanelBody({
       <dl className="details">
         <dt>{t('time')}</dt>
         <dd>
-          {formatDay(dayOf(b.startsAt), lang)} · {clock(b.startsAt)}–{clock(b.endsAt)} ({t('minutesShort', { m: b.minutes })})
+          {formatDay(dayOf(b.startsAt), lang)} · <bdi dir="ltr">{clock(b.startsAt)}–{clock(b.endsAt)}</bdi> ({t('minutesShort', { m: b.minutes })})
         </dd>
         <dt>{t('court')}</dt>
         <dd>{name({ nameEn: b.courtNameEn, nameAr: b.courtNameAr })}</dd>

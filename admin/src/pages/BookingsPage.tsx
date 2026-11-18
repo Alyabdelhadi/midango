@@ -136,7 +136,7 @@ function BookingsTable({ query }: { query: string }) {
                   </Button>
                 </td>
                 <td>
-                  {formatDay(dayOf(b.startsAt), lang, 'short')} · {clock(b.startsAt)}–{clock(b.endsAt)}
+                  {formatDay(dayOf(b.startsAt), lang, 'short')} · <bdi dir="ltr">{clock(b.startsAt)}–{clock(b.endsAt)}</bdi>
                 </td>
                 <td>{name({ nameEn: b.courtNameEn, nameAr: b.courtNameAr })}</td>
                 <td>

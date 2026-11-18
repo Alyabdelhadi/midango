@@ -5,6 +5,10 @@
 }
 
 .mg-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none; /* also styles a router <Link> as a button */
   height: var(--mg-control-height);
   padding-inline: 16px;
   border-radius: var(--mg-radius);

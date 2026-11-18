@@ -159,7 +159,7 @@ function ScheduleDay({ date, onDate }: { date: string; onDate: (date: string) =>
                   }}
                 >
                   <span className="schedule-booking-time">
-                    {clock(b.startsAt)}–{clock(b.endsAt)}
+                    <bdi dir="ltr">{clock(b.startsAt)}–{clock(b.endsAt)}</bdi>
                   </span>
                   <span>{b.kind === 'Block' ? (b.note ?? t('blocked')) : b.customerName}</span>
                 </button>

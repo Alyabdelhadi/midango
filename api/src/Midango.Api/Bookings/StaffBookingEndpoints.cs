@@ -199,7 +199,8 @@ public static class StaffBookingEndpoints
             booking.StartsAt = start;
             booking.EndsAt = start.AddMinutes(booking.Minutes);
             booking.FreeCancellationUntil = booking.Kind == BookingKind.Block ? start : start.AddHours(-venue.FreeCancellationHours);
-            if (await BookingStore.SaveAsync(db, [], ct) is { } failed) return failed;
+            if (await BookingStore.SaveAsync(db, [], ct) is not null)
+                return ApiErrors.Fail(409, "That court already has a booking in that time. Nothing was moved.");
 
             return Results.Ok((await LoadAsync(db, venue, db.Bookings.Where(b => b.Id == id), ct)).Single());
         });

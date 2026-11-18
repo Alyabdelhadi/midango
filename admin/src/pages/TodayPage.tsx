@@ -44,7 +44,14 @@ export function TodayPage() {
       />
       <p className="page-intro">
         {formatDay(d.date, lang)}
-        {d.open && ` · ${clock(d.from)}–${clock(d.to)}`}
+        {d.open && (
+          <>
+            {' · '}
+            <bdi dir="ltr">
+              {clock(d.from)}–{clock(d.to)}
+            </bdi>
+          </>
+        )}
       </p>
       {!d.open && <Notice tone="info">{t('closedToday')}</Notice>}
       <div className="tiles">
@@ -62,7 +69,7 @@ export function TodayPage() {
             {d.next.map((b) => (
               <li key={b.id}>
                 <span className="next-time">
-                  {clock(b.startsAt)}–{clock(b.endsAt)}
+                  <bdi dir="ltr">{clock(b.startsAt)}–{clock(b.endsAt)}</bdi>
                 </span>
                 <span>{name({ nameEn: b.courtNameEn, nameAr: b.courtNameAr })}</span>
                 <span>
