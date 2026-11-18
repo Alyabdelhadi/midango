@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarDays,
+  ChartColumnBig,
   ConciergeBell,
   Contact,
   LayoutDashboard,
@@ -28,6 +29,7 @@ const NAV: NavItem[] = [
   { to: '/schedule', label: 'navSchedule', icon: CalendarDays, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/bookings', label: 'navBookings', icon: ListChecks, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/customers', label: 'navCustomers', icon: Contact, roles: ['VenueManager', 'DeskStaff'] },
+  { to: '/reports', label: 'navReports', icon: ChartColumnBig, roles: ['VenueManager'] },
   { to: '/categories', label: 'navCategories', icon: Shapes, roles: ['PlatformOperator'] },
   { to: '/venues', label: 'navVenues', icon: Building2, roles: ['PlatformOperator'] },
   { to: '/venue', label: 'navVenue', icon: MapPin, roles: ['VenueManager', 'DeskStaff'] },

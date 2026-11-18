@@ -181,3 +181,23 @@ export type Today = {
   noShows: number;
   next: StaffBooking[];
 };
+
+export type HeatCell = { day: Day; hour: number; percent: number; bookedMinutes: number; openMinutes: number };
+export type CashRow = { weekStart: string; courtId: string; courtNameEn: string; courtNameAr: string; cash: number; checkIns: number };
+export type Report = {
+  from: string;
+  to: string;
+  currency: string;
+  dayStartHour: number;
+  bookings: number;
+  occupancyPercent: number;
+  cashCollected: number;
+  checkIns: number;
+  played: number;
+  noShows: number;
+  noShowRatePercent: number;
+  lateCancellations: number;
+  venueCancellations: number;
+  heatmap: HeatCell[];
+  cash: CashRow[];
+};

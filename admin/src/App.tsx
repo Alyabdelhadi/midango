@@ -8,6 +8,7 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DeskPage } from './pages/DeskPage';
 import { PricesPage } from './pages/PricesPage';
+import { ReportsPage } from './pages/ReportsPage';
 import { SignInPage } from './pages/SignInPage';
 import { SchedulePage } from './pages/schedule/SchedulePage';
 import { StaffPage } from './pages/StaffPage';
@@ -81,6 +82,14 @@ export default function App() {
                   element={
                     <RequireRole roles={['VenueManager', 'DeskStaff']}>
                       <PricesRoute />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="reports"
+                  element={
+                    <RequireRole roles={['VenueManager']}>
+                      <ReportsPage />
                     </RequireRole>
                   }
                 />

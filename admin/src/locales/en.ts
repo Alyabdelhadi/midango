@@ -231,6 +231,21 @@ export const en = {
   tileCashTaken: 'Cash taken',
   ofExpected: 'of {amount} expected',
   tileNoShows: 'No-shows',
+  navReports: 'Reports',
+  rangeWeek: 'Last 7 days',
+  rangeMonth: 'Last 4 weeks',
+  rangeQuarter: 'Last 3 months',
+  checkInsNote: '{n} check-ins',
+  tileNoShowRate: 'No-show rate',
+  noShowOf: '{n} of {m} bookings',
+  cancellationsLine: 'Late cancellations: {late} · Cancelled by the venue: {venue}',
+  heatmapTitle: 'When courts are booked',
+  heatmapIntro: 'Share of open court time that was booked, by day and hour.',
+  heatCell: '{day} {from}–{to}: {pct}% booked ({booked} of {open} court-minutes)',
+  cashTitle: 'Cash taken by court and week',
+  weekOf: 'Week of {date}',
+  total: 'Total',
+  noCash: 'No cash taken in this period.',
 };
 
 export type MessageKey = keyof typeof en;
