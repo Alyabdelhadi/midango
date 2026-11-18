@@ -109,6 +109,7 @@ public static class BookingEndpoints
 
             if (booking.Status == BookingStatus.Confirmed)
             {
+                if (booking.CheckedInAt is not null) return ApiErrors.Fail(409, "You've already checked in at the venue.");
                 var now = clock.GetUtcNow();
                 if (booking.StartsAt <= now) return ApiErrors.Fail(409, "This booking has already started.");
                 booking.Status = BookingStatus.Cancelled;

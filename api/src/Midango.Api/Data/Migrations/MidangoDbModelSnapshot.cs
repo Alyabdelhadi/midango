@@ -56,6 +56,19 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("cancelled_by_venue");
 
+                    b.Property<decimal?>("CashCollected")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("cash_collected");
+
+                    b.Property<DateTimeOffset?>("CheckedInAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_in_at");
+
+                    b.Property<Guid?>("CheckedInByStaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("checked_in_by_staff_id");
+
                     b.Property<Guid>("CourtId")
                         .HasColumnType("uuid")
                         .HasColumnName("court_id");
@@ -109,6 +122,10 @@ namespace Midango.Api.Data.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("net");
+
+                    b.Property<DateTimeOffset?>("NoShowAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("no_show_at");
 
                     b.Property<string>("Note")
                         .HasMaxLength(200)
@@ -169,6 +186,8 @@ namespace Midango.Api.Data.Migrations
 
                     b.ToTable("bookings", null, t =>
                         {
+                            t.HasCheckConstraint("ck_bookings_checked_in_confirmed", "checked_in_at IS NULL OR (status = 'Confirmed' AND kind = 'Booking' AND cash_collected IS NOT NULL)");
+
                             t.HasCheckConstraint("ck_bookings_ends_after_start", "ends_at > starts_at");
 
                             t.HasCheckConstraint("ck_bookings_party", "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR (kind = 'Booking' AND (customer_id IS NOT NULL OR guest_name IS NOT NULL))");

@@ -6,6 +6,8 @@ public enum BookingStatus
 {
     Confirmed,
     Cancelled,
+    /// Didn't turn up. Not Confirmed, so the court is bookable again.
+    NoShow,
 }
 
 public enum BookingKind
@@ -65,6 +67,15 @@ public sealed class Booking
 
     /// Cancelled by the venue; never counts against the customer.
     public bool CancelledByVenue { get; set; }
+
+    /// Set by "Take cash & check in". A checked-in booking always stays Confirmed (database check).
+    public DateTimeOffset? CheckedInAt { get; set; }
+    public Guid? CheckedInByStaffId { get; set; }
+
+    /// Cash taken at check-in: the full total (no partial payments yet).
+    public decimal? CashCollected { get; set; }
+
+    public DateTimeOffset? NoShowAt { get; set; }
 }
 
 public static class BookingReference

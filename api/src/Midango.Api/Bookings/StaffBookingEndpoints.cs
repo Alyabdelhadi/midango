@@ -18,7 +18,8 @@ public static class StaffBookingEndpoints
         Guid CourtId, string CourtNameEn, string CourtNameAr,
         DateTimeOffset StartsAt, DateTimeOffset EndsAt, int Minutes, decimal Total, string Currency, BookingStatus Status,
         Guid? CustomerId, string? CustomerName, string? PhoneMasked, string? Note,
-        bool LateCancellation, bool CancelledByVenue, DateTimeOffset CreatedAt);
+        bool LateCancellation, bool CancelledByVenue, DateTimeOffset CreatedAt,
+        DateTimeOffset? CheckedInAt, decimal? CashCollected, DateTimeOffset? NoShowAt);
 
     public sealed record ScheduleCourtDto(Guid Id, Guid CategoryId, string NameEn, string NameAr, int[] DurationsMinutes);
 
@@ -214,6 +215,7 @@ public static class StaffBookingEndpoints
 
             if (booking.Status == BookingStatus.Confirmed)
             {
+                if (booking.CheckedInAt is not null) return ApiErrors.Fail(409, "Undo the check-in before cancelling.");
                 var now = clock.GetUtcNow();
                 if (booking.EndsAt <= now) return ApiErrors.Fail(409, "This booking has already finished.");
                 booking.Status = BookingStatus.Cancelled;
@@ -285,7 +287,8 @@ public static class StaffBookingEndpoints
                 b.Id, b.Reference, b.Kind, b.Source, b.CourtId, r.CourtEn, r.CourtAr,
                 Local(b.StartsAt), Local(b.EndsAt), b.Minutes, b.Total, b.Currency, b.Status,
                 b.CustomerId, b.GuestName ?? r.CustomerName, r.Phone is null ? null : PhoneNumber.Mask(r.Phone), b.Note,
-                b.LateCancellation, b.CancelledByVenue, Local(b.CreatedAt));
+                b.LateCancellation, b.CancelledByVenue, Local(b.CreatedAt),
+                b.CheckedInAt is { } inAt ? Local(inAt) : null, b.CashCollected, b.NoShowAt is { } nsAt ? Local(nsAt) : null);
         }).ToList();
     }
 

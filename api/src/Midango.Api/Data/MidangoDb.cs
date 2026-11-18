@@ -121,6 +121,9 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
                 t.HasCheckConstraint("ck_bookings_party",
                     "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR " +
                     "(kind = 'Booking' AND (customer_id IS NOT NULL OR guest_name IS NOT NULL))");
+                // Cash taken stays on a live booking: undo the check-in before cancelling or marking a no-show.
+                t.HasCheckConstraint("ck_bookings_checked_in_confirmed",
+                    "checked_in_at IS NULL OR (status = 'Confirmed' AND kind = 'Booking' AND cash_collected IS NOT NULL)");
             });
             e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
             e.Property(x => x.Source).HasConversion<string>().HasMaxLength(16);
@@ -134,6 +137,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(x => x.Total).HasPrecision(10, 2);
             e.Property(x => x.Net).HasPrecision(10, 2);
             e.Property(x => x.Vat).HasPrecision(10, 2);
+            e.Property(x => x.CashCollected).HasPrecision(10, 2);
             e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Court>().WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);

@@ -8,13 +8,14 @@ namespace Midango.Api.Bookings;
 public static class VenueInsightEndpoints
 {
     public sealed record VenueCustomerDto(
-        Guid Id, string? Name, string PhoneMasked, int Bookings, int Cancellations, DateTimeOffset LastBookingAt);
+        Guid Id, string? Name, string PhoneMasked, int Bookings, int Cancellations, int NoShows, DateTimeOffset LastBookingAt);
 
     public sealed record CustomerLookupDto(Guid Id, string? Name, string PhoneMasked);
 
     public sealed record TodayDto(
         DateOnly Date, bool Open, DateTimeOffset From, DateTimeOffset To,
         int Bookings, int BookedMinutes, int OccupancyPercent, decimal CashExpected, string Currency, int Cancelled,
+        decimal CashCollected, int NoShows,
         IReadOnlyList<StaffBookingEndpoints.StaffBookingDto> Next);
 
     public static void MapVenueInsightEndpoints(this IEndpointRouteBuilder app)
@@ -32,6 +33,7 @@ public static class VenueInsightEndpoints
                     CustomerId = g.Key,
                     Bookings = g.Count(b => b.Status == BookingStatus.Confirmed),
                     Cancellations = g.Count(b => b.Status == BookingStatus.Cancelled),
+                    NoShows = g.Count(b => b.Status == BookingStatus.NoShow),
                     Last = g.Max(b => b.StartsAt),
                     BookedInApp = g.Any(b => b.Source == BookingSource.App),
                     // ponytail: any name the desk typed for them (alphabetically last), not the latest one.
@@ -41,7 +43,7 @@ public static class VenueInsightEndpoints
             // the name its staff typed, so typing a phone number never reveals who owns it.
             var rows = from s in stats
                        join c in db.Customers on s.CustomerId equals c.Id
-                       select new { c.Id, Name = s.BookedInApp ? c.Name : s.DeskName, c.PhoneE164, s.Bookings, s.Cancellations, s.Last };
+                       select new { c.Id, Name = s.BookedInApp ? c.Name : s.DeskName, c.PhoneE164, s.Bookings, s.Cancellations, s.NoShows, s.Last };
 
             var term = q?.Trim();
             if (!string.IsNullOrEmpty(term))
@@ -57,7 +59,7 @@ public static class VenueInsightEndpoints
             // Like every staff time: in the venue's own offset, not UTC.
             var zone = VenueClock.Zone(await db.Venues.AsNoTracking().SingleAsync(v => v.Id == venueId, ct));
             return Results.Ok(list.Select(r => new VenueCustomerDto(
-                r.Id, r.Name, PhoneNumber.Mask(r.PhoneE164), r.Bookings, r.Cancellations, TimeZoneInfo.ConvertTime(r.Last, zone))));
+                r.Id, r.Name, PhoneNumber.Mask(r.PhoneE164), r.Bookings, r.Cancellations, r.NoShows, TimeZoneInfo.ConvertTime(r.Last, zone))));
         });
 
         venueStaff.MapGet("/customers/lookup", async (string? phone, ClaimsPrincipal user, MidangoDb db, CancellationToken ct) =>
@@ -97,8 +99,9 @@ public static class VenueInsightEndpoints
             var inWindow = db.Bookings.Where(b => b.VenueId == venue.Id && b.Kind == BookingKind.Booking
                                                   && b.StartsAt >= from && b.StartsAt < to);
             var confirmed = await inWindow.Where(b => b.Status == BookingStatus.Confirmed)
-                .Select(b => new { b.Minutes, b.Total }).ToListAsync(ct);
+                .Select(b => new { b.Minutes, b.Total, b.CashCollected }).ToListAsync(ct);
             var cancelled = await inWindow.CountAsync(b => b.Status == BookingStatus.Cancelled, ct);
+            var noShows = await inWindow.CountAsync(b => b.Status == BookingStatus.NoShow, ct);
             var courts = await db.Courts.CountAsync(c => c.VenueId == venue.Id && c.Active, ct);
 
             var bookedMinutes = confirmed.Sum(b => b.Minutes);
@@ -112,7 +115,7 @@ public static class VenueInsightEndpoints
             return Results.Ok(new TodayDto(
                 day, period is not null, TimeZoneInfo.ConvertTime(from, zone), TimeZoneInfo.ConvertTime(to, zone),
                 confirmed.Count, bookedMinutes, Math.Min(occupancy, 100), confirmed.Sum(b => b.Total),
-                venue.CurrencyCode, cancelled, next));
+                venue.CurrencyCode, cancelled, confirmed.Sum(b => b.CashCollected ?? 0), noShows, next));
         });
     }
 }
