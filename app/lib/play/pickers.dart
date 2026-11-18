@@ -27,7 +27,7 @@ class SportPicker extends StatelessWidget {
       for (final c in categories)
         _PickerChip(
           label: c.name(arabic),
-          icon: sportIcon(c.iconKey),
+          icon: SportIcon(iconKey: c.iconKey, iconUrl: c.iconUrl, color: MidangoColors.navy),
           selected: c.id == selectedId,
           onTap: () => onSelected(c),
         ),
@@ -98,7 +98,7 @@ class _PickerChip extends StatelessWidget {
   const _PickerChip({required this.label, required this.selected, required this.onTap, this.icon});
 
   final String label;
-  final IconData? icon;
+  final Widget? icon;
   final bool selected;
   final VoidCallback onTap;
 
@@ -106,7 +106,7 @@ class _PickerChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChoiceChip(
       label: Text(label),
-      avatar: icon == null ? null : Icon(icon, size: 18, color: MidangoColors.navy),
+      avatar: icon,
       selected: selected,
       showCheckmark: false,
       onSelected: (_) => onTap(),

@@ -26,6 +26,7 @@ class Category implements Named {
         nameEn = j['nameEn'] as String,
         nameAr = j['nameAr'] as String,
         iconKey = j['iconKey'] as String,
+        iconUrl = j['iconUrl'] as String?,
         durationsMinutes = (j['durationsMinutes'] as List).cast<int>();
   final String id;
   @override
@@ -33,6 +34,9 @@ class Category implements Named {
   @override
   final String nameAr;
   final String iconKey;
+
+  /// Uploaded icon ("/media/…"); wins over [iconKey] when set.
+  final String? iconUrl;
   final List<int> durationsMinutes;
 }
 
@@ -67,7 +71,9 @@ class VenueCard implements Named {
         courts = j['courts'] as int,
         fromTotal = j['fromTotal'] == null ? null : _money(j['fromTotal']),
         open = j['open'] as bool,
-        times = _list(j['times'], Slot.fromJson);
+        times = _list(j['times'], Slot.fromJson),
+        logoUrl = j['logoUrl'] as String?,
+        photoUrl = j['photoUrl'] as String?;
   final String id;
   @override
   final String nameEn;
@@ -80,6 +86,10 @@ class VenueCard implements Named {
   final double? fromTotal;
   final bool open;
   final List<Slot> times;
+  final String? logoUrl;
+
+  /// The venue's first photo.
+  final String? photoUrl;
 
   String? address(bool arabic) => _pick(arabic, addressAr, addressEn);
 }
@@ -99,11 +109,13 @@ class Hours {
 class Feature implements Named {
   Feature.fromJson(JsonMap j)
       : nameEn = j['nameEn'] as String,
-        nameAr = j['nameAr'] as String;
+        nameAr = j['nameAr'] as String,
+        iconUrl = j['iconUrl'] as String?;
   @override
   final String nameEn;
   @override
   final String nameAr;
+  final String? iconUrl;
 }
 
 class Court implements Named {
@@ -138,7 +150,9 @@ class VenueDetail implements Named {
         freeCancellationHours = j['freeCancellationHours'] as int,
         hours = _list(j['hours'], Hours.fromJson),
         categories = _list(j['categories'], Category.fromJson),
-        courts = _list(j['courts'], Court.fromJson);
+        courts = _list(j['courts'], Court.fromJson),
+        logoUrl = j['logoUrl'] as String?,
+        photos = (j['photos'] as List? ?? const []).cast<String>();
   final String id;
   @override
   final String nameEn;
@@ -154,6 +168,8 @@ class VenueDetail implements Named {
   final List<Hours> hours;
   final List<Category> categories;
   final List<Court> courts;
+  final String? logoUrl;
+  final List<String> photos;
 
   String? address(bool arabic) => _pick(arabic, addressAr, addressEn);
   Court? court(String id) => courts.where((c) => c.id == id).firstOrNull;

@@ -38,6 +38,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
 | W1 | Website ✅ done | Static EN/AR informative site (`website/`), demo form → `POST /leads`, operator "Venue requests" page | M2 |
 | A1 | Venue control ✅ done | Operator opens any venue (1-h acting token, change log), suspend/unsuspend, staff deactivate + reset password | M6 |
+| A1b | Photos & icons ✅ done | Venue logo + up to 10 ordered photos, uploaded sport / feature icons; shown in the app | A1 |
 
 ## Later (not planned)
 

@@ -3,12 +3,13 @@ import { Button } from '../components/Button';
 import { Dialog } from '../components/Dialog';
 import { Field } from '../components/Field';
 import { Notice } from '../components/Notice';
-import { api, errorText } from '../lib/api';
+import { UploadButton } from '../components/UploadButton';
+import { api, errorText, fileBody } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import { SPORT_ICON_KEYS, SportIcon } from '../lib/sportIcons';
 import type { Category } from '../lib/types';
 
-type FeatureDraft = { id?: string; nameEn: string; nameAr: string };
+type FeatureDraft = { id?: string; nameEn: string; nameAr: string; iconUrl?: string | null };
 
 const DURATIONS = [30, 60, 90, 120, 150, 180, 210, 240];
 
@@ -17,11 +18,14 @@ export function CategoryDialog({
   nextSortOrder,
   onClose,
   onSaved,
+  onIconChanged,
 }: {
   category: Category | 'new' | null;
   nextSortOrder: number;
   onClose: () => void;
   onSaved: () => void;
+  /** Icons are saved the moment they're uploaded, so the list behind the dialog refreshes then too. */
+  onIconChanged: () => void;
 }) {
   const { t } = useI18n();
   return (
@@ -32,6 +36,7 @@ export function CategoryDialog({
           nextSortOrder={nextSortOrder}
           onCancel={onClose}
           onSaved={onSaved}
+          onIconChanged={onIconChanged}
         />
       )}
     </Dialog>
@@ -43,11 +48,13 @@ function CategoryForm({
   nextSortOrder,
   onCancel,
   onSaved,
+  onIconChanged,
 }: {
   initial?: Category;
   nextSortOrder: number;
   onCancel: () => void;
   onSaved: () => void;
+  onIconChanged: () => void;
 }) {
   const { t } = useI18n();
   const [nameEn, setNameEn] = useState(initial?.nameEn ?? '');
@@ -57,8 +64,30 @@ function CategoryForm({
   const [sortOrder, setSortOrder] = useState(initial?.sortOrder ?? nextSortOrder);
   const [active, setActive] = useState(initial?.active ?? true);
   const [features, setFeatures] = useState<FeatureDraft[]>(initial?.features ?? []);
+  const [iconUrl, setIconUrl] = useState(initial?.iconUrl ?? null);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+
+  /** Uploads (file) or removes (no file) an icon at `path`; keeps unsaved edits, takes only the icon urls back. */
+  async function changeIcon(path: string, file?: File) {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const updated = await api<Category>(path, file ? { method: 'PUT', body: fileBody(file) } : { method: 'DELETE' });
+      setIconUrl(updated.iconUrl);
+      setFeatures((list) =>
+        list.map((f) => {
+          const saved = updated.features.find((u) => u.id === f.id);
+          return saved ? { ...f, iconUrl: saved.iconUrl } : f;
+        }),
+      );
+      onIconChanged();
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const toggleDuration = (minutes: number) =>
     setDurations((d) => (d.includes(minutes) ? d.filter((x) => x !== minutes) : [...d, minutes].sort((a, b) => a - b)));
@@ -83,7 +112,15 @@ function CategoryForm({
     }
     setBusy(true);
     setError(undefined);
-    const body = { nameEn, nameAr, iconKey, durationsMinutes: durations, sortOrder, active, features };
+    const body = {
+      nameEn,
+      nameAr,
+      iconKey,
+      durationsMinutes: durations,
+      sortOrder,
+      active,
+      features: features.map(({ id, nameEn, nameAr }) => ({ id, nameEn, nameAr })),
+    };
     try {
       if (initial) await api(`/admin/categories/${initial.id}`, { method: 'PUT', body });
       else await api('/admin/categories', { method: 'POST', body });
@@ -119,6 +156,24 @@ function CategoryForm({
             </label>
           ))}
         </div>
+      </fieldset>
+
+      <fieldset className="mg-fieldset">
+        <legend>{t('uploadedIcon')}</legend>
+        {initial ? (
+          <div className="chip-row">
+            {iconUrl && <SportIcon iconKey={iconKey} iconUrl={iconUrl} size={32} />}
+            <UploadButton disabled={busy} onFiles={([file]) => void changeIcon(`/admin/categories/${initial.id}/icon`, file)}>
+              {t('uploadIcon')}
+            </UploadButton>
+            {iconUrl && (
+              <Button variant="text" disabled={busy} onClick={() => void changeIcon(`/admin/categories/${initial.id}/icon`)}>
+                {t('remove')}
+              </Button>
+            )}
+          </div>
+        ) : null}
+        <span className="mg-field-hint">{initial ? t('uploadedIconHint') : t('saveFirstForIcon')}</span>
       </fieldset>
 
       <fieldset className="mg-fieldset">
@@ -170,8 +225,19 @@ function CategoryForm({
             <Button variant="text" onClick={() => setFeatures((list) => list.filter((_, n) => n !== index))}>
               {t('remove')}
             </Button>
+            {feature.id ? (
+              <FeatureIcon
+                iconUrl={feature.iconUrl ?? null}
+                label={feature.nameEn || feature.nameAr}
+                busy={busy}
+                onChange={(file) => void changeIcon(`/admin/features/${feature.id}/icon`, file)}
+              />
+            ) : (
+              <span />
+            )}
           </div>
         ))}
+        {features.some((f) => !f.id) && <span className="mg-field-hint">{t('saveFirstForIcon')}</span>}
         <div>
           <Button variant="secondary" onClick={() => setFeatures((list) => [...list, { nameEn: '', nameAr: '' }])}>
             {t('addFeature')}
@@ -198,5 +264,37 @@ function CategoryForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+/** A saved feature's icon: a small preview with Remove, or an upload button. */
+function FeatureIcon({
+  iconUrl,
+  label,
+  busy,
+  onChange,
+}: {
+  iconUrl: string | null;
+  label: string;
+  busy: boolean;
+  onChange: (file?: File) => void;
+}) {
+  const { t } = useI18n();
+  return iconUrl ? (
+    <span className="cell-icon">
+      <SportIcon iconKey="" iconUrl={iconUrl} size={20} />
+      <Button variant="text" disabled={busy} aria-label={t('removeIconFor', { name: label })} onClick={() => onChange()}>
+        {t('removeIcon')}
+      </Button>
+    </span>
+  ) : (
+    <UploadButton
+      variant="text"
+      disabled={busy}
+      aria-label={t('uploadIconFor', { name: label })}
+      onFiles={([file]) => onChange(file)}
+    >
+      {t('uploadIcon')}
+    </UploadButton>
   );
 }

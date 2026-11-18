@@ -40,7 +40,7 @@ export function CategoriesPage() {
               <tr key={category.id}>
                 <td>
                   <span className="cell-icon">
-                    <SportIcon iconKey={category.iconKey} size={18} />
+                    <SportIcon iconKey={category.iconKey} iconUrl={category.iconUrl} size={18} />
                     {name(category)}
                   </span>
                 </td>
@@ -63,6 +63,7 @@ export function CategoriesPage() {
         category={editing}
         nextSortOrder={(list?.length ?? 0) + 1}
         onClose={() => setEditing(null)}
+        onIconChanged={categories.reload}
         onSaved={() => {
           setEditing(null);
           categories.reload();

@@ -110,7 +110,19 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .icon-option input { position: absolute; opacity: 0; pointer-events: none; }
 .icon-option:has(input:checked) { background: var(--mg-lime); border-color: var(--mg-lime); }
 .icon-option:has(input:focus-visible) { outline: 3px solid var(--mg-cyan-ink); outline-offset: 2px; }
-.feature-row { display: grid; grid-template-columns: 1fr 1fr auto auto auto; gap: 8px; align-items: center; }
+.feature-row { display: grid; grid-template-columns: 1fr 1fr auto auto auto auto; gap: 8px; align-items: center; }
+.uploaded-icon { object-fit: contain; flex: none; }
+
+/* Venue logo and photos */
+.media-subhead { font: var(--mg-text-label); color: var(--mg-navy); }
+.media-logo { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.media-logo-img { width: 96px; height: 96px; border-radius: 12px; border: 1px solid var(--mg-line); object-fit: cover; }
+.media-placeholder { display: grid; place-items: center; background: var(--mg-cloud); color: var(--mg-muted); }
+.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.media-tile { display: grid; gap: 8px; }
+.media-tile img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--mg-radius); background: var(--mg-cloud); }
+.media-tile-actions { display: flex; align-items: center; gap: 4px; }
+.media-tile-actions .mg-button--secondary { padding-inline: 10px; }
 @media (max-width: 640px) { .feature-row { grid-template-columns: 1fr 1fr; } }
 
 /* Hours */

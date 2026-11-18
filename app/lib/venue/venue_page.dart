@@ -6,7 +6,9 @@ import '../home_shell.dart';
 import '../l10n/strings.dart';
 import '../play/pickers.dart';
 import '../session/session.dart';
+import '../theme/midango_colors.dart';
 import '../widgets/error_retry.dart';
+import '../widgets/media_image.dart';
 import '../widgets/slot_chip.dart';
 
 /// One venue: its sports, every start time of the chosen day (full ones struck through), courts and hours.
@@ -107,24 +109,35 @@ class _VenuePageState extends State<VenuePage> {
     final text = Theme.of(context).textTheme;
     final sport = _sport;
     final address = venue.address(s.isArabic);
+    final logo = venue.logoUrl;
+    final heading = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(venue.name(s.isArabic), style: text.titleLarge),
+        if (address != null && address.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(address, style: text.bodySmall),
+        ],
+      ],
+    );
     Widget section(String title) =>
         Padding(padding: const EdgeInsets.fromLTRB(16, 24, 16, 8), child: Text(title, style: text.titleMedium));
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 32),
       children: [
+        if (venue.photos.isNotEmpty) _Gallery(photos: venue.photos),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(venue.name(s.isArabic), style: text.titleLarge),
-              if (address != null && address.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(address, style: text.bodySmall),
-              ],
-            ],
-          ),
+          child: logo == null
+              ? heading
+              : Row(
+                  children: [
+                    ClipRRect(borderRadius: BorderRadius.circular(12), child: MediaImage(logo, width: 56, height: 56)),
+                    const SizedBox(width: 12),
+                    Expanded(child: heading),
+                  ],
+                ),
         ),
         SportPicker(categories: venue.categories, selectedId: sport?.id, onSelected: _selectSport),
         const SizedBox(height: 4),
@@ -186,14 +199,83 @@ class _CourtRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = Strings.of(context);
     final text = Theme.of(context).textTheme;
-    final details = [court.indoor ? s.indoor : s.outdoor, for (final f in court.features) f.name(s.isArabic)];
+    final details = <InlineSpan>[TextSpan(text: court.indoor ? s.indoor : s.outdoor)];
+    for (final f in court.features) {
+      final icon = f.iconUrl;
+      details.add(const TextSpan(text: ' · '));
+      if (icon != null) {
+        details.add(WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4),
+            child: MediaImage(icon, width: 16, height: 16),
+          ),
+        ));
+      }
+      details.add(TextSpan(text: f.name(s.isArabic)));
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(court.name(s.isArabic), style: text.labelLarge),
-          Text(details.join(' · '), style: text.bodySmall),
+          Text.rich(TextSpan(children: details), style: text.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+/// The venue's photos, swiped sideways (mirrored in Arabic), with a dot per photo.
+class _Gallery extends StatefulWidget {
+  const _Gallery({required this.photos});
+  final List<String> photos;
+
+  @override
+  State<_Gallery> createState() => _GalleryState();
+}
+
+class _GalleryState extends State<_Gallery> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final photos = widget.photos;
+    return AspectRatio(
+      aspectRatio: 16 / 10,
+      child: Stack(
+        children: [
+          PageView.builder(
+            itemCount: photos.length,
+            onPageChanged: (i) => setState(() => _page = i),
+            itemBuilder: (_, i) => MediaImage(photos[i]),
+          ),
+          if (photos.length > 1)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 12,
+              child: ExcludeSemantics(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < photos.length; i++)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: i == _page ? 16 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: i == _page ? MidangoColors.lime : MidangoColors.white.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: const [BoxShadow(color: Color(0x40071329), blurRadius: 2)],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

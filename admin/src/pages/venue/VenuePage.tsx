@@ -9,6 +9,7 @@ import type { MessageKey } from '../../locales/en';
 import { CourtsSection } from './CourtsSection';
 import { DetailsSection, type DetailsInput } from './DetailsSection';
 import { HoursSection } from './HoursSection';
+import { MediaSection, type MediaChange } from './MediaSection';
 import { PublishPanel } from './PublishPanel';
 
 type Toast = { tone: 'error' | 'success'; text: string };
@@ -39,6 +40,19 @@ export function VenuePage({ canEdit }: { canEdit: boolean }) {
       setToast({ tone: 'error', text: errorText(err) + missing });
     }
   }
+
+  const changeMedia: MediaChange = async (action) => {
+    setToast(undefined);
+    try {
+      const patch = await action();
+      venue.setData((v) => v && { ...v, ...patch });
+      setToast({ tone: 'success', text: t('saved') });
+      return true;
+    } catch (err) {
+      setToast({ tone: 'error', text: errorText(err) });
+      return false;
+    }
+  };
 
   async function saveCourt(courtId: string | null, input: CourtInput) {
     const updated = await api<Venue>(courtId ? `/venue/courts/${courtId}` : '/venue/courts', {
@@ -74,6 +88,7 @@ export function VenuePage({ canEdit }: { canEdit: boolean }) {
         canEdit={canEdit}
         onSave={(input: DetailsInput) => run(() => api<Venue>('/venue', { method: 'PUT', body: input }), 'saved')}
       />
+      <MediaSection venue={current} canEdit={canEdit} change={changeMedia} />
       <HoursSection
         venue={current}
         canEdit={canEdit}

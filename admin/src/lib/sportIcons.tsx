@@ -3,6 +3,7 @@ import {
   Medal, Mountain, Target, Timer, Trophy, Users, Volleyball, Waves,
   type LucideIcon,
 } from 'lucide-react';
+import { mediaUrl } from './api';
 
 /** The icons an operator can give a sport. Keys are Lucide names; the Flutter app maps the same keys (M8). */
 export const SPORT_ICONS: Record<string, LucideIcon> = {
@@ -26,7 +27,9 @@ export const SPORT_ICONS: Record<string, LucideIcon> = {
 
 export const SPORT_ICON_KEYS = Object.keys(SPORT_ICONS);
 
-export function SportIcon({ iconKey, size }: { iconKey: string; size: number }) {
+/** An uploaded icon (iconUrl) wins over the built-in one. Decorative: the name always sits beside it. */
+export function SportIcon({ iconKey, iconUrl, size }: { iconKey: string; iconUrl?: string | null; size: number }) {
+  if (iconUrl) return <img src={mediaUrl(iconUrl)} alt="" width={size} height={size} className="uploaded-icon" />;
   const Icon = SPORT_ICONS[iconKey] ?? CircleDot;
   return <Icon size={size} aria-hidden="true" />;
 }

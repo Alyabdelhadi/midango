@@ -62,17 +62,22 @@ export function refreshSession(): Promise<boolean> {
   return refreshing;
 }
 
-type Options = { method?: 'GET' | 'POST' | 'PUT'; body?: unknown };
+/** A FormData body is sent as-is, so the browser sets the multipart boundary. */
+type Options = { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown };
+
+/** Uploaded images come back as root-relative "/media/…" paths on the API. */
+export const mediaUrl = (url: string) => '/api' + url;
 
 export async function api<T>(path: string, options: Options = {}): Promise<T> {
+  const form = options.body instanceof FormData;
   const send = () =>
     fetch(`/api${path}`, {
       method: options.method ?? 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        ...(form ? {} : { 'Content-Type': 'application/json' }),
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body === undefined ? undefined : form ? (options.body as FormData) : JSON.stringify(options.body),
     });
 
   let res = await send();
@@ -93,4 +98,11 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
 
 export function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/** The multipart body every upload endpoint takes: one field, `file`. */
+export function fileBody(file: File): FormData {
+  const body = new FormData();
+  body.append('file', file);
+  return body;
 }

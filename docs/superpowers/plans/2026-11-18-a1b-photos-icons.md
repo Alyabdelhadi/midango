@@ -106,3 +106,21 @@ public sealed class MediaStore(IConfiguration config, IWebHostEnvironment env)
 - [ ] API script: logo upload png → url served with immutable cache header; fake `.png` that is text → 400; 6 MB photo → 400; 11th photo → 409; reorder wrong ids → 400, right ids → new order; delete removes the file from disk; replacing the logo deletes the old file; category/feature icon set + remove; public `/venues`, `/venues/{id}`, `/categories` carry the urls; desk staff 403 on uploads; operator acting can upload.
 - [ ] Browser: admin Venue page upload logo + 3 photos, reorder, remove (EN + AR); category icon upload shows in the list; Flutter web app shows the card photo + logo, the gallery swipes, the sport chip shows the uploaded icon.
 - [ ] Append results; roadmap row; merge.
+
+---
+
+## Verification (2026-11-18)
+
+**API** (`a1b-check.ps1`, run against generated JPEG/PNG test images): **0 failures.**
+- **Logo:** served with `immutable` caching. A text file named `.png` gets 400 "Use a JPEG, PNG or WebP image". Replacing the logo deletes the old file. Desk staff get 403.
+- **Photos:** a 6 MB photo gets 400. Ten photos upload, the 11th gets 409. Deleting a photo removes its file. A reorder missing ids gets 400 "Send every photo once"; a full reorder is applied.
+- **Category and feature icons:** set and removed, and a removed icon's file is deleted. An acting operator token gets 403 on operator-only icon uploads.
+- **Public data:** `/venues/{id}` has the logo, the ordered photos, and the feature and category icons. `/categories` has `iconUrl`. Venue cards have the logo and the first photo.
+- The first run failed 8 checks because of a script bug: PowerShell's `-AsArray` wrapped JSON arrays twice. It was fixed and rerun clean. The first run's test category was deactivated and its venue renamed "Old test venue".
+
+**Browser:**
+- **Admin, as operator inside the venue, in Arabic:** the logo and 4 photos with a "4 of 10" count. The reorder arrows point the right way in RTL and are disabled at the ends. Moving a photo later and back works through the API. The category dialog shows the uploaded icon with Upload and Remove, and the Categories list shows the uploaded icon.
+- **Flutter web app at 390 px:** the Padel chip shows the uploaded icon. The venue card shows the photo and the "SP" logo. The venue page shows the gallery with 4 page dots, the logo beside the name, and the sport chip icon.
+- With mobile emulation (`isMobile`), the debug web build stays blank because of a Flutter engine assertion (`_viewInsets.isNonNegative`). A plain 390×844 viewport works. This is a tooling quirk, not app code.
+
+**Known limits:** files are stored on local disk (move to object storage before production). Images aren't resized. Two simultaneous uploads could make an 11th photo.

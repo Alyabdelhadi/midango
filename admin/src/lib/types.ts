@@ -13,7 +13,8 @@ export type Staff = {
 
 export type StaffSummary = { id: string; email: string; displayName: string; role: Role; active: boolean };
 
-export type Feature = { id: string; nameEn: string; nameAr: string };
+/** iconUrl is an uploaded icon ("/media/…"); it overrides the category's iconKey where shown. */
+export type Feature = { id: string; nameEn: string; nameAr: string; iconUrl: string | null };
 
 export type Category = {
   id: string;
@@ -24,6 +25,7 @@ export type Category = {
   sortOrder: number;
   active: boolean;
   features: Feature[];
+  iconUrl: string | null;
 };
 
 export type VenueSummary = { id: string; nameEn: string; nameAr: string; published: boolean; suspended: boolean };
@@ -89,7 +91,12 @@ export type Venue = {
   hours: Hours[];
   courts: Court[];
   missingForPublish: MissingItem[];
+  logoUrl: string | null;
+  photos: Photo[];
 };
+
+/** In display order; url is "/media/…". */
+export type Photo = { id: string; url: string };
 
 export const ROLE_KEY: Record<Role, MessageKey> = {
   PlatformOperator: 'rolePlatformOperator',
