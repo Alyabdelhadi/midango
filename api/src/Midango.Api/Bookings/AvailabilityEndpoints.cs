@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Venues;
 
 namespace Midango.Api.Bookings;
 
@@ -34,43 +35,52 @@ public static class AvailabilityEndpoints
             if (date < today || date > today.AddDays(Slots.MaxDaysAhead))
                 return ApiErrors.Fail(400, $"Choose a date within the next {Slots.MaxDaysAhead} days.");
 
-            var hours = await db.OpeningHours.AsNoTracking().Where(h => h.VenueId == venueId).ToListAsync(ct);
-            var courts = await db.Courts.AsNoTracking()
-                .Where(c => c.VenueId == venueId && c.CategoryId == categoryId && c.Active)
-                .OrderBy(c => c.SortOrder).ThenBy(c => c.NameEn).ToListAsync(ct);
-            var courtIds = courts.Select(c => c.Id).ToList();
-            var bands = (await db.PriceBands.AsNoTracking().Where(b => courtIds.Contains(b.CourtId)).ToListAsync(ct))
-                .ToLookup(b => b.CourtId, b => new PriceBandRule(b.Day, b.From, b.To, b.HourlyPrice));
-
-            var starts = Slots.Starts(date, hours, minutes).ToList();
-            if (starts.Count == 0)
-                return Results.Ok(new AvailabilityDto(venue.Id, date, categoryId, minutes, venue.CurrencyCode, false, []));
-
-            var windowFrom = VenueClock.ToInstant(starts[0], zone).ToUniversalTime();
-            var windowTo = VenueClock.ToInstant(starts[^1].AddMinutes(minutes), zone).ToUniversalTime();
-            var booked = await db.Bookings.AsNoTracking()
-                .Where(b => courtIds.Contains(b.CourtId) && b.Status == BookingStatus.Confirmed
-                            && b.StartsAt < windowTo && b.EndsAt > windowFrom)
-                .Select(b => new { b.CourtId, b.StartsAt, b.EndsAt })
-                .ToListAsync(ct);
-
-            // ponytail: courts × times × bookings in memory; fine for a venue-day (≈ 20 courts × 40 times).
-            var slots = new List<SlotDto>();
-            foreach (var local in starts)
-            {
-                var start = VenueClock.ToInstant(local, zone);
-                var end = start.AddMinutes(minutes);
-                if (start <= now) continue;
-
-                var free = courts
-                    .Where(c => !booked.Any(b => b.CourtId == c.Id && b.StartsAt < end && b.EndsAt > start))
-                    .Select(c => new SlotCourtDto(c.Id, Pricing.Calculate(
-                        c.HourlyPrice, bands[c.Id].ToList(), local.DayOfWeek, TimeOnly.FromDateTime(local), minutes, venue.VatPercent).Total))
-                    .ToList();
-                slots.Add(new SlotDto(start, local.ToString("HH:mm"), free));
-            }
-
-            return Results.Ok(new AvailabilityDto(venue.Id, date, categoryId, minutes, venue.CurrencyCode, true, slots));
+            return Results.Ok(await ComputeAsync(db, venue, categoryId, date, minutes, now, ct));
         });
+    }
+
+    /// Start times of one business day for one sport and length, each with its free courts and their prices.
+    /// Past times are left out. Callers validate the category, length and date first.
+    internal static async Task<AvailabilityDto> ComputeAsync(
+        MidangoDb db, Venue venue, Guid categoryId, DateOnly date, int minutes, DateTimeOffset now, CancellationToken ct)
+    {
+        var zone = VenueClock.Zone(venue);
+        var hours = await db.OpeningHours.AsNoTracking().Where(h => h.VenueId == venue.Id).ToListAsync(ct);
+        var courts = await db.Courts.AsNoTracking()
+            .Where(c => c.VenueId == venue.Id && c.CategoryId == categoryId && c.Active)
+            .OrderBy(c => c.SortOrder).ThenBy(c => c.NameEn).ToListAsync(ct);
+        var courtIds = courts.Select(c => c.Id).ToList();
+        var bands = (await db.PriceBands.AsNoTracking().Where(b => courtIds.Contains(b.CourtId)).ToListAsync(ct))
+            .ToLookup(b => b.CourtId, b => new PriceBandRule(b.Day, b.From, b.To, b.HourlyPrice));
+
+        var starts = Slots.Starts(date, hours, minutes).ToList();
+        if (starts.Count == 0)
+            return new AvailabilityDto(venue.Id, date, categoryId, minutes, venue.CurrencyCode, false, []);
+
+        var windowFrom = VenueClock.ToInstant(starts[0], zone).ToUniversalTime();
+        var windowTo = VenueClock.ToInstant(starts[^1].AddMinutes(minutes), zone).ToUniversalTime();
+        var booked = await db.Bookings.AsNoTracking()
+            .Where(b => courtIds.Contains(b.CourtId) && b.Status == BookingStatus.Confirmed
+                        && b.StartsAt < windowTo && b.EndsAt > windowFrom)
+            .Select(b => new { b.CourtId, b.StartsAt, b.EndsAt })
+            .ToListAsync(ct);
+
+        // ponytail: courts × times × bookings in memory; fine for a venue-day (≈ 20 courts × 40 times).
+        var slots = new List<SlotDto>();
+        foreach (var local in starts)
+        {
+            var start = VenueClock.ToInstant(local, zone);
+            var end = start.AddMinutes(minutes);
+            if (start <= now) continue;
+
+            var free = courts
+                .Where(c => !booked.Any(b => b.CourtId == c.Id && b.StartsAt < end && b.EndsAt > start))
+                .Select(c => new SlotCourtDto(c.Id, Pricing.Calculate(
+                    c.HourlyPrice, bands[c.Id].ToList(), local.DayOfWeek, TimeOnly.FromDateTime(local), minutes, venue.VatPercent).Total))
+                .ToList();
+            slots.Add(new SlotDto(start, local.ToString("HH:mm"), free));
+        }
+
+        return new AvailabilityDto(venue.Id, date, categoryId, minutes, venue.CurrencyCode, true, slots);
     }
 }

@@ -28,6 +28,10 @@ builder.Services.AddSingleton<IPasswordHasher<StaffMember>, PasswordHasher<Staff
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<OtpService>();
 builder.Services.AddProblemDetails();
+
+// The Flutter web build calls the API from another origin in development. Mobile apps don't use CORS.
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
+builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod()));
 // Malformed request bodies are 400 in every environment (Development otherwise throws and returns 500).
 builder.Services.Configure<RouteHandlerOptions>(o => o.ThrowOnBadRequest = false);
 builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -70,6 +74,7 @@ builder.Services.AddRateLimiter(o =>
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -107,6 +112,7 @@ app.MapCategoryEndpoints();
 app.MapVenueEndpoints();
 app.MapPriceEndpoints();
 app.MapAvailabilityEndpoints();
+app.MapPublicVenueEndpoints();
 app.MapBookingEndpoints();
 app.MapStaffBookingEndpoints();
 app.MapVenueInsightEndpoints();
