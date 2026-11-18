@@ -37,6 +37,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M9b | Push in the app | firebase_messaging, device registration, open booking from a reminder | M9a + Firebase key and flutterfire configure |
 | M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
 | W1 | Website ✅ done | Static EN/AR informative site (`website/`), demo form → `POST /leads`, operator "Venue requests" page | M2 |
+| A1 | Venue control ✅ done | Operator opens any venue (1-h acting token, change log), suspend/unsuspend, staff deactivate + reset password | M6 |
 
 ## Later (not planned)
 

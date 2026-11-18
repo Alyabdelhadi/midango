@@ -26,7 +26,10 @@ export type Category = {
   features: Feature[];
 };
 
-export type VenueSummary = { id: string; nameEn: string; nameAr: string };
+export type VenueSummary = { id: string; nameEn: string; nameAr: string; published: boolean; suspended: boolean };
+
+/** A change an operator made while the venue was open. `at` is UTC. */
+export type OperatorAction = { at: string; operatorName: string; method: string; path: string; status: number };
 
 export type Day = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
 export const DAYS: Day[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

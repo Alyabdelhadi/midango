@@ -154,3 +154,25 @@ static Task<StaffMember?> TargetAsync(MidangoDb db, ClaimsPrincipal user, Guid i
 - [ ] API script: act token works on `/venue` and `/venue/bookings`, is 403 on `/admin/settings`, can't refresh; a POST while acting logs a row, a GET doesn't; actions list returns it with the operator name; act on a suspended venue 409; suspend → hidden from `/venues/{id}`, staff login 403, staff refresh 401, publish 409; unsuspend → login works; manager can deactivate/reset desk staff, not another manager, not self; operator acting can reset the manager; reset → `mustChangePassword` on next login.
 - [ ] Browser: operator opens a venue, books on the schedule, changes a price, sees the banner in EN and AR, exits, sees the changes in "Recent operator changes"; suspend/unsuspend; staff page reset + deactivate.
 - [ ] Append results here, mark the roadmap, merge to main fast-forward.
+
+---
+
+## Verification (2026-11-18)
+
+**API** (`a1-check.ps1`): **0 failures.** Checked:
+- **Open venue:** `/act` returns the name and expiry; 404 for an unknown venue; 403 for a manager token and for an acting token. The acting token works on `/venue*`, gets 403 on `/admin/settings`, and can't refresh.
+- **Change log:** exactly 4 rows for 4 writes and none for GETs. `/actions` is newest first with the operator's name and is 403 for a manager.
+- **Staff controls:** a deactivated desk member can't sign in; reactivate works; a password under 10 characters gets 400; after a reset the next sign-in has `mustChangePassword`. A manager can't touch another manager or themselves (404). An acting operator can reset a manager.
+- **Suspend:** unpublishes the venue and hides it from the app (404). Staff sign-in gets 403 "This venue is suspended", the staff session cookie can't refresh (401), act gets 409, and publish with an old acting token gets 409. Unsuspend lets staff sign in again and the venue stays unpublished.
+
+**Browser (operator):**
+- The Venues list shows the status pills.
+- **Open** goes to Today, with the banner and the venue sidebar.
+- On the Staff page the operator sees Deactivate and Reset password even for the manager. A reset from the dialog shows the toast.
+- The Arabic version reads right to left. The banner's name was correct; that test venue's Arabic name happens to be "منشأة".
+- The "Recent operator changes" log showed the reset with the operator's name.
+- Suspend, in Arabic: the warning dialog, then a "موقوفة" (suspended) pill and Open disabled with the reason. Unsuspend gives a "مسودة" (draft) pill.
+
+**Fix during review:** Exit landed on Sport categories, because the role guard's redirect ran after the Exit navigation. The navigation is now deferred one tick, and Exit lands on Venues.
+
+**Known limit:** when the one-hour pass expires on a 401, the operator returns to their home (Sport categories), not Venues. Access tokens already issued to a suspended venue's staff stay valid for up to 15 minutes; refresh is blocked.

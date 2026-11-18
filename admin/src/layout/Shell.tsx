@@ -14,7 +14,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { useAuth } from '../lib/auth';
@@ -42,8 +42,9 @@ const NAV: NavItem[] = [
 ];
 
 export function Shell() {
-  const { staff, signOut } = useAuth();
-  const { t } = useI18n();
+  const { staff, signOut, acting, exitVenue } = useAuth();
+  const { t, name } = useI18n();
+  const navigate = useNavigate();
   if (!staff) return null;
 
   return (
@@ -73,6 +74,21 @@ export function Shell() {
         </div>
       </aside>
       <main className="shell-main">
+        {acting && (
+          <div className="acting-banner" role="status">
+            <span>{t('actingBanner', { venue: name(acting) })}</span>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                exitVenue();
+                // After the role guard has redirected away from the venue page, land on Venues.
+                setTimeout(() => navigate('/venues'), 0);
+              }}
+            >
+              {t('exitVenue')}
+            </Button>
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

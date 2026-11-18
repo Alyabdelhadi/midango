@@ -33,6 +33,14 @@
 .shell-user-role { font: var(--mg-text-caption); color: var(--mg-muted); }
 .shell-user-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 6px; }
 .shell-main { padding: 24px 32px 64px; min-width: 0; }
+/* An operator working inside a venue: always visible, always one click from leaving. */
+.acting-banner {
+  position: sticky; inset-block-start: 0; z-index: 5;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  margin-block-end: 16px; padding: 10px 14px;
+  background: var(--mg-success-bg); border: 1px solid var(--mg-lime); border-radius: var(--mg-radius);
+  color: var(--mg-navy); font: var(--mg-text-label);
+}
 
 @media (max-width: 900px) {
   .shell { grid-template-columns: 1fr; }
@@ -64,6 +72,9 @@
 .mg-table tr:last-child td { border-block-end: 0; }
 .mg-table .numeric { font: var(--mg-text-numeric); }
 .row-actions { text-align: end; white-space: nowrap; }
+.row-actions .mg-button-wrap + .mg-button-wrap { margin-inline-start: 4px; }
+.operator-log summary { cursor: pointer; color: var(--mg-slate); font: var(--mg-text-label); }
+.operator-log ul { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; font: var(--mg-text-caption); color: var(--mg-slate); }
 .cell-icon { display: inline-flex; align-items: center; gap: 8px; }
 @media (max-width: 640px) { .mg-table { display: block; overflow-x: auto; } }
 

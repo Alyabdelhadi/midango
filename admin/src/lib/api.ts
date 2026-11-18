@@ -18,8 +18,25 @@ export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
+export function getAccessToken() {
+  return accessToken;
+}
+
 export function onSessionEnded(handler: () => void) {
   sessionEnded = handler;
+}
+
+/** While an operator has a venue open, the access token is the acting token but the refresh cookie
+ *  is still the operator's, so a 401 ends acting instead of refreshing. */
+let acting = false;
+let actingEnded: () => void = () => {};
+
+export function setActing(on: boolean) {
+  acting = on;
+}
+
+export function onActingEnded(handler: () => void) {
+  actingEnded = handler;
 }
 
 /** Trades the HttpOnly session cookie for a new access token. Concurrent callers share one request:
@@ -59,6 +76,10 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     });
 
   let res = await send();
+  if (res.status === 401 && acting) {
+    actingEnded();
+    throw new ApiError(401, 'Request failed (401)');
+  }
   if (res.status === 401 && accessToken !== null) {
     if (await refreshSession()) res = await send();
     else sessionEnded();
