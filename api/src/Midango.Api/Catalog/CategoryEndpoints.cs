@@ -7,15 +7,16 @@ namespace Midango.Api.Catalog;
 
 public static partial class CategoryEndpoints
 {
-    public sealed record FeatureDto(Guid Id, string NameEn, string NameAr);
+    public sealed record FeatureDto(Guid Id, string NameEn, string NameAr, string? IconUrl);
 
     public sealed record CategoryDto(
         Guid Id, string NameEn, string NameAr, string IconKey, int[] DurationsMinutes,
-        int SortOrder, bool Active, IReadOnlyList<FeatureDto> Features)
+        int SortOrder, bool Active, IReadOnlyList<FeatureDto> Features, string? IconUrl)
     {
         public static CategoryDto From(SportCategory c) => new(
             c.Id, c.NameEn, c.NameAr, c.IconKey, c.DurationsMinutes, c.SortOrder, c.Active,
-            c.Features.OrderBy(f => f.SortOrder).Select(f => new FeatureDto(f.Id, f.NameEn, f.NameAr)).ToList());
+            c.Features.OrderBy(f => f.SortOrder).Select(f => new FeatureDto(f.Id, f.NameEn, f.NameAr, f.IconPath)).ToList(),
+            c.IconPath);
     }
 
     /// Features are listed in display order. An item with an id renames that feature;

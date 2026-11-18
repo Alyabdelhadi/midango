@@ -12,6 +12,7 @@ namespace Midango.Api.Data;
 public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(options)
 {
     public DbSet<Venue> Venues => Set<Venue>();
+    public DbSet<VenuePhoto> VenuePhotos => Set<VenuePhoto>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<StaffMember> Staff => Set<StaffMember>();
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
@@ -40,6 +41,14 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(v => v.TimeZoneId).HasMaxLength(64);
             e.Property(v => v.CurrencyCode).HasMaxLength(3);
             e.Property(v => v.VatPercent).HasPrecision(5, 2);
+            e.Property(v => v.LogoPath).HasMaxLength(200);
+        });
+
+        b.Entity<VenuePhoto>(e =>
+        {
+            e.Property(p => p.Path).HasMaxLength(200);
+            e.HasIndex(p => new { p.VenueId, p.SortOrder });
+            e.HasOne<Venue>().WithMany().HasForeignKey(p => p.VenueId).OnDelete(DeleteBehavior.Cascade);
         });
 
         b.Entity<Customer>(e =>
@@ -83,6 +92,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(c => c.NameEn).HasMaxLength(60);
             e.Property(c => c.NameAr).HasMaxLength(60);
             e.Property(c => c.IconKey).HasMaxLength(40);
+            e.Property(c => c.IconPath).HasMaxLength(200);
             e.HasMany(c => c.Features).WithOne().HasForeignKey(f => f.CategoryId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -90,6 +100,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         {
             e.Property(f => f.NameEn).HasMaxLength(60);
             e.Property(f => f.NameAr).HasMaxLength(60);
+            e.Property(f => f.IconPath).HasMaxLength(200);
         });
 
         b.Entity<Court>(e =>

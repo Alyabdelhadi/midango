@@ -26,7 +26,10 @@ public static class VenueEndpoints
     public sealed record VenueDto(
         Guid Id, string NameEn, string NameAr, string? AddressEn, string? AddressAr,
         double? Latitude, double? Longitude, string TimeZoneId, string CurrencyCode, decimal VatPercent, int FreeCancellationHours, bool Published,
-        IReadOnlyList<HoursDto> Hours, IReadOnlyList<CourtDto> Courts, IReadOnlyList<string> MissingForPublish);
+        IReadOnlyList<HoursDto> Hours, IReadOnlyList<CourtDto> Courts, IReadOnlyList<string> MissingForPublish,
+        string? LogoUrl, IReadOnlyList<PhotoDto> Photos);
+
+    public sealed record PhotoDto(Guid Id, string Url);
 
     public sealed record VenueInput(
         string? NameEn, string? NameAr, string? AddressEn, string? AddressAr,
@@ -192,8 +195,13 @@ public static class VenueEndpoints
             venue.Latitude, venue.Longitude, venue.TimeZoneId, venue.CurrencyCode, venue.VatPercent, venue.FreeCancellationHours, venue.Published,
             hours.Select(h => new HoursDto(h.Day, h.Opens, h.Closes)).ToList(),
             courts.Select(c => CourtDto.From(c, bands.Where(b => b.CourtId == c.Id))).ToList(),
-            MissingForPublish(venue, hours.Count, courts.Count(c => c.Active)));
+            MissingForPublish(venue, hours.Count, courts.Count(c => c.Active)),
+            venue.LogoPath, await PhotosAsync(db, venueId, ct));
     }
+
+    internal static async Task<List<PhotoDto>> PhotosAsync(MidangoDb db, Guid venueId, CancellationToken ct) =>
+        await db.VenuePhotos.AsNoTracking().Where(p => p.VenueId == venueId).OrderBy(p => p.SortOrder)
+            .Select(p => new PhotoDto(p.Id, p.Path)).ToListAsync(ct);
 
     private static string? ValidateVenue(VenueInput input)
     {

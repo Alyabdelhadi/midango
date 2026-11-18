@@ -27,5 +27,8 @@ public sealed class Venue
 
     /// Set by Midango: suspending unpublishes it, signs its staff out and keeps them out, and blocks publishing.
     public bool Suspended { get; set; }
+
+    /// Public "/media/…" path of the uploaded logo, or null.
+    public string? LogoPath { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }

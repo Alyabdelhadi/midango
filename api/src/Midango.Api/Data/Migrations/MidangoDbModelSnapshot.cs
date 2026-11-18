@@ -270,6 +270,11 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
 
+                    b.Property<string>("IconPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("icon_path");
+
                     b.Property<string>("NameAr")
                         .IsRequired()
                         .HasMaxLength(60)
@@ -382,6 +387,11 @@ namespace Midango.Api.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
                         .HasColumnName("icon_key");
+
+                    b.Property<string>("IconPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("icon_path");
 
                     b.Property<string>("NameAr")
                         .IsRequired()
@@ -825,6 +835,11 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("latitude");
 
+                    b.Property<string>("LogoPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("logo_path");
+
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision")
                         .HasColumnName("longitude");
@@ -864,6 +879,39 @@ namespace Midango.Api.Data.Migrations
                         .HasName("pk_venues");
 
                     b.ToTable("venues", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Venues.VenuePhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("path");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_venue_photos");
+
+                    b.HasIndex("VenueId", "SortOrder")
+                        .HasDatabaseName("ix_venue_photos_venue_id_sort_order");
+
+                    b.ToTable("venue_photos", (string)null);
                 });
 
             modelBuilder.Entity("CourtCourtFeature", b =>
@@ -987,6 +1035,16 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_operator_actions_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Venues.VenuePhoto", b =>
+                {
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_venue_photos_venues_venue_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>

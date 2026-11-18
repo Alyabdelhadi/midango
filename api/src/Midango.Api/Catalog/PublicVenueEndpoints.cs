@@ -12,19 +12,21 @@ public static class PublicVenueEndpoints
 
     public sealed record VenueCardDto(
         Guid Id, string NameEn, string NameAr, string? AddressEn, string? AddressAr, double? Latitude, double? Longitude,
-        string Currency, int Courts, decimal? FromTotal, bool Open, IReadOnlyList<AvailabilityEndpoints.SlotDto> Times);
+        string Currency, int Courts, decimal? FromTotal, bool Open, IReadOnlyList<AvailabilityEndpoints.SlotDto> Times,
+        string? LogoUrl, string? PhotoUrl);
 
-    public sealed record PublicFeatureDto(string NameEn, string NameAr);
+    public sealed record PublicFeatureDto(string NameEn, string NameAr, string? IconUrl);
 
     public sealed record PublicCourtDto(
         Guid Id, Guid CategoryId, string NameEn, string NameAr, bool Indoor, IReadOnlyList<PublicFeatureDto> Features);
 
-    public sealed record PublicCategoryDto(Guid Id, string NameEn, string NameAr, string IconKey, int[] DurationsMinutes);
+    public sealed record PublicCategoryDto(Guid Id, string NameEn, string NameAr, string IconKey, int[] DurationsMinutes, string? IconUrl);
 
     public sealed record PublicVenueDto(
         Guid Id, string NameEn, string NameAr, string? AddressEn, string? AddressAr, double? Latitude, double? Longitude,
         string Currency, decimal VatPercent, int FreeCancellationHours,
-        IReadOnlyList<VenueEndpoints.HoursDto> Hours, IReadOnlyList<PublicCategoryDto> Categories, IReadOnlyList<PublicCourtDto> Courts);
+        IReadOnlyList<VenueEndpoints.HoursDto> Hours, IReadOnlyList<PublicCategoryDto> Categories, IReadOnlyList<PublicCourtDto> Courts,
+        string? LogoUrl, IReadOnlyList<string> Photos);
 
     public static void MapPublicVenueEndpoints(this IEndpointRouteBuilder app)
     {
@@ -42,6 +44,12 @@ public static class PublicVenueEndpoints
                 .Where(c => c.CategoryId == categoryId && c.Active)
                 .GroupBy(c => c.VenueId).Select(g => new { VenueId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.VenueId, g => g.Count, ct);
+            var venueIds = venues.Select(v => v.Id).ToList();
+            var firstPhotos = await db.VenuePhotos.AsNoTracking()
+                .Where(p => venueIds.Contains(p.VenueId))
+                .GroupBy(p => p.VenueId)
+                .Select(g => new { VenueId = g.Key, Path = g.OrderBy(p => p.SortOrder).Select(p => p.Path).First() })
+                .ToDictionaryAsync(g => g.VenueId, g => g.Path, ct);
 
             var now = clock.GetUtcNow();
             var cards = new List<VenueCardDto>();
@@ -57,7 +65,8 @@ public static class PublicVenueEndpoints
                     venue.Id, venue.NameEn, venue.NameAr, venue.AddressEn, venue.AddressAr, venue.Latitude, venue.Longitude,
                     venue.CurrencyCode, courtCounts.GetValueOrDefault(venue.Id),
                     free.Count == 0 ? null : free.SelectMany(s => s.Courts).Min(c => c.Total),
-                    day?.Open ?? false, free.Take(CardTimes).ToList()));
+                    day?.Open ?? false, free.Take(CardTimes).ToList(),
+                    venue.LogoPath, firstPhotos.GetValueOrDefault(venue.Id)));
             }
 
             return Results.Ok(cards.OrderByDescending(c => c.Times.Count > 0).ThenBy(c => c.NameEn));
@@ -75,16 +84,19 @@ public static class PublicVenueEndpoints
             var categories = await db.SportCategories.AsNoTracking()
                 .Where(c => categoryIds.Contains(c.Id) && c.Active).OrderBy(c => c.SortOrder).ThenBy(c => c.NameEn).ToListAsync(ct);
             var shown = categories.Select(c => c.Id).ToHashSet();
+            var photos = await db.VenuePhotos.AsNoTracking().Where(p => p.VenueId == id).OrderBy(p => p.SortOrder)
+                .Select(p => p.Path).ToListAsync(ct);
 
             return Results.Ok(new PublicVenueDto(
                 venue.Id, venue.NameEn, venue.NameAr, venue.AddressEn, venue.AddressAr, venue.Latitude, venue.Longitude,
                 venue.CurrencyCode, venue.VatPercent, venue.FreeCancellationHours,
                 hours.Select(h => new VenueEndpoints.HoursDto(h.Day, h.Opens, h.Closes)).ToList(),
-                categories.Select(c => new PublicCategoryDto(c.Id, c.NameEn, c.NameAr, c.IconKey, c.DurationsMinutes)).ToList(),
+                categories.Select(c => new PublicCategoryDto(c.Id, c.NameEn, c.NameAr, c.IconKey, c.DurationsMinutes, c.IconPath)).ToList(),
                 courts.Where(c => shown.Contains(c.CategoryId))
                     .Select(c => new PublicCourtDto(c.Id, c.CategoryId, c.NameEn, c.NameAr, c.Indoor,
-                        c.Features.Select(f => new PublicFeatureDto(f.NameEn, f.NameAr)).ToList()))
-                    .ToList()));
+                        c.Features.Select(f => new PublicFeatureDto(f.NameEn, f.NameAr, f.IconPath)).ToList()))
+                    .ToList(),
+                venue.LogoPath, photos));
         });
     }
 }

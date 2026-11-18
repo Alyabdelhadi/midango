@@ -10,6 +10,9 @@ public sealed class SportCategory
     /// Lucide icon name in kebab-case, e.g. "volleyball". Clients fall back to a default icon if unknown.
     public required string IconKey { get; set; }
 
+    /// Uploaded icon ("/media/…"); clients show it instead of IconKey when set.
+    public string? IconPath { get; set; }
+
     /// Bookable lengths in minutes, ascending, e.g. [60, 90, 120].
     public int[] DurationsMinutes { get; set; } = [];
     public int SortOrder { get; set; }
@@ -26,6 +29,9 @@ public sealed class CourtFeature
     public required string NameEn { get; set; }
     public required string NameAr { get; set; }
     public int SortOrder { get; set; }
+
+    /// Uploaded icon ("/media/…"), or null.
+    public string? IconPath { get; set; }
 }
 
 public sealed class Court

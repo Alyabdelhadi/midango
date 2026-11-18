@@ -3,11 +3,13 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Media;
 using Midango.Api.Notifications;
 using Midango.Api.Platform;
 using Npgsql;
@@ -30,6 +32,7 @@ builder.Services.AddSingleton<IPasswordHasher<StaffMember>, PasswordHasher<Staff
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<OtpService>();
 builder.Services.AddProblemDetails();
+builder.Services.AddSingleton<MediaStore>();
 
 // The Flutter web build calls the API from another origin in development. Mobile apps don't use CORS.
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? [];
@@ -85,6 +88,14 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseCors();
+// Uploaded images. Names are random and never reused, so they can be cached forever.
+var media = app.Services.GetRequiredService<MediaStore>();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(media.Root),
+    RequestPath = "/media",
+    OnPrepareResponse = c => c.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable",
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -133,5 +144,6 @@ app.MapSettingsEndpoints();
 app.MapDeviceEndpoints();
 app.MapLeadEndpoints();
 app.MapOperatorEndpoints();
+app.MapMediaEndpoints();
 
 app.Run();
