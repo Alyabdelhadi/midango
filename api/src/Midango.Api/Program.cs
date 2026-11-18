@@ -73,6 +73,14 @@ builder.Services.AddRateLimiter(o =>
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
 });
 
+// Push: real FCM when a service-account key is configured (never in the repo), otherwise the log.
+var firebaseKey = builder.Configuration["Firebase:CredentialsPath"];
+if (!string.IsNullOrWhiteSpace(firebaseKey) && File.Exists(firebaseKey))
+    builder.Services.AddSingleton<IPushSender>(sp => new FcmPushSender(firebaseKey, sp.GetRequiredService<ILogger<FcmPushSender>>()));
+else
+    builder.Services.AddSingleton<IPushSender, LogPushSender>();
+builder.Services.AddHostedService<ReminderService>();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
