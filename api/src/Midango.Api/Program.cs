@@ -109,6 +109,8 @@ if (app.Environment.IsDevelopment())
     }
     await OperatorBootstrap.RunAsync(app.Services, app.Configuration);
 }
+// Every environment: production applies migrations out of band, so this only fills a missing page.
+await LegalEndpoints.SeedLegalAsync(app.Services);
 
 // Liveness + database reachability. Never returns the exception text to the caller.
 app.MapGet("/health", async (NpgsqlDataSource db, ILogger<Program> log, CancellationToken ct) =>
@@ -145,5 +147,6 @@ app.MapDeviceEndpoints();
 app.MapLeadEndpoints();
 app.MapOperatorEndpoints();
 app.MapMediaEndpoints();
+app.MapLegalEndpoints();
 
 app.Run();

@@ -649,6 +649,35 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("customer_devices", (string)null);
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.LegalDocument", b =>
+                {
+                    b.Property<string>("Kind")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("BodyAr")
+                        .IsRequired()
+                        .HasMaxLength(60000)
+                        .HasColumnType("character varying(60000)")
+                        .HasColumnName("body_ar");
+
+                    b.Property<string>("BodyEn")
+                        .IsRequired()
+                        .HasMaxLength(60000)
+                        .HasColumnType("character varying(60000)")
+                        .HasColumnName("body_en");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Kind")
+                        .HasName("pk_legal_documents");
+
+                    b.ToTable("legal_documents", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Platform.OperatorAction", b =>
                 {
                     b.Property<long>("Id")
