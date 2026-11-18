@@ -518,3 +518,11 @@ Expected: `Failures: 0`. Then (after 60 s) the M5 script still passes (availabil
 - Push notifications and reminders (M9).
 - Bundled fonts (google_fonts still downloads them on first run — bundle before release).
 - Android/iOS store setup, app icons, splash.
+
+## Verification results
+
+- API script: `Failures: 0` (cards, order, 8 times, from-price, blocked venue, 60-day day, venue page, 404 unpublished, CORS allow/refuse). M5 re-run after the availability refactor: `Failures: 0`.
+- `flutter analyze`: no issues; `flutter build web`: built.
+- Browser (web-server :5400, 500 px wide): Play → time → confirm sheet → Book → phone → code (from the API log) → name → booked (reference + QR) → View my bookings → detail → cancel (dialog said late, correctly) → Past shows *Late cancellation*; Profile → Arabic: RTL, Western digits, time ranges LTR.
+- Fixed during the walkthrough: chip labels were clipped because google_fonts loaded after the first layout — `main()` now awaits `GoogleFonts.pendingFonts` for every weight used (also removes the Arabic empty-box flash from M1); the booking summary showed a free-cancellation time that had already passed and a pay-at-venue line on cancelled bookings — now only live bookings show them, and a passed deadline reads *Cancelling now counts as a late cancellation.*
+- Known: API error sentences are English in the Arabic UI (API messages are English-only, noted since M3b).
