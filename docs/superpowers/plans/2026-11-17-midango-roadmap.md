@@ -36,6 +36,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M9a | No-show limit & reminders (server) ✅ done | Rules page (operator), no-show limit, push devices, reminder job (FCM when keyed, log otherwise) | M7, M8 |
 | M9b | Push in the app | firebase_messaging, device registration, open booking from a reminder | M9a + Firebase key and flutterfire configure |
 | M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
+| W1 | Website ✅ done | Static EN/AR informative site (`website/`), demo form → `POST /leads`, operator "Venue requests" page | M2 |
 
 ## Later (not planned)
 

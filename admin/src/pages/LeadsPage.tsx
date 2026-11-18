@@ -69,7 +69,7 @@ export function LeadsPage() {
                   {l.contactName}
                   <div>
                     <a href={`tel:${l.phone}`}>
-                      <bdi dir="ltr">{l.phone}</bdi>
+                      <bdi dir="ltr" className="nowrap">{l.phone}</bdi>
                     </a>
                   </div>
                 </td>

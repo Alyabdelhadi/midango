@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MIDANGO: احجز ملعبك وأدر منشأتك</title>
+  <meta name="description" content="MIDANGO منصة لحجز الملاعب في الخليج. يحجز اللاعبون ملاعب البادل وكرة القدم في ثوانٍ ويدفعون نقدًا في الملعب، وتدير الملاعب الجدول والاستقبال والنقد من لوحة تحكم واحدة.">
+  <link rel="alternate" hreflang="en" href="/">
+  <link rel="alternate" hreflang="ar" href="/ar/">
+  <link rel="alternate" hreflang="x-default" href="/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="MIDANGO: احجز ملعبك وأدر منشأتك">
+  <meta property="og:description" content="حجز الملاعب في الخليج. احجز في ثوانٍ وادفع نقدًا في الملعب. لوحة تحكم واحدة للجدول والاستقبال والنقد.">
+  <meta property="og:image" content="/assets/midango-logo.png">
+  <meta property="og:locale" content="ar_AR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="theme-color" content="#071329">
+  <link rel="icon" type="image/png" href="../assets/midango-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../form.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">انتقل إلى المحتوى</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="./" aria-label="الصفحة الرئيسية لـ MIDANGO"><img src="../assets/midango-logo.png" alt="MIDANGO" width="2172" height="724"></a>
+      <nav class="nav" aria-label="القائمة الرئيسية">
+        <a href="#players">اللاعبون</a>
+        <a href="#venues">الملاعب</a>
+        <a href="#faq">الأسئلة الشائعة</a>
+      </nav>
+      <a class="lang" href="../" hreflang="en" lang="en">English</a>
+      <a class="btn btn-dark" href="#request">اطلب عرضًا</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <div>
+          <h1 id="hero-title">مباراتك القادمة على بُعد ضغطة.</h1>
+          <p class="hero-lede">MIDANGO منصة لحجز الملاعب في الخليج. يجد اللاعبون ملعبًا ويحجزونه في ثوانٍ، وتدير الملاعب الجدول والاستقبال والنقد من لوحة تحكم واحدة.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#players">احجز ملعبًا</a>
+            <a class="btn btn-ghost" href="#venues">لأصحاب الملاعب</a>
+          </div>
+        </div>
+
+        <div class="stage" aria-hidden="true">
+          <div class="sched">
+            <div class="sched-top">اليوم <small>بادل، 4 ملاعب</small></div>
+            <div class="grid">
+              <span class="t" style="grid-area:1/2">16:00</span>
+              <span class="t" style="grid-area:1/3">17:00</span>
+              <span class="t" style="grid-area:1/4">18:00</span>
+              <span class="t" style="grid-area:1/5">19:00</span>
+              <span class="t wide" style="grid-area:1/6">20:00</span>
+              <span class="t wide" style="grid-area:1/7">21:00</span>
+              <span class="court" style="grid-area:2/1">الملعب 1</span>
+              <span class="court" style="grid-area:3/1">الملعب 2</span>
+              <span class="court" style="grid-area:4/1">الملعب 3</span>
+              <span class="court" style="grid-area:5/1">الملعب 4</span>
+              <i class="cell" style="grid-row:2;grid-column:2/-1"></i>
+              <i class="cell" style="grid-row:3;grid-column:2/-1"></i>
+              <i class="cell" style="grid-row:4;grid-column:2/-1"></i>
+              <i class="cell" style="grid-row:5;grid-column:2/-1"></i>
+              <div class="b in" style="grid-row:2;grid-column:2/4"><strong>خالد ع.</strong><span>حضر</span></div>
+              <div class="b" style="grid-row:2;grid-column:5/6"><strong>ريم س.</strong><span>19:00</span></div>
+              <div class="b wide" style="grid-row:2;grid-column:6/8"><strong>يوسف ك.</strong><span>20:00</span></div>
+              <div class="b ghost" style="grid-row:3;grid-column:3/5"></div>
+              <div class="b drag" style="grid-row:3;grid-column:4/6"><strong>عمر ف.</strong><span>نقل إلى 18:00</span></div>
+              <div class="b blocked" style="grid-row:4;grid-column:2/4"><strong>صيانة</strong><span>محجوب</span></div>
+              <div class="b wide" style="grid-row:4;grid-column:6/8"><strong>فيصل ر.</strong><span>20:00</span></div>
+              <div class="b" style="grid-row:5;grid-column:4/5"><strong>بدون حجز</strong><span>18:00</span></div>
+              <div class="b" style="grid-row:5;grid-column:5/6"><strong>سارة م.</strong><span>19:00</span></div>
+              <i class="now" style="grid-row:2/6;grid-column:4"></i>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="sport">بادل، الملعب 2</div>
+              <div class="when">اليوم <span dir="ltr">19:00–20:30</span></div>
+              <img class="qr" src="../assets/qr.svg" alt="" width="125" height="125">
+              <div class="pay">ادفع <b>180 ر.س</b> في الاستقبال</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="players" aria-labelledby="players-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">للاعبين</p>
+          <h2 id="players-title">من بيتك إلى الملعب في ثلاث خطوات.</h2>
+          <p>اعثر على ملعب قريب منك، وشاهد الأوقات المتاحة واحجز. لا تحتاج إلى بطاقة: الدفع في الملعب.</p>
+        </div>
+        <ol class="steps">
+          <li><h3>اختر رياضتك</h3><p>بادل وكرة قدم وغيرها. تصفّح الملاعب القريبة منك مع ملاعبها ومواعيدها وأسعارها.</p></li>
+          <li><h3>اختر الملعب والوقت</h3><p>شاهد الأوقات المتاحة كما هي الآن واحجز ما يناسبك، ويتأكد حجزك فورًا.</p></li>
+          <li><h3>أظهر رمز QR في الاستقبال</h3><p>كل حجز يأتي برمز QR. أظهره عند وصولك وادفع نقدًا في الملعب.</p></li>
+        </ol>
+        <div class="stores">
+          <div class="store" role="img" aria-label="قريبًا على App Store">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18.5h2"/></svg>
+            <span><small>قريبًا على</small><b>App Store</b></span>
+          </div>
+          <div class="store" role="img" aria-label="قريبًا على Google Play">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 3.5v17a1 1 0 0 1-1.5.86l-14-8.5a1 1 0 0 1 0-1.72l14-8.5A1 1 0 0 1 18 3.5Z"/></svg>
+            <span><small>قريبًا على</small><b>Google Play</b></span>
+          </div>
+          <p class="stores-note">يصدر التطبيق قريبًا بالعربية والإنجليزية.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-cloud" id="venues" aria-labelledby="venues-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">لأصحاب الملاعب</p>
+          <h2 id="venues-title">منشأتك كلها على شاشة واحدة.</h2>
+          <p>MIDANGO Business لوحة تحكم على الويب لموظفي الاستقبال والمديرين، بالعربية والإنجليزية.</p>
+        </div>
+
+        <div class="features">
+          <article class="feature">
+            <div>
+              <h3>جدول تراه بوضوح</h3>
+              <p>كل الملاعب على مدار اليوم في شبكة واحدة، والحجوزات من التطبيق تظهر فيه تلقائيًا.</p>
+              <ul class="ticks">
+                <li>اضغط على وقت فارغ لتسجيل حجز هاتفي أو لعميل دائم</li>
+                <li>اسحب الحجز لنقله إلى ملعب أو وقت آخر</li>
+                <li>احجب أوقاتًا للصيانة أو التدريب أو المناسبات الخاصة</li>
+              </ul>
+            </div>
+            <div class="feature-art" aria-hidden="true">
+              <div class="grid">
+                <span class="t" style="grid-area:1/2">17:00</span>
+                <span class="t" style="grid-area:1/3">18:00</span>
+                <span class="t" style="grid-area:1/4">19:00</span>
+                <span class="t" style="grid-area:1/5">20:00</span>
+                <span class="court" style="grid-area:2/1">الملعب 1</span>
+                <span class="court" style="grid-area:3/1">الملعب 2</span>
+                <span class="court" style="grid-area:4/1">الملعب 3</span>
+                <i class="cell" style="grid-row:2;grid-column:2/-1"></i>
+                <i class="cell" style="grid-row:3;grid-column:2/-1"></i>
+                <i class="cell" style="grid-row:4;grid-column:2/-1"></i>
+                <div class="b in" style="grid-row:2;grid-column:2/4"><strong>خالد ع.</strong><span>حضر</span></div>
+                <div class="b" style="grid-row:2;grid-column:4/6"><strong>ريم س.</strong><span>19:00</span></div>
+                <div class="b" style="grid-row:3;grid-column:3/4"><strong>ناصر ح.</strong><span>18:00</span></div>
+                <div class="b blocked" style="grid-row:4;grid-column:2/6"><strong>تدريب</strong><span>محجوب <span dir="ltr">17:00–21:00</span></span></div>
+              </div>
+              <div class="legend"><span><i></i>محجوز</span><span><i class="in"></i>حضر</span><span><i class="blocked"></i>محجوب</span></div>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div>
+              <h3>استقبال يواكب أوقات الذروة</h3>
+              <p>شاشة الاستقبال تعرض من يلعب الآن ومن التالي، فيعرف الموظف على الكاونتر ما عليه فعله دائمًا.</p>
+              <ul class="ticks">
+                <li>استلم النقد وسجّل الحضور بضغطة واحدة</li>
+                <li>ابحث عن الحجز بمسح رمز QR الخاص باللاعب</li>
+                <li>أضف الزوار بدون حجز في الحال</li>
+                <li>تراجع عن أي خطأ، أو سجّل عدم الحضور</li>
+              </ul>
+            </div>
+            <div class="feature-art" aria-hidden="true">
+              <div class="desk-scan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg>
+                امسح رمز QR أو اكتب رقم الحجز
+              </div>
+              <ul class="desk-list">
+                <li><time>18:00</time><span class="who"><b>خالد ع.</b><small>الملعب 1، بادل</small></span><span class="pill pill-in">حضر</span></li>
+                <li><time>18:30</time><span class="who"><b>عمر ف.</b><small>الملعب 2، بادل</small></span><span class="pill pill-cash">استلم 180 ر.س</span></li>
+                <li><time>19:00</time><span class="who"><b>زائر</b><small>الملعب 4، بادل</small></span><span class="pill pill-walk">بدون حجز</span></li>
+                <li><time>17:00</time><span class="who"><b>ناصر ح.</b><small>الملعب 3، كرة قدم</small></span><span class="pill pill-miss">لم يحضر</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div>
+              <h3>ملاعب أقل تضيع بسبب الغياب</h3>
+              <p>العملاء الذين يتكرر غيابهم عن حجوزاتهم تُقيَّد حجوزاتهم، فتذهب ملاعبك لمن يحضر فعلًا.</p>
+              <ul class="ticks">
+                <li>تذكير «هل ما زلت قادمًا؟» يصل إلى اللاعب قبل المباراة بساعات</li>
+                <li>تقييد العملاء المتغيبين تلقائيًا</li>
+                <li>الأوقات الملغاة تعود متاحة في الجدول فورًا</li>
+              </ul>
+            </div>
+            <div class="feature-art" aria-hidden="true">
+              <p class="notif-meta">قبل المباراة بـ 3 ساعات</p>
+              <div class="notif">
+                <img src="../assets/midango-icon.png" alt="" width="560" height="295">
+                <div>
+                  <b>هل ما زلت قادمًا؟</b>
+                  <p>مباراة البادل على الملعب 2 تبدأ الساعة 19:00. إن لم تستطع الحضور، ألغِ الحجز ليلعب غيرك.</p>
+                </div>
+              </div>
+              <div class="rule">
+                <span>الحجوزات الفائتة</span>
+                <span class="dots"><i class="x"></i><i class="x"></i><i></i></span>
+                <span>تُقيَّد الحجوزات بعد تكرار الغياب</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div>
+              <h3>اعرف ما تحققه ملاعبك</h3>
+              <p>اعرف متى يزدحم ملعبك، وكم تم تحصيله في الاستقبال، ومن لا يحضر.</p>
+              <ul class="ticks">
+                <li>خريطة حرارية للإشغال حسب اليوم والساعة</li>
+                <li>النقد المحصّل حسب الملعب والأسبوع</li>
+                <li>نسبة عدم الحضور بمرور الوقت</li>
+              </ul>
+            </div>
+            <div class="feature-art reports" aria-hidden="true">
+              <div>
+                <h4>الإشغال حسب الساعة</h4>
+                <div class="heat"><i style="opacity:0.15"></i><i style="opacity:0.32"></i><i style="opacity:0.49"></i><i style="opacity:0.46"></i><i style="opacity:0.63"></i><i style="opacity:0.60"></i><i style="opacity:0.77"></i><i style="opacity:0.94"></i><i style="opacity:0.27"></i><i style="opacity:0.24"></i><i style="opacity:0.41"></i><i style="opacity:0.58"></i><i style="opacity:0.55"></i><i style="opacity:0.72"></i><i style="opacity:0.69"></i><i style="opacity:0.86"></i><i style="opacity:0.19"></i><i style="opacity:0.36"></i><i style="opacity:0.33"></i><i style="opacity:0.50"></i><i style="opacity:0.67"></i><i style="opacity:0.64"></i><i style="opacity:0.81"></i><i style="opacity:0.78"></i><i style="opacity:0.56"></i><i style="opacity:0.53"></i><i style="opacity:0.70"></i><i style="opacity:0.67"></i><i style="opacity:0.84"></i><i style="opacity:1.00"></i><i style="opacity:0.98"></i><i style="opacity:1.00"></i><i style="opacity:0.48"></i><i style="opacity:0.65"></i><i style="opacity:0.62"></i><i style="opacity:0.79"></i><i style="opacity:0.76"></i><i style="opacity:0.93"></i><i style="opacity:1.00"></i><i style="opacity:1.00"></i><i style="opacity:0.15"></i><i style="opacity:0.32"></i><i style="opacity:0.49"></i><i style="opacity:0.46"></i><i style="opacity:0.63"></i><i style="opacity:0.60"></i><i style="opacity:0.77"></i><i style="opacity:0.94"></i><i style="opacity:0.27"></i><i style="opacity:0.24"></i><i style="opacity:0.41"></i><i style="opacity:0.58"></i><i style="opacity:0.55"></i><i style="opacity:0.72"></i><i style="opacity:0.69"></i><i style="opacity:0.86"></i></div>
+              </div>
+              <div>
+                <h4>النقد حسب الملعب هذا الأسبوع</h4>
+                <div class="bars">
+                  <div>الملعب 1<span style="inline-size:92%"></span></div>
+                  <div>الملعب 2<span style="inline-size:78%"></span></div>
+                  <div>الملعب 3<span style="inline-size:54%"></span></div>
+                  <div>الملعب 4<span style="inline-size:66%"></span></div>
+                </div>
+              </div>
+              <div class="stat"><b>4%</b><span>نسبة عدم الحضور، آخر 30 يومًا</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section demo" id="request" aria-labelledby="request-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">اطلب عرضًا تجريبيًا</p>
+          <h2 id="request-title">انضم بمنشأتك إلى MIDANGO.</h2>
+          <p>أخبرنا عن منشأتك وسنتصل بك لتجهيزها. بدون أي التزام.</p>
+          <ul class="demo-points">
+            <li>نجهّز معك الملاعب والأسعار وساعات العمل</li>
+            <li>تعمل من أي متصفح، بدون تثبيت</li>
+            <li>بالعربية والإنجليزية لكل فريقك</li>
+          </ul>
+        </div>
+
+        <form class="form" id="demo" data-api="http://localhost:5300"
+              data-success="شكرًا لك. وصلنا طلبك وسنتصل بك قريبًا."
+              data-invalid="تحقّق من البيانات، خصوصًا رقم الهاتف، ثم حاول مرة أخرى." data-error="تعذّر إرسال طلبك. تحقق من اتصالك وحاول مرة أخرى." novalidate>
+          <div class="field">
+            <label for="venueName">اسم المنشأة</label>
+            <input id="venueName" name="venueName" required maxlength="200" autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="contactName">اسمك</label>
+            <input id="contactName" name="contactName" required maxlength="200" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="phone">رقم الجوال</label>
+            <input id="phone" name="phone" type="tel" dir="ltr" required maxlength="20" autocomplete="tel" placeholder="+966 5x xxx xxxx">
+          </div>
+          <div class="field">
+            <label for="city">المدينة</label>
+            <input id="city" name="city" required maxlength="100" autocomplete="address-level2">
+          </div>
+          <div class="field">
+            <label for="courts">عدد الملاعب</label>
+            <input id="courts" name="courts" type="number" inputmode="numeric" min="1" max="100" required>
+          </div>
+          <div class="field full">
+            <label for="message">ملاحظات إضافية <small>(اختياري)</small></label>
+            <textarea id="message" name="message" maxlength="2000" rows="3"></textarea>
+          </div>
+          <div class="hp" aria-hidden="true">
+            <label for="website">الموقع الإلكتروني</label>
+            <input id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="form-foot">
+            <button class="btn btn-primary" type="submit">اطلب عرضًا تجريبيًا</button>
+            <p class="form-status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq">
+        <div class="section-head">
+          <h2 id="faq-title">أسئلة وأجوبة.</h2>
+          <p>عندك سؤال آخر؟ اكتبه في نموذج طلب العرض.</p>
+        </div>
+        <div class="faq-list">
+          <details><summary>هل التطبيق مجاني للاعبين؟</summary><p>نعم. تنزيل التطبيق والحجز من خلاله مجانيان، وتدفع فقط سعر الملعب.</p></details>
+          <details><summary>كيف أدفع؟</summary><p>نقدًا في الملعب. أظهر رمز QR الخاص بحجزك في الاستقبال وادفع عند وصولك.</p></details>
+          <details><summary>هل يمكنني إلغاء الحجز؟</summary><p>نعم، مجانًا حتى تبدأ مهلة الإلغاء التي يحددها الملعب.</p></details>
+          <details><summary>كم تكلّف MIDANGO أصحاب الملاعب؟</summary><p>تواصل معنا وسنجهّز منشأتك. أرسل طلب عرض تجريبي وسنتصل بك.</p></details>
+          <details><summary>ما الرياضات التي يمكنني حجزها؟</summary><p>البادل وكرة القدم وغيرها، حسب ما يقدّمه كل ملعب.</p></details>
+          <details><summary>هل يدعم اللغة العربية؟</summary><p>نعم. التطبيق ولوحة التحكم ثنائيا اللغة بالكامل، بالعربية والإنجليزية.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <img src="../assets/midango-logo.png" alt="MIDANGO" width="2172" height="724">
+      <nav aria-label="روابط التذييل">
+        <a href="#players">اللاعبون</a>
+        <a href="#venues">الملاعب</a>
+        <a href="#faq">الأسئلة الشائعة</a>
+        <a href="../" hreflang="en" lang="en">English</a>
+      </nav>
+      <p class="copy">© 2026 MIDANGO. حجز الملاعب في الخليج.</p>
+    </div>
+  </footer>
+</body>
+</html>

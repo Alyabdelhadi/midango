@@ -226,3 +226,4 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 /* Rules: labels wrap to different heights; line the inputs up along the bottom. */
 .rules-grid { align-items: end; }
 .lead-message { max-width: 360px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.nowrap { white-space: nowrap; }

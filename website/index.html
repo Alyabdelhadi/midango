@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MIDANGO: book a court, run your venue</title>
+  <meta name="description" content="MIDANGO is court booking for the Gulf. Players book padel and football courts in seconds and pay cash at the venue. Venues run their schedule, desk and cash from one dashboard.">
+  <link rel="alternate" hreflang="en" href="/">
+  <link rel="alternate" hreflang="ar" href="/ar/">
+  <link rel="alternate" hreflang="x-default" href="/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="MIDANGO: book a court, run your venue">
+  <meta property="og:description" content="Court booking for the Gulf. Book in seconds, pay cash at the venue. One dashboard for the schedule, the desk and the cash.">
+  <meta property="og:image" content="/assets/midango-logo.png">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ar_AR">
+  <meta name="theme-color" content="#071329">
+  <link rel="icon" type="image/png" href="assets/midango-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script src="form.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="MIDANGO home"><img src="assets/midango-logo.png" alt="MIDANGO" width="2172" height="724"></a>
+      <nav class="nav" aria-label="Main">
+        <a href="#players">Players</a>
+        <a href="#venues">Venues</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="lang" href="ar/" hreflang="ar" lang="ar">العربية</a>
+      <a class="btn btn-dark" href="#request">Request a demo</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <div>
+          <h1 id="hero-title">Press play on your next game.</h1>
+          <p class="hero-lede">MIDANGO is court booking for the Gulf. Players find a court and book it in seconds. Venues run the schedule, the desk and the cash from one dashboard.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#players">Book a court</a>
+            <a class="btn btn-ghost" href="#venues">For venues</a>
+          </div>
+        </div>
+
+        <div class="stage" aria-hidden="true">
+          <div class="sched">
+            <div class="sched-top">Today <small>Padel, 4 courts</small></div>
+            <div class="grid">
+              <span class="t" style="grid-area:1/2">16:00</span>
+              <span class="t" style="grid-area:1/3">17:00</span>
+              <span class="t" style="grid-area:1/4">18:00</span>
+              <span class="t" style="grid-area:1/5">19:00</span>
+              <span class="t wide" style="grid-area:1/6">20:00</span>
+              <span class="t wide" style="grid-area:1/7">21:00</span>
+              <span class="court" style="grid-area:2/1">Court 1</span>
+              <span class="court" style="grid-area:3/1">Court 2</span>
+              <span class="court" style="grid-area:4/1">Court 3</span>
+              <span class="court" style="grid-area:5/1">Court 4</span>
+              <i class="cell" style="grid-row:2;grid-column:2/-1"></i>
+              <i class="cell" style="grid-row:3;grid-column:2/-1"></i>
+              <i class="cell" style="grid-row:4;grid-column:2/-1"></i>
+              <i class="cell" style="grid-row:5;grid-column:2/-1"></i>
+              <div class="b in" style="grid-row:2;grid-column:2/4"><strong>Khalid A.</strong><span>Checked in</span></div>
+              <div class="b" style="grid-row:2;grid-column:5/6"><strong>Reem S.</strong><span>19:00</span></div>
+              <div class="b wide" style="grid-row:2;grid-column:6/8"><strong>Yousef K.</strong><span>20:00</span></div>
+              <div class="b ghost" style="grid-row:3;grid-column:3/5"></div>
+              <div class="b drag" style="grid-row:3;grid-column:4/6"><strong>Omar F.</strong><span>Moving to 18:00</span></div>
+              <div class="b blocked" style="grid-row:4;grid-column:2/4"><strong>Maintenance</strong><span>Blocked</span></div>
+              <div class="b wide" style="grid-row:4;grid-column:6/8"><strong>Faisal R.</strong><span>20:00</span></div>
+              <div class="b" style="grid-row:5;grid-column:4/5"><strong>Walk-in</strong><span>18:00</span></div>
+              <div class="b" style="grid-row:5;grid-column:5/6"><strong>Sara M.</strong><span>19:00</span></div>
+              <i class="now" style="grid-row:2/6;grid-column:4"></i>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <div class="sport">Padel, Court 2</div>
+              <div class="when">Today 19:00–20:30</div>
+              <img class="qr" src="assets/qr.svg" alt="" width="125" height="125">
+              <div class="pay">Pay <b>180 SAR</b> at the desk</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="players" aria-labelledby="players-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">For players</p>
+          <h2 id="players-title">From your sofa to the court in three steps.</h2>
+          <p>Find a venue near you, see what's free and book it. No card needed: you pay at the venue.</p>
+        </div>
+        <ol class="steps">
+          <li><h3>Pick your sport</h3><p>Padel, football and more. Browse venues near you with their courts, opening hours and prices.</p></li>
+          <li><h3>Pick a court and time</h3><p>See open slots as they are and book the one that suits you. Your booking is confirmed straight away.</p></li>
+          <li><h3>Show your QR at the desk</h3><p>Every booking comes with a QR code. Show it when you arrive and pay cash at the venue.</p></li>
+        </ol>
+        <div class="stores">
+          <div class="store" role="img" aria-label="Coming soon to the App Store">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18.5h2"/></svg>
+            <span><small>Coming soon to the</small><b>App Store</b></span>
+          </div>
+          <div class="store" role="img" aria-label="Coming soon to Google Play">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5Z"/></svg>
+            <span><small>Coming soon to</small><b>Google Play</b></span>
+          </div>
+          <p class="stores-note">The app launches soon, in English and Arabic.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-cloud" id="venues" aria-labelledby="venues-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">For venues</p>
+          <h2 id="venues-title">Your whole venue on one screen.</h2>
+          <p>MIDANGO Business is the web dashboard for your front desk and your managers, in English and Arabic.</p>
+        </div>
+
+        <div class="features">
+          <article class="feature">
+            <div>
+              <h3>A schedule you can actually see</h3>
+              <p>Every court across the day in one grid. Bookings made in the app land here on their own.</p>
+              <ul class="ticks">
+                <li>Click an empty slot to book for a caller or a regular</li>
+                <li>Drag a booking to move it to another court or time</li>
+                <li>Block time for maintenance, coaching or private events</li>
+              </ul>
+            </div>
+            <div class="feature-art" aria-hidden="true">
+              <div class="grid">
+                <span class="t" style="grid-area:1/2">17:00</span>
+                <span class="t" style="grid-area:1/3">18:00</span>
+                <span class="t" style="grid-area:1/4">19:00</span>
+                <span class="t" style="grid-area:1/5">20:00</span>
+                <span class="court" style="grid-area:2/1">Court 1</span>
+                <span class="court" style="grid-area:3/1">Court 2</span>
+                <span class="court" style="grid-area:4/1">Court 3</span>
+                <i class="cell" style="grid-row:2;grid-column:2/-1"></i>
+                <i class="cell" style="grid-row:3;grid-column:2/-1"></i>
+                <i class="cell" style="grid-row:4;grid-column:2/-1"></i>
+                <div class="b in" style="grid-row:2;grid-column:2/4"><strong>Khalid A.</strong><span>Checked in</span></div>
+                <div class="b" style="grid-row:2;grid-column:4/6"><strong>Reem S.</strong><span>19:00</span></div>
+                <div class="b" style="grid-row:3;grid-column:3/4"><strong>Nasser H.</strong><span>18:00</span></div>
+                <div class="b blocked" style="grid-row:4;grid-column:2/6"><strong>Coaching</strong><span>Blocked 17:00–21:00</span></div>
+              </div>
+              <div class="legend"><span><i></i>Booked</span><span><i class="in"></i>Checked in</span><span><i class="blocked"></i>Blocked</span></div>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div>
+              <h3>A desk that keeps up with the rush</h3>
+              <p>The Desk screen shows who is playing now and who is next, so whoever is at the counter knows what to do.</p>
+              <ul class="ticks">
+                <li>Take cash and check in with one tap</li>
+                <li>Find a booking by scanning the player's QR code</li>
+                <li>Add walk-ins on the spot</li>
+                <li>Undo a mistake, or mark a no-show</li>
+              </ul>
+            </div>
+            <div class="feature-art" aria-hidden="true">
+              <div class="desk-scan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg>
+                Scan a QR or type the booking code
+              </div>
+              <ul class="desk-list">
+                <li><time>18:00</time><span class="who"><b>Khalid A.</b><small>Court 1, padel</small></span><span class="pill pill-in">Checked in</span></li>
+                <li><time>18:30</time><span class="who"><b>Omar F.</b><small>Court 2, padel</small></span><span class="pill pill-cash">Take 180 SAR</span></li>
+                <li><time>19:00</time><span class="who"><b>Guest</b><small>Court 4, padel</small></span><span class="pill pill-walk">Walk-in</span></li>
+                <li><time>17:00</time><span class="who"><b>Nasser H.</b><small>Court 3, football</small></span><span class="pill pill-miss">No-show</span></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div>
+              <h3>Fewer courts lost to no‑shows</h3>
+              <p>Customers who keep missing their bookings are limited, so your courts go to people who turn up.</p>
+              <ul class="ticks">
+                <li>A "Still coming?" reminder is pushed to the player hours before the game</li>
+                <li>Customers who miss bookings are limited automatically</li>
+                <li>Cancelled slots go straight back on the schedule</li>
+              </ul>
+            </div>
+            <div class="feature-art" aria-hidden="true">
+              <p class="notif-meta">3 hours before the game</p>
+              <div class="notif">
+                <img src="assets/midango-icon.png" alt="" width="560" height="295">
+                <div>
+                  <b>Still coming?</b>
+                  <p>Your padel game on Court 2 starts at 19:00. If you can't make it, cancel so someone else can play.</p>
+                </div>
+              </div>
+              <div class="rule">
+                <span>Missed bookings</span>
+                <span class="dots"><i class="x"></i><i class="x"></i><i></i></span>
+                <span>Bookings limited after repeated no-shows</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="feature">
+            <div>
+              <h3>Know what your courts earn</h3>
+              <p>See when your venue is busy, what came in at the desk, and who isn't turning up.</p>
+              <ul class="ticks">
+                <li>Occupancy heatmap by day and hour</li>
+                <li>Cash collected by court and by week</li>
+                <li>No-show rate over time</li>
+              </ul>
+            </div>
+            <div class="feature-art reports" aria-hidden="true">
+              <div>
+                <h4>Occupancy by hour</h4>
+                <div class="heat"><i style="opacity:0.15"></i><i style="opacity:0.32"></i><i style="opacity:0.49"></i><i style="opacity:0.46"></i><i style="opacity:0.63"></i><i style="opacity:0.60"></i><i style="opacity:0.77"></i><i style="opacity:0.94"></i><i style="opacity:0.27"></i><i style="opacity:0.24"></i><i style="opacity:0.41"></i><i style="opacity:0.58"></i><i style="opacity:0.55"></i><i style="opacity:0.72"></i><i style="opacity:0.69"></i><i style="opacity:0.86"></i><i style="opacity:0.19"></i><i style="opacity:0.36"></i><i style="opacity:0.33"></i><i style="opacity:0.50"></i><i style="opacity:0.67"></i><i style="opacity:0.64"></i><i style="opacity:0.81"></i><i style="opacity:0.78"></i><i style="opacity:0.56"></i><i style="opacity:0.53"></i><i style="opacity:0.70"></i><i style="opacity:0.67"></i><i style="opacity:0.84"></i><i style="opacity:1.00"></i><i style="opacity:0.98"></i><i style="opacity:1.00"></i><i style="opacity:0.48"></i><i style="opacity:0.65"></i><i style="opacity:0.62"></i><i style="opacity:0.79"></i><i style="opacity:0.76"></i><i style="opacity:0.93"></i><i style="opacity:1.00"></i><i style="opacity:1.00"></i><i style="opacity:0.15"></i><i style="opacity:0.32"></i><i style="opacity:0.49"></i><i style="opacity:0.46"></i><i style="opacity:0.63"></i><i style="opacity:0.60"></i><i style="opacity:0.77"></i><i style="opacity:0.94"></i><i style="opacity:0.27"></i><i style="opacity:0.24"></i><i style="opacity:0.41"></i><i style="opacity:0.58"></i><i style="opacity:0.55"></i><i style="opacity:0.72"></i><i style="opacity:0.69"></i><i style="opacity:0.86"></i></div>
+              </div>
+              <div>
+                <h4>Cash by court, this week</h4>
+                <div class="bars">
+                  <div>Court 1<span style="inline-size:92%"></span></div>
+                  <div>Court 2<span style="inline-size:78%"></span></div>
+                  <div>Court 3<span style="inline-size:54%"></span></div>
+                  <div>Court 4<span style="inline-size:66%"></span></div>
+                </div>
+              </div>
+              <div class="stat"><b>4%</b><span>No-show rate, last 30 days</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section demo" id="request" aria-labelledby="request-title">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="kicker">Request a demo</p>
+          <h2 id="request-title">Bring your venue to MIDANGO.</h2>
+          <p>Tell us about your venue and we'll call you to set it up. No commitment.</p>
+          <ul class="demo-points">
+            <li>We set up your courts, prices and opening hours with you</li>
+            <li>Works in any browser, nothing to install</li>
+            <li>English and Arabic for your whole team</li>
+          </ul>
+        </div>
+
+        <form class="form" id="demo" data-api="http://localhost:5300"
+              data-success="Thanks. We have your request and will call you soon."
+              data-error="We couldn't send your request. Check your connection and try again." novalidate>
+          <div class="field">
+            <label for="venueName">Venue name</label>
+            <input id="venueName" name="venueName" required maxlength="200" autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="contactName">Your name</label>
+            <input id="contactName" name="contactName" required maxlength="200" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" dir="ltr" required maxlength="20" autocomplete="tel" placeholder="+966 5x xxx xxxx">
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input id="city" name="city" required maxlength="100" autocomplete="address-level2">
+          </div>
+          <div class="field">
+            <label for="courts">Number of courts</label>
+            <input id="courts" name="courts" type="number" inputmode="numeric" min="1" max="100" required>
+          </div>
+          <div class="field full">
+            <label for="message">Anything else? <small>(optional)</small></label>
+            <textarea id="message" name="message" maxlength="2000" rows="3"></textarea>
+          </div>
+          <div class="hp" aria-hidden="true">
+            <label for="website">Website</label>
+            <input id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div class="form-foot">
+            <button class="btn btn-primary" type="submit">Request a demo</button>
+            <p class="form-status" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq">
+        <div class="section-head">
+          <h2 id="faq-title">Questions, answered.</h2>
+          <p>Something else? Ask us in the demo form.</p>
+        </div>
+        <div class="faq-list">
+          <details><summary>Is the app free for players?</summary><p>Yes. Downloading the app and booking are free. You only pay for the court.</p></details>
+          <details><summary>How do I pay?</summary><p>In cash at the venue. Show your booking's QR code at the desk and pay when you arrive.</p></details>
+          <details><summary>Can I cancel a booking?</summary><p>Yes, free of charge until the venue's cancellation window starts.</p></details>
+          <details><summary>What does MIDANGO cost venues?</summary><p>Talk to us and we'll set your venue up. Send a demo request and we'll call you.</p></details>
+          <details><summary>Which sports can I book?</summary><p>Padel, football and more, depending on what each venue offers.</p></details>
+          <details><summary>Is it available in Arabic?</summary><p>Yes. The app and the dashboard are fully bilingual, in English and Arabic.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <img src="assets/midango-logo.png" alt="MIDANGO" width="2172" height="724">
+      <nav aria-label="Footer">
+        <a href="#players">Players</a>
+        <a href="#venues">Venues</a>
+        <a href="#faq">FAQ</a>
+        <a href="ar/" hreflang="ar" lang="ar">العربية</a>
+      </nav>
+      <p class="copy">© 2026 MIDANGO. Court booking for the Gulf.</p>
+    </div>
+  </footer>
+</body>
+</html>
