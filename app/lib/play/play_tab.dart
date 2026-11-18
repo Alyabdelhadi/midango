@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/models.dart';
+import '../booking/confirm_sheet.dart';
 import '../home_shell.dart';
 import '../l10n/strings.dart';
 import '../session/session.dart';
@@ -148,7 +149,7 @@ class _PlayTabState extends State<PlayTab> {
         padded(VenueCardView(
           venue: venue,
           onOpen: () => _openVenue(venue),
-          onTime: (_) => _openVenue(venue),
+          onTime: (slot) => showConfirmSheet(context, venueId: venue.id, slot: slot, minutes: _minutes),
         )),
     ];
   }

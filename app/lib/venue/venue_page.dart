@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/models.dart';
+import '../booking/confirm_sheet.dart';
 import '../home_shell.dart';
 import '../l10n/strings.dart';
 import '../play/pickers.dart';
@@ -86,7 +87,7 @@ class _VenuePageState extends State<VenuePage> {
     }
   }
 
-  void _book(Slot slot) {}
+  void _book(Slot slot) => showConfirmSheet(context, venueId: widget.venueId, venue: _venue, slot: slot, minutes: _minutes);
 
   @override
   Widget build(BuildContext context) {
