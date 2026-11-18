@@ -157,7 +157,9 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .details dd { margin: 0; color: var(--mg-navy); }
 .panel-section { display: grid; gap: 12px; padding-block-start: 12px; border-block-start: 1px solid var(--mg-line); }
 .filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
-.search-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.search-form { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+/* Top-aligned so the hint under the field never drags the button down; the button drops by one label height. */
+.search-form > .mg-button-wrap { padding-block-start: 22px; }
 .search-form .mg-field { width: min(320px, 100%); }
 
 /* Today */
