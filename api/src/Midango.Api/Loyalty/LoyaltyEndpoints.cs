@@ -51,6 +51,7 @@ public static class LoyaltyEndpoints
             Guid id, RedeemBody body, ClaimsPrincipal user, MidangoDb db, TimeProvider clock, CancellationToken ct) =>
         {
             var customerId = user.SubjectId();
+            if (await Customers.BlockedAsync(db, customerId, ct) is { } blocked) return blocked;
             await using (var tx = await db.Database.BeginTransactionAsync(ct))
             {
                 // The customer row is the balance lock: redeems by the same customer queue here, so the

@@ -8,6 +8,14 @@ public sealed class Customer
     public required string PhoneE164 { get; init; }
     public string? Name { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    /// Set by the operator. Stops sign-in and every write the customer can make (Customers.BlockedAsync).
+    public DateTimeOffset? BlockedAt { get; set; }
+    public string? BlockedReason { get; set; }
+    public Guid? BlockedByStaffId { get; set; }
+
+    /// No-shows at or before this instant don't count toward the no-show limit (history is kept).
+    public DateTimeOffset? NoShowsClearedAt { get; set; }
 }
 
 public enum StaffRole

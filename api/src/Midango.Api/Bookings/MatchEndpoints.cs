@@ -110,6 +110,7 @@ public static class MatchEndpoints
             var customerId = user.SubjectId();
             var me = await db.Customers.AsNoTracking().SingleOrDefaultAsync(c => c.Id == customerId, ct);
             if (me is null) return ApiErrors.Fail(404, "Account not found.");
+            if (await Customers.BlockedAsync(db, customerId, ct) is { } blocked) return blocked;
             if (me.Name is null) return ApiErrors.Fail(409, "Add your name before joining. The venue uses it at the desk.");
 
             var now = clock.GetUtcNow();

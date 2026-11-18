@@ -547,6 +547,19 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTimeOffset?>("BlockedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("blocked_at");
+
+                    b.Property<Guid?>("BlockedByStaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("blocked_by_staff_id");
+
+                    b.Property<string>("BlockedReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("blocked_reason");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -556,6 +569,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("name");
 
+                    b.Property<DateTimeOffset?>("NoShowsClearedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("no_shows_cleared_at");
+
                     b.Property<string>("PhoneE164")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -564,6 +581,9 @@ namespace Midango.Api.Data.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_customers");
+
+                    b.HasIndex("BlockedByStaffId")
+                        .HasDatabaseName("ix_customers_blocked_by_staff_id");
 
                     b.HasIndex("PhoneE164")
                         .IsUnique()
@@ -1614,6 +1634,15 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_price_bands_courts_court_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Identity.Customer", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("BlockedByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_customers_staff_blocked_by_staff_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Identity.StaffMember", b =>

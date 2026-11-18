@@ -65,6 +65,8 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(c => c.PhoneE164).HasMaxLength(16);
             e.HasIndex(c => c.PhoneE164).IsUnique();
             e.Property(c => c.Name).HasMaxLength(60);
+            e.Property(c => c.BlockedReason).HasMaxLength(300);
+            e.HasOne<StaffMember>().WithMany().HasForeignKey(c => c.BlockedByStaffId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<StaffMember>(e =>

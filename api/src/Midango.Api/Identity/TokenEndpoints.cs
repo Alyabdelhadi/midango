@@ -30,7 +30,7 @@ public static class TokenEndpoints
             // Claims are rebuilt from the database, so a role change or deactivation takes effect here.
             IReadOnlyList<Claim>? claims = spent.SubjectKind switch
             {
-                SubjectKind.Customer => await db.Customers.FindAsync([spent.SubjectId], ct) is { } customer
+                SubjectKind.Customer => await db.Customers.FindAsync([spent.SubjectId], ct) is { BlockedAt: null } customer
                     ? AppClaims.For(customer)
                     : null,
                 SubjectKind.Staff => await db.Staff.FindAsync([spent.SubjectId], ct) is { Active: true } staff

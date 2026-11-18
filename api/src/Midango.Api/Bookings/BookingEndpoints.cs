@@ -42,6 +42,7 @@ public static class BookingEndpoints
             var customerId = user.SubjectId();
             var me = await db.Customers.AsNoTracking().SingleOrDefaultAsync(c => c.Id == customerId, ct);
             if (me is null) return ApiErrors.Fail(404, "Account not found.");
+            if (await Customers.BlockedAsync(db, customerId, ct) is { } blocked) return blocked;
             if (me.Name is null) return ApiErrors.Fail(409, "Add your name before booking. The venue uses it at the desk.");
 
             var court = await db.Courts.AsNoTracking().SingleOrDefaultAsync(c => c.Id == body.CourtId && c.Active, ct);
@@ -149,20 +150,52 @@ public static class BookingEndpoints
     internal static async Task<IResult?> NoShowLimitAsync(MidangoDb db, Guid customerId, DateTimeOffset now, CancellationToken ct)
     {
         var rules = await db.PlatformSettings.AsNoTracking().SingleAsync(ct);
-        var since = now.AddDays(-rules.NoShowWindowDays);
-        var missed = await db.Bookings.CountAsync(
-                         b => b.CustomerId == customerId && b.Status == BookingStatus.NoShow && b.NoShowAt > since, ct)
-                     + await db.MatchPlayers.CountAsync(p => p.CustomerId == customerId && p.NoShowAt > since, ct);
-        if (missed < rules.NoShowLimit) return null;
-
-        var upcoming = await db.Bookings.CountAsync(
-                           b => b.CustomerId == customerId && b.Status == BookingStatus.Confirmed && b.EndsAt > now, ct)
-                       + await db.MatchPlayers.CountAsync(p => p.CustomerId == customerId && p.LeftAt == null
-                           && db.Bookings.Any(b => b.Id == p.BookingId && b.Status == BookingStatus.Confirmed && b.EndsAt > now), ct);
-        if (upcoming < rules.LimitedUpcomingBookings) return null;
+        var standing = (await NoShowStandingAsync(db, rules, [customerId], now, ct))[customerId];
+        if (!standing.Limited) return null;
         return ApiErrors.Fail(409,
-            $"You missed {missed} bookings in the last {rules.NoShowWindowDays} days, so for now you can hold " +
+            $"You missed {standing.Missed} bookings in the last {rules.NoShowWindowDays} days, so for now you can hold " +
             $"{rules.LimitedUpcomingBookings} upcoming booking{(rules.LimitedUpcomingBookings == 1 ? "" : "s")} at a time.");
+    }
+
+    /// Missed = no-shows in the window after the operator last lifted the limit; Limited = NoShowLimitAsync would refuse.
+    internal readonly record struct NoShowStanding(int Missed, int Upcoming, bool Limited);
+
+    /// Set-based, for any number of customers: four grouped queries. Every id in `ids` gets an entry.
+    internal static async Task<Dictionary<Guid, NoShowStanding>> NoShowStandingAsync(
+        MidangoDb db, Platform.PlatformSettings rules, IReadOnlyCollection<Guid> ids, DateTimeOffset now, CancellationToken ct)
+    {
+        var since = now.AddDays(-rules.NoShowWindowDays);
+        var missedBookings = await (
+            from b in db.Bookings
+            join c in db.Customers on b.CustomerId equals (Guid?)c.Id
+            where ids.Contains(c.Id) && b.Status == BookingStatus.NoShow && b.NoShowAt > since
+                  && (c.NoShowsClearedAt == null || b.NoShowAt > c.NoShowsClearedAt)
+            group b by c.Id into g
+            select new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+        var missedMatches = await (
+            from p in db.MatchPlayers
+            join c in db.Customers on p.CustomerId equals c.Id
+            where ids.Contains(c.Id) && p.NoShowAt > since
+                  && (c.NoShowsClearedAt == null || p.NoShowAt > c.NoShowsClearedAt)
+            group p by c.Id into g
+            select new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+        var upcomingBookings = await db.Bookings
+            .Where(b => b.CustomerId != null && ids.Contains(b.CustomerId.Value) && b.Status == BookingStatus.Confirmed && b.EndsAt > now)
+            .GroupBy(b => b.CustomerId!.Value)
+            .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+        var upcomingMatches = await db.MatchPlayers
+            .Where(p => ids.Contains(p.CustomerId) && p.LeftAt == null
+                && db.Bookings.Any(b => b.Id == p.BookingId && b.Status == BookingStatus.Confirmed && b.EndsAt > now))
+            .GroupBy(p => p.CustomerId)
+            .Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+        return ids.Distinct().ToDictionary(id => id, id =>
+        {
+            var missed = missedBookings.GetValueOrDefault(id) + missedMatches.GetValueOrDefault(id);
+            var upcoming = upcomingBookings.GetValueOrDefault(id) + upcomingMatches.GetValueOrDefault(id);
+            return new NoShowStanding(missed, upcoming,
+                missed >= rules.NoShowLimit && upcoming >= rules.LimitedUpcomingBookings);
+        });
     }
 
     /// Bookings as `viewerId` sees them: their own as organiser, matches they joined as player.

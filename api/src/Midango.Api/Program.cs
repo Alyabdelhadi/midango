@@ -136,6 +136,7 @@ app.MapTokenEndpoints();
 app.MapCustomerEndpoints();
 app.MapStaffEndpoints();
 app.MapAdminEndpoints();
+app.MapAdminCustomerEndpoints();
 app.MapCategoryEndpoints();
 app.MapVenueEndpoints();
 app.MapPriceEndpoints();

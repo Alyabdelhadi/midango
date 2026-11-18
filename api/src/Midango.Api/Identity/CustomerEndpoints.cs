@@ -18,10 +18,12 @@ public static class CustomerEndpoints
     {
         var otp = app.MapGroup("/auth/otp").RequireRateLimiting(Policies.AuthRateLimit);
 
-        otp.MapPost("/request", async (OtpRequestBody body, OtpService otpService, CancellationToken ct) =>
+        otp.MapPost("/request", async (OtpRequestBody body, OtpService otpService, MidangoDb db, CancellationToken ct) =>
         {
             if (!PhoneNumber.TryParse(body.Phone, out var phone))
                 return ApiErrors.Fail(400, "Enter a valid mobile number.");
+            if (await db.Customers.AnyAsync(c => c.PhoneE164 == phone.E164 && c.BlockedAt != null, ct))
+                return ApiErrors.Fail(403, Customers.BlockedMessage);
 
             return await otpService.RequestAsync(phone, ct) switch
             {
@@ -44,6 +46,7 @@ public static class CustomerEndpoints
                 return ApiErrors.Fail(401, "That code is wrong or has expired.");
 
             var customer = await db.Customers.SingleOrDefaultAsync(c => c.PhoneE164 == phone.E164, ct);
+            if (customer?.BlockedAt is not null) return ApiErrors.Fail(403, Customers.BlockedMessage);
             if (customer is null)
             {
                 customer = new Customer { PhoneE164 = phone.E164 };
