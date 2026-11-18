@@ -38,24 +38,28 @@ public sealed class ReminderService(IServiceScopeFactory scopes, IPushSender pus
             .Where(b => b.Status == BookingStatus.Confirmed && b.Kind == BookingKind.Booking && b.CustomerId != null
                         && b.CheckedInAt == null && b.ReminderSentAt == null && b.StartsAt > now && b.StartsAt <= horizon)
             .ToListAsync(ct);
-        if (due.Count == 0) return;
+        // Players who joined someone's open match get the same reminder, once each.
+        var duePlayers = await (from p in db.MatchPlayers
+                                join b in db.Bookings on p.BookingId equals b.Id
+                                where p.LeftAt == null && p.CheckedInAt == null && p.ReminderSentAt == null
+                                      && b.Status == BookingStatus.Confirmed && b.StartsAt > now && b.StartsAt <= horizon
+                                select new { Player = p, b.CourtId, b.StartsAt, b.Id })
+            .ToListAsync(ct);
+        if (due.Count == 0 && duePlayers.Count == 0) return;
 
-        var courtIds = due.Select(b => b.CourtId).Distinct().ToList();
+        var courtIds = due.Select(b => b.CourtId).Concat(duePlayers.Select(p => p.CourtId)).Distinct().ToList();
         var places = await (from c in db.Courts
                             join v in db.Venues on c.VenueId equals v.Id
                             where courtIds.Contains(c.Id)
                             select new { CourtId = c.Id, c.NameEn, c.NameAr, VenueEn = v.NameEn, VenueAr = v.NameAr, v.TimeZoneId })
             .AsNoTracking().ToDictionaryAsync(p => p.CourtId, ct);
 
-        foreach (var booking in due)
+        async Task RemindAsync(Guid customerId, Guid bookingId, Guid courtId, DateTimeOffset startsAt)
         {
-            booking.ReminderSentAt = now;
-            if (booking.CreatedAt > booking.StartsAt - lead) continue; // booked inside the window: no reminder
-
-            var devices = await db.CustomerDevices.Where(d => d.CustomerId == booking.CustomerId).ToListAsync(ct);
-            var place = places[booking.CourtId];
-            var time = TimeZoneInfo.ConvertTime(booking.StartsAt, TimeZoneInfo.FindSystemTimeZoneById(place.TimeZoneId)).ToString("HH:mm");
-            var data = new Dictionary<string, string> { ["bookingId"] = booking.Id.ToString() };
+            var devices = await db.CustomerDevices.Where(d => d.CustomerId == customerId).ToListAsync(ct);
+            var place = places[courtId];
+            var time = TimeZoneInfo.ConvertTime(startsAt, TimeZoneInfo.FindSystemTimeZoneById(place.TimeZoneId)).ToString("HH:mm");
+            var data = new Dictionary<string, string> { ["bookingId"] = bookingId.ToString() };
             foreach (var group in devices.GroupBy(d => d.Language))
             {
                 var message = group.Key == "ar"
@@ -67,7 +71,20 @@ public sealed class ReminderService(IServiceScopeFactory scopes, IPushSender pus
                 if (dead.Count > 0) db.CustomerDevices.RemoveRange(group.Where(d => dead.Contains(d.Token)));
             }
         }
+
+        foreach (var booking in due)
+        {
+            booking.ReminderSentAt = now;
+            if (booking.CreatedAt > booking.StartsAt - lead) continue; // booked inside the window: no reminder
+            await RemindAsync(booking.CustomerId!.Value, booking.Id, booking.CourtId, booking.StartsAt);
+        }
+        foreach (var joined in duePlayers)
+        {
+            joined.Player.ReminderSentAt = now;
+            if (joined.Player.JoinedAt > joined.StartsAt - lead) continue; // joined inside the window
+            await RemindAsync(joined.Player.CustomerId, joined.Id, joined.CourtId, joined.StartsAt);
+        }
         await db.SaveChangesAsync(ct);
-        log.LogInformation("Reminders handled for {Count} bookings", due.Count);
+        log.LogInformation("Reminders handled for {Count} bookings and {Players} match players", due.Count, duePlayers.Count);
     }
 }

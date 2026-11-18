@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Notifications;
 using Npgsql;
 
 namespace Midango.Api.Bookings;
@@ -11,7 +12,8 @@ public static class BookingEndpoints
 {
     public const string CashAtVenue = "CashAtVenue";
 
-    public sealed record CreateBookingBody(Guid CourtId, DateTimeOffset Start, int Minutes);
+    /// `Match` opens the booking to other players straight away.
+    public sealed record CreateBookingBody(Guid CourtId, DateTimeOffset Start, int Minutes, MatchEndpoints.OpenMatchBody? Match);
 
     /// Times carry the venue's own offset (e.g. +03:00).
     public sealed record BookingDto(
@@ -20,7 +22,11 @@ public static class BookingEndpoints
         DateTimeOffset StartsAt, DateTimeOffset EndsAt, int Minutes,
         decimal Total, decimal Net, decimal Vat, string Currency, string PaymentMethod,
         BookingStatus Status, DateTimeOffset FreeCancellationUntil, bool LateCancellation, DateTimeOffset? CancelledAt,
-        bool CancelledByVenue);
+        bool CancelledByVenue,
+        string Role, MatchEndpoints.BookingMatchDto? Match, decimal? MyShare, string? PlayerStatus);
+
+    public const string Organiser = "organiser";
+    public const string Player = "player";
 
     public sealed record MyBookingsDto(IReadOnlyList<BookingDto> Upcoming, IReadOnlyList<BookingDto> History);
 
@@ -40,10 +46,12 @@ public static class BookingEndpoints
             if (court is null) return ApiErrors.Fail(404, "Court not found.");
             var venue = await db.Venues.AsNoTracking().SingleOrDefaultAsync(v => v.Id == court.VenueId && v.Published, ct);
             if (venue is null) return ApiErrors.Fail(404, "Court not found.");
-            var durations = await db.SportCategories.Where(c => c.Id == court.CategoryId && c.Active)
-                .Select(c => c.DurationsMinutes).SingleOrDefaultAsync(ct);
-            if (durations is null || !durations.Contains(body.Minutes))
+            var category = await db.SportCategories.Where(c => c.Id == court.CategoryId && c.Active)
+                .Select(c => new { c.DurationsMinutes, c.PlayersPerMatch }).SingleOrDefaultAsync(ct);
+            if (category is null || !category.DurationsMinutes.Contains(body.Minutes))
                 return ApiErrors.Fail(400, "Choose one of this sport's booking lengths.");
+            if (body.Match is { } match && MatchEndpoints.ValidateOpen(match, category.PlayersPerMatch, 1) is { } matchError)
+                return matchError;
 
             var now = clock.GetUtcNow();
             var start = body.Start.ToUniversalTime();
@@ -51,20 +59,7 @@ public static class BookingEndpoints
             if (start > now.AddDays(Slots.MaxDaysAhead + 1))
                 return ApiErrors.Fail(400, $"Book within the next {Slots.MaxDaysAhead} days.");
 
-            // Customers who keep not turning up can only hold a few bookings at a time (M9 rules, across venues).
-            var rules = await db.PlatformSettings.AsNoTracking().SingleAsync(ct);
-            var since = now.AddDays(-rules.NoShowWindowDays);
-            var missed = await db.Bookings.CountAsync(
-                b => b.CustomerId == customerId && b.Status == BookingStatus.NoShow && b.NoShowAt > since, ct);
-            if (missed >= rules.NoShowLimit)
-            {
-                var upcoming = await db.Bookings.CountAsync(
-                    b => b.CustomerId == customerId && b.Status == BookingStatus.Confirmed && b.EndsAt > now, ct);
-                if (upcoming >= rules.LimitedUpcomingBookings)
-                    return ApiErrors.Fail(409,
-                        $"You missed {missed} bookings in the last {rules.NoShowWindowDays} days, so for now you can hold " +
-                        $"{rules.LimitedUpcomingBookings} upcoming booking{(rules.LimitedUpcomingBookings == 1 ? "" : "s")} at a time.");
-            }
+            if (await NoShowLimitAsync(db, customerId, now, ct) is { } limited) return limited;
 
             var zone = VenueClock.Zone(venue);
             var local = VenueClock.ToLocal(start, zone);
@@ -93,12 +88,15 @@ public static class BookingEndpoints
                 Currency = venue.CurrencyCode,
                 CreatedAt = now,
                 FreeCancellationUntil = start.AddHours(-venue.FreeCancellationHours),
+                IsOpenMatch = body.Match is not null,
+                MaxPlayers = body.Match?.MaxPlayers,
+                MatchLevel = body.Match?.Level,
             };
             db.Bookings.Add(booking);
 
             if (await BookingStore.SaveAsync(db, [booking], ct) is { } failed) return failed;
 
-            var dto = (await LoadAsync(db, db.Bookings.Where(b => b.Id == booking.Id), ct)).Single();
+            var dto = (await LoadAsync(db, db.Bookings.Where(b => b.Id == booking.Id), customerId, ct)).Single();
             return Results.Json(dto, statusCode: 201);
         });
 
@@ -106,17 +104,22 @@ public static class BookingEndpoints
         {
             var customerId = user.SubjectId();
             var now = clock.GetUtcNow();
+            // Own bookings, plus open matches joined (active ones upcoming; left or removed ones in history).
             var upcoming = await LoadAsync(db, db.Bookings
-                .Where(b => b.CustomerId == customerId && b.Status == BookingStatus.Confirmed && b.EndsAt > now)
-                .OrderBy(b => b.StartsAt), ct);
+                .Where(b => b.Status == BookingStatus.Confirmed && b.EndsAt > now
+                            && (b.CustomerId == customerId
+                                || db.MatchPlayers.Any(p => p.BookingId == b.Id && p.CustomerId == customerId && p.LeftAt == null)))
+                .OrderBy(b => b.StartsAt), customerId, ct);
             var history = await LoadAsync(db, db.Bookings
-                .Where(b => b.CustomerId == customerId && (b.Status != BookingStatus.Confirmed || b.EndsAt <= now))
-                .OrderByDescending(b => b.StartsAt).Take(50), ct);
+                .Where(b => (b.CustomerId == customerId && (b.Status != BookingStatus.Confirmed || b.EndsAt <= now))
+                            || db.MatchPlayers.Any(p => p.BookingId == b.Id && p.CustomerId == customerId
+                                                        && (p.LeftAt != null || b.Status != BookingStatus.Confirmed || b.EndsAt <= now)))
+                .OrderByDescending(b => b.StartsAt).Take(50), customerId, ct);
             return Results.Ok(new MyBookingsDto(upcoming, history));
         });
 
         customer.MapPost("/bookings/{id:guid}/cancel", async (
-            Guid id, ClaimsPrincipal user, MidangoDb db, TimeProvider clock, CancellationToken ct) =>
+            Guid id, ClaimsPrincipal user, MidangoDb db, MatchNotifications notify, TimeProvider clock, CancellationToken ct) =>
         {
             var customerId = user.SubjectId();
             var booking = await db.Bookings.SingleOrDefaultAsync(b => b.Id == id && b.CustomerId == customerId, ct);
@@ -131,13 +134,36 @@ public static class BookingEndpoints
                 booking.CancelledAt = now;
                 booking.LateCancellation = now > booking.FreeCancellationUntil;
                 await db.SaveChangesAsync(ct);
+                if (booking.IsOpenMatch) await notify.CancelledAsync(booking.Id);
             }
 
-            return Results.Ok((await LoadAsync(db, db.Bookings.Where(b => b.Id == id), ct)).Single());
+            return Results.Ok((await LoadAsync(db, db.Bookings.Where(b => b.Id == id), customerId, ct)).Single());
         });
     }
 
-    private static async Task<List<BookingDto>> LoadAsync(MidangoDb db, IQueryable<Booking> query, CancellationToken ct)
+    /// Customers who keep not turning up can only hold a few bookings at a time (M9 rules, across venues).
+    /// Joined matches count like bookings: their no-shows as missed, the active ones as upcoming.
+    internal static async Task<IResult?> NoShowLimitAsync(MidangoDb db, Guid customerId, DateTimeOffset now, CancellationToken ct)
+    {
+        var rules = await db.PlatformSettings.AsNoTracking().SingleAsync(ct);
+        var since = now.AddDays(-rules.NoShowWindowDays);
+        var missed = await db.Bookings.CountAsync(
+                         b => b.CustomerId == customerId && b.Status == BookingStatus.NoShow && b.NoShowAt > since, ct)
+                     + await db.MatchPlayers.CountAsync(p => p.CustomerId == customerId && p.NoShowAt > since, ct);
+        if (missed < rules.NoShowLimit) return null;
+
+        var upcoming = await db.Bookings.CountAsync(
+                           b => b.CustomerId == customerId && b.Status == BookingStatus.Confirmed && b.EndsAt > now, ct)
+                       + await db.MatchPlayers.CountAsync(p => p.CustomerId == customerId && p.LeftAt == null
+                           && db.Bookings.Any(b => b.Id == p.BookingId && b.Status == BookingStatus.Confirmed && b.EndsAt > now), ct);
+        if (upcoming < rules.LimitedUpcomingBookings) return null;
+        return ApiErrors.Fail(409,
+            $"You missed {missed} bookings in the last {rules.NoShowWindowDays} days, so for now you can hold " +
+            $"{rules.LimitedUpcomingBookings} upcoming booking{(rules.LimitedUpcomingBookings == 1 ? "" : "s")} at a time.");
+    }
+
+    /// Bookings as `viewerId` sees them: their own as organiser, matches they joined as player.
+    internal static async Task<List<BookingDto>> LoadAsync(MidangoDb db, IQueryable<Booking> query, Guid viewerId, CancellationToken ct)
     {
         var rows = await (
             from b in query
@@ -146,16 +172,26 @@ public static class BookingEndpoints
             select new { Booking = b, CourtEn = c.NameEn, CourtAr = c.NameAr, VenueEn = v.NameEn, VenueAr = v.NameAr, v.TimeZoneId })
             .AsNoTracking().ToListAsync(ct);
 
+        var people = await MatchEndpoints.LoadPeopleAsync(db, rows.Select(r => r.Booking).ToList(), ct);
+
         return rows.Select(r =>
         {
             var zone = TimeZoneInfo.FindSystemTimeZoneById(r.TimeZoneId);
             DateTimeOffset Local(DateTimeOffset instant) => TimeZoneInfo.ConvertTime(instant, zone);
             var b = r.Booking;
+            var mine = people.Rows(b.Id).FirstOrDefault(p => p.CustomerId == viewerId);
+            var role = b.CustomerId == viewerId ? Organiser : Player;
+            var match = MatchEndpoints.BookingMatch(b, people);
+            string? playerStatus = role == Organiser || mine is null ? null
+                : mine.LeftAt is null ? "joined" : mine.RemovedByOrganiser ? "removed" : "left";
+            decimal? myShare = match is null ? null
+                : role == Organiser ? b.Total - match.Share * people.Active(b.Id).Count
+                : playerStatus == "joined" ? match.Share : null;
             return new BookingDto(
                 b.Id, b.Reference, b.VenueId, r.VenueEn, r.VenueAr, b.CourtId, r.CourtEn, r.CourtAr,
                 Local(b.StartsAt), Local(b.EndsAt), b.Minutes, b.Total, b.Net, b.Vat, b.Currency, CashAtVenue,
                 b.Status, Local(b.FreeCancellationUntil), b.LateCancellation, b.CancelledAt is { } c ? Local(c) : null,
-                b.CancelledByVenue);
+                b.CancelledByVenue, role, match, myShare, playerStatus);
         }).ToList();
     }
 }

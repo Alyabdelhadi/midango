@@ -83,6 +83,7 @@ if (!string.IsNullOrWhiteSpace(firebaseKey) && File.Exists(firebaseKey))
 else
     builder.Services.AddSingleton<IPushSender, LogPushSender>();
 builder.Services.AddHostedService<ReminderService>();
+builder.Services.AddScoped<MatchNotifications>();
 
 var app = builder.Build();
 
@@ -138,6 +139,7 @@ app.MapPriceEndpoints();
 app.MapAvailabilityEndpoints();
 app.MapPublicVenueEndpoints();
 app.MapBookingEndpoints();
+app.MapMatchEndpoints();
 app.MapStaffBookingEndpoints();
 app.MapVenueInsightEndpoints();
 app.MapDeskEndpoints();

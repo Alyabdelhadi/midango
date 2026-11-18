@@ -28,6 +28,8 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<VenueLead> VenueLeads => Set<VenueLead>();
     public DbSet<OperatorAction> OperatorActions => Set<OperatorAction>();
     public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
+    public DbSet<CustomerLevel> CustomerLevels => Set<CustomerLevel>();
+    public DbSet<MatchPlayer> MatchPlayers => Set<MatchPlayer>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -88,8 +90,12 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
 
         b.Entity<SportCategory>(e =>
         {
-            e.ToTable("sport_categories", t => t.HasCheckConstraint(
-                "ck_sport_categories_durations", "cardinality(durations_minutes) BETWEEN 1 AND 4"));
+            e.ToTable("sport_categories", t =>
+            {
+                t.HasCheckConstraint("ck_sport_categories_durations", "cardinality(durations_minutes) BETWEEN 1 AND 4");
+                t.HasCheckConstraint("ck_sport_categories_players_per_match", "players_per_match BETWEEN 2 AND 22");
+            });
+            e.Property(c => c.PlayersPerMatch).HasDefaultValue(4);
             e.Property(c => c.NameEn).HasMaxLength(60);
             e.Property(c => c.NameAr).HasMaxLength(60);
             e.Property(c => c.IconKey).HasMaxLength(40);
@@ -156,12 +162,30 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(x => x.Net).HasPrecision(10, 2);
             e.Property(x => x.Vat).HasPrecision(10, 2);
             e.Property(x => x.CashCollected).HasPrecision(10, 2);
+            e.Property(x => x.MatchLevel).HasConversion<string>().HasMaxLength(16);
             e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Court>().WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => new { x.CourtId, x.StartsAt });
             e.HasIndex(x => new { x.CustomerId, x.StartsAt });
             e.HasIndex(x => new { x.Status, x.StartsAt });
+        });
+
+        b.Entity<CustomerLevel>(e =>
+        {
+            e.HasKey(x => new { x.CustomerId, x.CategoryId });
+            e.Property(x => x.Level).HasConversion<string>().HasMaxLength(16);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<SportCategory>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<MatchPlayer>(e =>
+        {
+            e.HasKey(x => new { x.BookingId, x.CustomerId });
+            e.Property(x => x.CashCollected).HasPrecision(10, 2);
+            e.HasOne<Booking>().WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.CustomerId);
         });
 
         b.Entity<PlatformSettings>(e =>

@@ -79,6 +79,50 @@ public sealed class Booking
 
     /// When the "Still coming?" reminder was handled (sent, or skipped: no device, or booked too late for one).
     public DateTimeOffset? ReminderSentAt { get; set; }
+
+    /// Open to other players: they join through the app and pay an equal share at the desk.
+    public bool IsOpenMatch { get; set; }
+
+    /// Spots including the organiser; set while the match is open.
+    public int? MaxPlayers { get; set; }
+
+    /// Null = any level.
+    public PlayLevel? MatchLevel { get; set; }
+}
+
+/// Self-set skill band, per sport.
+public enum PlayLevel
+{
+    Beginner,
+    Intermediate,
+    Advanced,
+}
+
+public sealed class CustomerLevel
+{
+    public Guid CustomerId { get; init; }
+    public Guid CategoryId { get; init; }
+    public PlayLevel Level { get; set; }
+}
+
+/// A customer who joined someone else's open match. The organiser (Booking.CustomerId) has no row.
+/// A row with LeftAt == null is an active joiner; leaving and joining again reuses the row.
+public sealed class MatchPlayer
+{
+    public Guid BookingId { get; init; }
+    public Guid CustomerId { get; init; }
+    public DateTimeOffset JoinedAt { get; set; }
+    public DateTimeOffset? LeftAt { get; set; }
+
+    /// Left after the venue's free-cancellation window.
+    public bool LateLeave { get; set; }
+    public bool RemovedByOrganiser { get; set; }
+    public DateTimeOffset? ReminderSentAt { get; set; }
+
+    // Per-player desk state for MMb; nothing writes these yet.
+    public DateTimeOffset? CheckedInAt { get; set; }
+    public decimal? CashCollected { get; set; }
+    public DateTimeOffset? NoShowAt { get; set; }
 }
 
 public static class BookingReference

@@ -11,12 +11,12 @@ public static partial class CategoryEndpoints
 
     public sealed record CategoryDto(
         Guid Id, string NameEn, string NameAr, string IconKey, int[] DurationsMinutes,
-        int SortOrder, bool Active, IReadOnlyList<FeatureDto> Features, string? IconUrl)
+        int SortOrder, bool Active, IReadOnlyList<FeatureDto> Features, string? IconUrl, int PlayersPerMatch)
     {
         public static CategoryDto From(SportCategory c) => new(
             c.Id, c.NameEn, c.NameAr, c.IconKey, c.DurationsMinutes, c.SortOrder, c.Active,
             c.Features.OrderBy(f => f.SortOrder).Select(f => new FeatureDto(f.Id, f.NameEn, f.NameAr, f.IconPath)).ToList(),
-            c.IconPath);
+            c.IconPath, c.PlayersPerMatch);
     }
 
     /// Features are listed in display order. An item with an id renames that feature;
@@ -25,7 +25,7 @@ public static partial class CategoryEndpoints
 
     public sealed record CategoryInput(
         string? NameEn, string? NameAr, string? IconKey, int[]? DurationsMinutes,
-        int SortOrder, bool Active, IReadOnlyList<FeatureInput>? Features);
+        int SortOrder, bool Active, IReadOnlyList<FeatureInput>? Features, int PlayersPerMatch);
 
     [GeneratedRegex("^[a-z0-9]+(-[a-z0-9]+)*$")]
     private static partial Regex IconKeyPattern();
@@ -91,6 +91,8 @@ public static partial class CategoryEndpoints
             || durations.Distinct().Count() != durations.Length)
             return "Choose 1 to 4 booking lengths between 30 and 240 minutes, in steps of 30.";
 
+        if (input.PlayersPerMatch is < 2 or > 22) return "Players per match must be between 2 and 22.";
+
         if (input.Features?.Any(f => !Input.Bilingual(f.NameEn, f.NameAr, 60)) == true)
             return "Enter every court feature in English and Arabic, up to 60 characters each.";
         return null;
@@ -102,6 +104,7 @@ public static partial class CategoryEndpoints
         category.NameAr = input.NameAr!.Trim();
         category.IconKey = input.IconKey!;
         category.DurationsMinutes = [.. input.DurationsMinutes!.Order()];
+        category.PlayersPerMatch = input.PlayersPerMatch;
         category.SortOrder = input.SortOrder;
         category.Active = input.Active;
 

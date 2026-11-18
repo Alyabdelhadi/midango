@@ -104,6 +104,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("guest_name");
 
+                    b.Property<bool>("IsOpenMatch")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_open_match");
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -113,6 +117,15 @@ namespace Midango.Api.Data.Migrations
                     b.Property<bool>("LateCancellation")
                         .HasColumnType("boolean")
                         .HasColumnName("late_cancellation");
+
+                    b.Property<string>("MatchLevel")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("match_level");
+
+                    b.Property<int?>("MaxPlayers")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_players");
 
                     b.Property<int>("Minutes")
                         .HasColumnType("integer")
@@ -199,6 +212,83 @@ namespace Midango.Api.Data.Migrations
 
                             t.HasCheckConstraint("ck_bookings_party", "(kind = 'Block' AND customer_id IS NULL AND guest_name IS NULL) OR (kind = 'Booking' AND (customer_id IS NOT NULL OR guest_name IS NOT NULL))");
                         });
+                });
+
+            modelBuilder.Entity("Midango.Api.Bookings.CustomerLevel", b =>
+                {
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("level");
+
+                    b.HasKey("CustomerId", "CategoryId")
+                        .HasName("pk_customer_levels");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_customer_levels_category_id");
+
+                    b.ToTable("customer_levels", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Bookings.MatchPlayer", b =>
+                {
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("booking_id");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<decimal?>("CashCollected")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("cash_collected");
+
+                    b.Property<DateTimeOffset?>("CheckedInAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_in_at");
+
+                    b.Property<DateTimeOffset>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<bool>("LateLeave")
+                        .HasColumnType("boolean")
+                        .HasColumnName("late_leave");
+
+                    b.Property<DateTimeOffset?>("LeftAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("left_at");
+
+                    b.Property<DateTimeOffset?>("NoShowAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("no_show_at");
+
+                    b.Property<DateTimeOffset?>("ReminderSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reminder_sent_at");
+
+                    b.Property<bool>("RemovedByOrganiser")
+                        .HasColumnType("boolean")
+                        .HasColumnName("removed_by_organiser");
+
+                    b.HasKey("BookingId", "CustomerId")
+                        .HasName("pk_match_players");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_match_players_customer_id");
+
+                    b.ToTable("match_players", (string)null);
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.Court", b =>
@@ -405,6 +495,12 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("name_en");
 
+                    b.Property<int>("PlayersPerMatch")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(4)
+                        .HasColumnName("players_per_match");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
                         .HasColumnName("sort_order");
@@ -415,6 +511,8 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("sport_categories", null, t =>
                         {
                             t.HasCheckConstraint("ck_sport_categories_durations", "cardinality(durations_minutes) BETWEEN 1 AND 4");
+
+                            t.HasCheckConstraint("ck_sport_categories_players_per_match", "players_per_match BETWEEN 2 AND 22");
                         });
                 });
 
@@ -981,6 +1079,40 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_bookings_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Bookings.CustomerLevel", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.SportCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_levels_sport_categories_category_id");
+
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_levels_customers_customer_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Bookings.MatchPlayer", b =>
+                {
+                    b.HasOne("Midango.Api.Bookings.Booking", null)
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_match_players_bookings_booking_id");
+
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_match_players_customers_customer_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.Court", b =>

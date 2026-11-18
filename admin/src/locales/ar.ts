@@ -41,6 +41,8 @@ export const ar: Record<MessageKey, string> = {
   nameAr: 'الاسم (بالعربية)',
   icon: 'الأيقونة',
   durationsRule: 'اختر من مدة إلى أربع مدد.',
+  playersPerMatch: 'عدد اللاعبين في المباراة',
+  playersPerMatchHint: 'أكبر عدد من اللاعبين في المباراة المفتوحة، من 2 إلى 22. يمكن للمنظّم اختيار عدد أقل.',
   moveUp: 'نقل لأعلى',
   moveDown: 'نقل لأسفل',
   remove: 'إزالة',

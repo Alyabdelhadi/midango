@@ -61,6 +61,7 @@ function CategoryForm({
   const [nameAr, setNameAr] = useState(initial?.nameAr ?? '');
   const [iconKey, setIconKey] = useState(initial?.iconKey ?? SPORT_ICON_KEYS[0]);
   const [durations, setDurations] = useState<number[]>(initial?.durationsMinutes ?? [60, 90]);
+  const [playersPerMatch, setPlayersPerMatch] = useState(initial?.playersPerMatch ?? 4);
   const [sortOrder, setSortOrder] = useState(initial?.sortOrder ?? nextSortOrder);
   const [active, setActive] = useState(initial?.active ?? true);
   const [features, setFeatures] = useState<FeatureDraft[]>(initial?.features ?? []);
@@ -117,6 +118,7 @@ function CategoryForm({
       nameAr,
       iconKey,
       durationsMinutes: durations,
+      playersPerMatch,
       sortOrder,
       active,
       features: features.map(({ id, nameEn, nameAr }) => ({ id, nameEn, nameAr })),
@@ -246,6 +248,16 @@ function CategoryForm({
       </fieldset>
 
       <div className="form-grid">
+        <Field label={t('playersPerMatch')} hint={t('playersPerMatchHint')}>
+          <input
+            type="number"
+            required
+            min={2}
+            max={22}
+            value={playersPerMatch}
+            onChange={(e) => setPlayersPerMatch(Number(e.target.value))}
+          />
+        </Field>
         <Field label={t('sortOrder')}>
           <input type="number" min={0} value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
         </Field>

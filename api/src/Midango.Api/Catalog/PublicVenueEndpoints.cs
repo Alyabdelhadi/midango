@@ -20,7 +20,7 @@ public static class PublicVenueEndpoints
     public sealed record PublicCourtDto(
         Guid Id, Guid CategoryId, string NameEn, string NameAr, bool Indoor, IReadOnlyList<PublicFeatureDto> Features);
 
-    public sealed record PublicCategoryDto(Guid Id, string NameEn, string NameAr, string IconKey, int[] DurationsMinutes, string? IconUrl);
+    public sealed record PublicCategoryDto(Guid Id, string NameEn, string NameAr, string IconKey, int[] DurationsMinutes, string? IconUrl, int PlayersPerMatch);
 
     public sealed record PublicVenueDto(
         Guid Id, string NameEn, string NameAr, string? AddressEn, string? AddressAr, double? Latitude, double? Longitude,
@@ -91,7 +91,7 @@ public static class PublicVenueEndpoints
                 venue.Id, venue.NameEn, venue.NameAr, venue.AddressEn, venue.AddressAr, venue.Latitude, venue.Longitude,
                 venue.CurrencyCode, venue.VatPercent, venue.FreeCancellationHours,
                 hours.Select(h => new VenueEndpoints.HoursDto(h.Day, h.Opens, h.Closes)).ToList(),
-                categories.Select(c => new PublicCategoryDto(c.Id, c.NameEn, c.NameAr, c.IconKey, c.DurationsMinutes, c.IconPath)).ToList(),
+                categories.Select(c => new PublicCategoryDto(c.Id, c.NameEn, c.NameAr, c.IconKey, c.DurationsMinutes, c.IconPath, c.PlayersPerMatch)).ToList(),
                 courts.Where(c => shown.Contains(c.CategoryId))
                     .Select(c => new PublicCourtDto(c.Id, c.CategoryId, c.NameEn, c.NameAr, c.Indoor,
                         c.Features.Select(f => new PublicFeatureDto(f.NameEn, f.NameAr, f.IconPath)).ToList()))

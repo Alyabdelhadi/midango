@@ -28,6 +28,7 @@ export function CategoriesPage() {
             <tr>
               <th>{t('sport')}</th>
               <th>{t('bookingLengths')}</th>
+              <th>{t('playersPerMatch')}</th>
               <th>{t('courtFeatures')}</th>
               <th>{t('status')}</th>
               <th>
@@ -45,6 +46,7 @@ export function CategoriesPage() {
                   </span>
                 </td>
                 <td className="numeric">{category.durationsMinutes.map((m) => t('minutesShort', { m })).join(' · ')}</td>
+                <td className="numeric">{category.playersPerMatch}</td>
                 <td>{category.features.map((f) => name(f)).join(', ') || '—'}</td>
                 <td>
                   <Pill tone={category.active ? 'success' : 'neutral'}>{category.active ? t('shownInApp') : t('hidden')}</Pill>

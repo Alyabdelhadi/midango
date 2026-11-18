@@ -22,6 +22,7 @@ export type Category = {
   nameAr: string;
   iconKey: string;
   durationsMinutes: number[];
+  playersPerMatch: number;
   sortOrder: number;
   active: boolean;
   features: Feature[];

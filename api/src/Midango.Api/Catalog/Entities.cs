@@ -15,6 +15,9 @@ public sealed class SportCategory
 
     /// Bookable lengths in minutes, ascending, e.g. [60, 90, 120].
     public int[] DurationsMinutes { get; set; } = [];
+
+    /// Most players an open match can take (organiser included), 2–22. Organisers may choose fewer.
+    public int PlayersPerMatch { get; set; } = 4;
     public int SortOrder { get; set; }
     public bool Active { get; set; } = true;
     public List<CourtFeature> Features { get; set; } = [];

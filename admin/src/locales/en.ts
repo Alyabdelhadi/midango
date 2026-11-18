@@ -39,6 +39,8 @@ export const en = {
   nameAr: 'Name (Arabic)',
   icon: 'Icon',
   durationsRule: 'Pick 1 to 4 lengths.',
+  playersPerMatch: 'Players per match',
+  playersPerMatchHint: 'Most players an open match can take, 2 to 22. Organisers can choose fewer.',
   moveUp: 'Move up',
   moveDown: 'Move down',
   remove: 'Remove',
