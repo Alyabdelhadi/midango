@@ -526,3 +526,24 @@ export type Broadcast = {
   devices: number;
   delivered: number;
 };
+
+export type SiteText = { key: string; en: string; ar: string };
+
+export type SiteFaq = {
+  id: string;
+  questionEn: string;
+  questionAr: string;
+  answerEn: string;
+  answerAr: string;
+  sortOrder: number;
+};
+
+export type SiteContact = { email: string | null; phone: string | null; whatsApp: string | null; instagram: string | null };
+
+export type SiteContent = {
+  texts: SiteText[];
+  faqs: SiteFaq[];
+  contact: SiteContact;
+  androidStoreUrl: string | null;
+  iosStoreUrl: string | null;
+};

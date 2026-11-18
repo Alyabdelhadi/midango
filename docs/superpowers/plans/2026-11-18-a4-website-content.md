@@ -58,3 +58,27 @@ Page + nav + types + EN/AR. Build + lint clean. Don't commit.
 
 ### Task 4: Verify (controller)
 API: validation; text edit shows in `/site/content` both languages; FAQ add/order/delete/max; contact; manager 403; anonymous public read. Browser: Business page EN + AR; website EN + AR shows edited text, FAQ order, contact links, store badges as links; API down → fallback text.
+
+---
+
+## Verification (2026-11-18)
+
+**API** (`a4-check.ps1`): **0 failures.** The script's last line, a CORS header check, raised a PowerShell type error because the header came back as an array. The header itself was present.
+- **Access:** a venue manager gets 403, and a request without a token gets 401. The admin shape has 21 texts, 6 FAQs and the store link from A3.
+- **Texts:** an unknown key, an empty Arabic text and a text of 601 characters each get 400. A headline edit is served in both languages, and the other texts are unchanged. An unknown `lang` falls back to English.
+- **FAQ:** a missing Arabic question and a question over 200 characters each get 400. A partial order gets 400 "Send every question once". A new question moved to the top comes first on the Arabic site, and editing works. The 21st question gets 400, deleting works, and an unknown id gets 404.
+- **Contact:** bad email, phone, WhatsApp and Instagram each get 400 with their sentence. Saving works and the leading @ is removed.
+
+**Browser, website (Arabic, fresh context):**
+- The edited headline, the reordered FAQ (7) and the footer contact line all show: email, phone, واتساب → `wa.me/966…`, and @midango.
+- Both store badges became links reading "حمّله من App Store" and "احصل عليه من Google Play", and the "launches soon" note hid. The copyright line keeps "© 2026 MIDANGO." with the tagline once.
+- The website agent tested the fallback against the 404 before the API existed: the page stayed as it was.
+- It also tested injected `<b>` and `<img onerror>` text, which rendered as plain text, and a `javascript:` store URL, which was refused.
+
+**Browser, Business:** the Website page shows the texts grouped by section with labels, the FAQ count (n of 20), contact and store links, in Arabic RTL. Changing the headline through the page and pressing Save reached `/site/content`.
+
+**Gotcha:** the website's Vite dev server kept serving the old `styles.css`, even to a fresh browser context and after a `touch`. Restarting `vite website --port 5500` fixed it.
+
+**Clean-up:** the test question, the contact details and the A3 placeholder store links were removed. The site is back to its original wording, with "Coming soon" badges.
+
+**Known limits:** the edited text is applied by JS, so crawlers see the fallback (marked `ponytail:` in the plan). The feature cards and the hero art are not editable.

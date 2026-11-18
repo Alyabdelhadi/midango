@@ -21,8 +21,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
   <script src="form.js" defer></script>
+  <script src="content.js" defer></script>
 </head>
-<body>
+<body data-api="http://localhost:5300">
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="site-header">
@@ -42,8 +43,8 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
         <div>
-          <h1 id="hero-title">Press play on your next game.</h1>
-          <p class="hero-lede">MIDANGO is court booking for the Gulf. Players find a court and book it in seconds. Venues run the schedule, the desk and the cash from one dashboard.</p>
+          <h1 id="hero-title" data-text="hero.title">Press play on your next game.</h1>
+          <p class="hero-lede" data-text="hero.lede">MIDANGO is court booking for the Gulf. Players find a court and book it in seconds. Venues run the schedule, the desk and the cash from one dashboard.</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#players">Book a court</a>
             <a class="btn btn-ghost" href="#venues">For venues</a>
@@ -96,25 +97,25 @@
     <section class="section" id="players" aria-labelledby="players-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">For players</p>
-          <h2 id="players-title">From your sofa to the court in three steps.</h2>
-          <p>Find a venue near you, see what's free and book it. No card needed: you pay at the venue.</p>
+          <p class="kicker" data-text="players.kicker">For players</p>
+          <h2 id="players-title" data-text="players.title">From your sofa to the court in three steps.</h2>
+          <p data-text="players.lede">Find a venue near you, see what's free and book it. No card needed: you pay at the venue.</p>
         </div>
         <ol class="steps">
-          <li><h3>Pick your sport</h3><p>Padel, football and more. Browse venues near you with their courts, opening hours and prices.</p></li>
-          <li><h3>Pick a court and time</h3><p>See open slots as they are and book the one that suits you. Your booking is confirmed straight away.</p></li>
-          <li><h3>Show your QR at the desk</h3><p>Every booking comes with a QR code. Show it when you arrive and pay cash at the venue.</p></li>
+          <li><h3 data-text="players.step1.title">Pick your sport</h3><p data-text="players.step1.body">Padel, football and more. Browse venues near you with their courts, opening hours and prices.</p></li>
+          <li><h3 data-text="players.step2.title">Pick a court and time</h3><p data-text="players.step2.body">See open slots as they are and book the one that suits you. Your booking is confirmed straight away.</p></li>
+          <li><h3 data-text="players.step3.title">Show your QR at the desk</h3><p data-text="players.step3.body">Every booking comes with a QR code. Show it when you arrive and pay cash at the venue.</p></li>
         </ol>
         <div class="stores">
-          <div class="store" role="img" aria-label="Coming soon to the App Store">
+          <div class="store" data-store="ios" role="img" aria-label="Coming soon to the App Store">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18.5h2"/></svg>
             <span><small>Coming soon to the</small><b>App Store</b></span>
           </div>
-          <div class="store" role="img" aria-label="Coming soon to Google Play">
+          <div class="store" data-store="android" role="img" aria-label="Coming soon to Google Play">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5Z"/></svg>
             <span><small>Coming soon to</small><b>Google Play</b></span>
           </div>
-          <p class="stores-note">The app launches soon, in English and Arabic.</p>
+          <p class="stores-note" data-text="stores.note">The app launches soon, in English and Arabic.</p>
         </div>
       </div>
     </section>
@@ -122,9 +123,9 @@
     <section class="section section-cloud" id="venues" aria-labelledby="venues-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">For venues</p>
-          <h2 id="venues-title">Your whole venue on one screen.</h2>
-          <p>MIDANGO Business is the web dashboard for your front desk and your managers, in English and Arabic.</p>
+          <p class="kicker" data-text="venues.kicker">For venues</p>
+          <h2 id="venues-title" data-text="venues.title">Your whole venue on one screen.</h2>
+          <p data-text="venues.lede">MIDANGO Business is the web dashboard for your front desk and your managers, in English and Arabic.</p>
         </div>
 
         <div class="features">
@@ -245,9 +246,9 @@
     <section class="section demo" id="request" aria-labelledby="request-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">Request a demo</p>
-          <h2 id="request-title">Bring your venue to MIDANGO.</h2>
-          <p>Tell us about your venue and we'll call you to set it up. No commitment.</p>
+          <p class="kicker" data-text="request.kicker">Request a demo</p>
+          <h2 id="request-title" data-text="request.title">Bring your venue to MIDANGO.</h2>
+          <p data-text="request.lede">Tell us about your venue and we'll call you to set it up. No commitment.</p>
           <ul class="demo-points">
             <li>We set up your courts, prices and opening hours with you</li>
             <li>Works in any browser, nothing to install</li>
@@ -255,7 +256,7 @@
           </ul>
         </div>
 
-        <form class="form" id="demo" data-api="http://localhost:5300"
+        <form class="form" id="demo"
               data-success="Thanks. We have your request and will call you soon."
               data-error="We couldn't send your request. Check your connection and try again." novalidate>
           <div class="field">
@@ -297,8 +298,8 @@
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="wrap faq">
         <div class="section-head">
-          <h2 id="faq-title">Questions, answered.</h2>
-          <p>Something else? Ask us in the demo form.</p>
+          <h2 id="faq-title" data-text="faq.title">Questions, answered.</h2>
+          <p data-text="faq.lede">Something else? Ask us in the demo form.</p>
         </div>
         <div class="faq-list">
           <details><summary>Is the app free for players?</summary><p>Yes. Downloading the app and booking are free. You only pay for the court.</p></details>
@@ -323,7 +324,8 @@
         <a href="terms/">Terms &amp; conditions</a>
         <a href="ar/" hreflang="ar" lang="ar">العربية</a>
       </nav>
-      <p class="copy">© 2026 MIDANGO. Court booking for the Gulf.</p>
+      <p class="contact" data-label="Contact" data-whatsapp="WhatsApp" hidden></p>
+      <p class="copy">© 2026 MIDANGO. <span data-text="footer.tagline">Court booking for the Gulf.</span></p>
     </div>
   </footer>
 </body>

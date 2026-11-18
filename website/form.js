@@ -1,4 +1,4 @@
-// Demo request form: POSTs JSON to `${data-api}/leads`. Typed values are never cleared on failure.
+// Demo request form: POSTs JSON to `${body data-api}/leads`. Typed values are never cleared on failure.
 const form = document.getElementById('demo');
 if (form) {
   const status = form.querySelector('[role="status"]');
@@ -21,7 +21,7 @@ if (form) {
     button.disabled = true;
     status.textContent = '';
     try {
-      const res = await fetch(`${form.dataset.api}/leads`, {
+      const res = await fetch(`${document.body.dataset.api}/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

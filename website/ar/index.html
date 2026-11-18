@@ -21,8 +21,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="../styles.css">
   <script src="../form.js" defer></script>
+  <script src="../content.js" defer></script>
 </head>
-<body>
+<body data-api="http://localhost:5300">
   <a class="skip" href="#main">انتقل إلى المحتوى</a>
 
   <header class="site-header">
@@ -42,8 +43,8 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
         <div>
-          <h1 id="hero-title">مباراتك القادمة على بُعد ضغطة.</h1>
-          <p class="hero-lede">MIDANGO منصة لحجز الملاعب في الخليج. يجد اللاعبون ملعبًا ويحجزونه في ثوانٍ، وتدير الملاعب الجدول والاستقبال والنقد من لوحة تحكم واحدة.</p>
+          <h1 id="hero-title" data-text="hero.title">مباراتك القادمة على بُعد ضغطة.</h1>
+          <p class="hero-lede" data-text="hero.lede">MIDANGO منصة لحجز الملاعب في الخليج. يجد اللاعبون ملعبًا ويحجزونه في ثوانٍ، وتدير الملاعب الجدول والاستقبال والنقد من لوحة تحكم واحدة.</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#players">احجز ملعبًا</a>
             <a class="btn btn-ghost" href="#venues">لأصحاب الملاعب</a>
@@ -96,25 +97,25 @@
     <section class="section" id="players" aria-labelledby="players-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">للاعبين</p>
-          <h2 id="players-title">من بيتك إلى الملعب في ثلاث خطوات.</h2>
-          <p>اعثر على ملعب قريب منك، وشاهد الأوقات المتاحة واحجز. لا تحتاج إلى بطاقة: الدفع في الملعب.</p>
+          <p class="kicker" data-text="players.kicker">للاعبين</p>
+          <h2 id="players-title" data-text="players.title">من بيتك إلى الملعب في ثلاث خطوات.</h2>
+          <p data-text="players.lede">اعثر على ملعب قريب منك، وشاهد الأوقات المتاحة واحجز. لا تحتاج إلى بطاقة: الدفع في الملعب.</p>
         </div>
         <ol class="steps">
-          <li><h3>اختر رياضتك</h3><p>بادل وكرة قدم وغيرها. تصفّح الملاعب القريبة منك مع ملاعبها ومواعيدها وأسعارها.</p></li>
-          <li><h3>اختر الملعب والوقت</h3><p>شاهد الأوقات المتاحة كما هي الآن واحجز ما يناسبك، ويتأكد حجزك فورًا.</p></li>
-          <li><h3>أظهر رمز QR في الاستقبال</h3><p>كل حجز يأتي برمز QR. أظهره عند وصولك وادفع نقدًا في الملعب.</p></li>
+          <li><h3 data-text="players.step1.title">اختر رياضتك</h3><p data-text="players.step1.body">بادل وكرة قدم وغيرها. تصفّح الملاعب القريبة منك مع ملاعبها ومواعيدها وأسعارها.</p></li>
+          <li><h3 data-text="players.step2.title">اختر الملعب والوقت</h3><p data-text="players.step2.body">شاهد الأوقات المتاحة كما هي الآن واحجز ما يناسبك، ويتأكد حجزك فورًا.</p></li>
+          <li><h3 data-text="players.step3.title">أظهر رمز QR في الاستقبال</h3><p data-text="players.step3.body">كل حجز يأتي برمز QR. أظهره عند وصولك وادفع نقدًا في الملعب.</p></li>
         </ol>
         <div class="stores">
-          <div class="store" role="img" aria-label="قريبًا على App Store">
+          <div class="store" data-store="ios" role="img" aria-label="قريبًا على App Store">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18.5h2"/></svg>
             <span><small>قريبًا على</small><b>App Store</b></span>
           </div>
-          <div class="store" role="img" aria-label="قريبًا على Google Play">
+          <div class="store" data-store="android" role="img" aria-label="قريبًا على Google Play">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 3.5v17a1 1 0 0 1-1.5.86l-14-8.5a1 1 0 0 1 0-1.72l14-8.5A1 1 0 0 1 18 3.5Z"/></svg>
             <span><small>قريبًا على</small><b>Google Play</b></span>
           </div>
-          <p class="stores-note">يصدر التطبيق قريبًا بالعربية والإنجليزية.</p>
+          <p class="stores-note" data-text="stores.note">يصدر التطبيق قريبًا بالعربية والإنجليزية.</p>
         </div>
       </div>
     </section>
@@ -122,9 +123,9 @@
     <section class="section section-cloud" id="venues" aria-labelledby="venues-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">لأصحاب الملاعب</p>
-          <h2 id="venues-title">منشأتك كلها على شاشة واحدة.</h2>
-          <p>MIDANGO Business لوحة تحكم على الويب لموظفي الاستقبال والمديرين، بالعربية والإنجليزية.</p>
+          <p class="kicker" data-text="venues.kicker">لأصحاب الملاعب</p>
+          <h2 id="venues-title" data-text="venues.title">منشأتك كلها على شاشة واحدة.</h2>
+          <p data-text="venues.lede">MIDANGO Business لوحة تحكم على الويب لموظفي الاستقبال والمديرين، بالعربية والإنجليزية.</p>
         </div>
 
         <div class="features">
@@ -245,9 +246,9 @@
     <section class="section demo" id="request" aria-labelledby="request-title">
       <div class="wrap">
         <div class="section-head">
-          <p class="kicker">اطلب عرضًا تجريبيًا</p>
-          <h2 id="request-title">انضم بمنشأتك إلى MIDANGO.</h2>
-          <p>أخبرنا عن منشأتك وسنتصل بك لتجهيزها. بدون أي التزام.</p>
+          <p class="kicker" data-text="request.kicker">اطلب عرضًا تجريبيًا</p>
+          <h2 id="request-title" data-text="request.title">انضم بمنشأتك إلى MIDANGO.</h2>
+          <p data-text="request.lede">أخبرنا عن منشأتك وسنتصل بك لتجهيزها. بدون أي التزام.</p>
           <ul class="demo-points">
             <li>نجهّز معك الملاعب والأسعار وساعات العمل</li>
             <li>تعمل من أي متصفح، بدون تثبيت</li>
@@ -255,7 +256,7 @@
           </ul>
         </div>
 
-        <form class="form" id="demo" data-api="http://localhost:5300"
+        <form class="form" id="demo"
               data-success="شكرًا لك. وصلنا طلبك وسنتصل بك قريبًا."
               data-invalid="تحقّق من البيانات، خصوصًا رقم الهاتف، ثم حاول مرة أخرى." data-error="تعذّر إرسال طلبك. تحقق من اتصالك وحاول مرة أخرى." novalidate>
           <div class="field">
@@ -297,8 +298,8 @@
     <section class="section" id="faq" aria-labelledby="faq-title">
       <div class="wrap faq">
         <div class="section-head">
-          <h2 id="faq-title">أسئلة وأجوبة.</h2>
-          <p>عندك سؤال آخر؟ اكتبه في نموذج طلب العرض.</p>
+          <h2 id="faq-title" data-text="faq.title">أسئلة وأجوبة.</h2>
+          <p data-text="faq.lede">عندك سؤال آخر؟ اكتبه في نموذج طلب العرض.</p>
         </div>
         <div class="faq-list">
           <details><summary>هل التطبيق مجاني للاعبين؟</summary><p>نعم. تنزيل التطبيق والحجز من خلاله مجانيان، وتدفع فقط سعر الملعب.</p></details>
@@ -323,7 +324,8 @@
         <a href="terms/">الشروط والأحكام</a>
         <a href="../" hreflang="en" lang="en">English</a>
       </nav>
-      <p class="copy">© 2026 MIDANGO. حجز الملاعب في الخليج.</p>
+      <p class="contact" data-label="تواصل معنا" data-whatsapp="واتساب" hidden></p>
+      <p class="copy">© 2026 MIDANGO. <span data-text="footer.tagline">حجز الملاعب في الخليج.</span></p>
     </div>
   </footer>
 </body>

@@ -338,3 +338,4 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .content-row-actions .mg-button--secondary { padding-inline: 10px; }
 .banner-thumb { width: 96px; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; border: 1px solid var(--mg-line); }
 .banner-preview { width: 192px; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; border: 1px solid var(--mg-line); }
+.store-links dd { margin: 0; overflow-wrap: anywhere; }

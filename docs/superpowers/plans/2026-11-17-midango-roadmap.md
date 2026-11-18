@@ -45,7 +45,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | L1 | Legal pages ✅ done | Privacy policy + terms (EN/AR drafts for lawyer review), operator editor, website /privacy /terms, app Profile links | M2 |
 | A2 | Customers (operator) ✅ done | Search all customers, activity, block/unblock, lift no-show limit | M9a |
 | A3 | App content ✅ done | Home banner slider, featured venues, message to all users, force-update / maintenance | M9b |
-| A4 | Website content | Edit the website texts (EN/AR), FAQ, contact, store links from the admin | W1 |
+| A4 | Website content ✅ done | Edit the website texts (EN/AR), FAQ, contact, store links from the admin | W1 |
 
 ## Later (not planned)
 

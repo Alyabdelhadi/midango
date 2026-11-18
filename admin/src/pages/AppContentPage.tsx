@@ -427,7 +427,7 @@ function BannerForm({
   );
 }
 
-function MoveButtons({
+export function MoveButtons({
   index,
   count,
   busy,

@@ -23,6 +23,7 @@ import { TournamentPage } from './pages/TournamentPage';
 import { TournamentsPage } from './pages/TournamentsPage';
 import { VenuePage } from './pages/venue/VenuePage';
 import { VenuesPage } from './pages/VenuesPage';
+import { WebsitePage } from './pages/WebsitePage';
 import { Styleguide } from './Styleguide';
 
 function VenueRoute() {
@@ -83,6 +84,14 @@ export default function App() {
                   element={
                     <RequireRole roles={['PlatformOperator']}>
                       <AppContentPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="website"
+                  element={
+                    <RequireRole roles={['PlatformOperator']}>
+                      <WebsitePage />
                     </RequireRole>
                   }
                 />
