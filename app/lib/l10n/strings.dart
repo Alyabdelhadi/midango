@@ -85,6 +85,9 @@ class Strings {
     required this.english,
     required this.arabic,
     required this.signOut,
+    required this.privacyPolicy,
+    required this.termsConditions,
+    required this.lastUpdated,
   });
 
   final bool isArabic;
@@ -187,6 +190,9 @@ class Strings {
   final String english;
   final String arabic;
   final String signOut;
+  final String privacyPolicy;
+  final String termsConditions;
+  final String Function(String date) lastUpdated;
 
   static Strings of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<StringsScope>()!.strings;
 }
@@ -287,8 +293,12 @@ const en = Strings(
   english: 'English',
   arabic: 'العربية',
   signOut: 'Sign out',
+  privacyPolicy: 'Privacy policy',
+  termsConditions: 'Terms & conditions',
+  lastUpdated: _enLastUpdated,
 );
 
+String _enLastUpdated(String date) => 'Last updated $date';
 String _enMinutes(int n) => '$n min';
 String _enFrom(String price) => 'from $price';
 String _enSlotOpen(String time) => '$time, available';
@@ -383,8 +393,12 @@ const ar = Strings(
   english: 'English',
   arabic: 'العربية',
   signOut: 'تسجيل الخروج',
+  privacyPolicy: 'سياسة الخصوصية',
+  termsConditions: 'الشروط والأحكام',
+  lastUpdated: _arLastUpdated,
 );
 
+String _arLastUpdated(String date) => 'آخر تحديث: $date';
 String _arFrom(String price) => 'ابتداءً من $price';
 String _arSlotOpen(String time) => '$time، متاح';
 String _arSlotFull(String time) => '$time، محجوز';

@@ -39,6 +39,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | W1 | Website ✅ done | Static EN/AR informative site (`website/`), demo form → `POST /leads`, operator "Venue requests" page | M2 |
 | A1 | Venue control ✅ done | Operator opens any venue (1-h acting token, change log), suspend/unsuspend, staff deactivate + reset password | M6 |
 | A1b | Photos & icons ✅ done | Venue logo + up to 10 ordered photos, uploaded sport / feature icons; shown in the app | A1 |
+| L1 | Legal pages ✅ done | Privacy policy + terms (EN/AR drafts for lawyer review), operator editor, website /privacy /terms, app Profile links | M2 |
 
 ## Later (not planned)
 

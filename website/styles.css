@@ -323,3 +323,18 @@ a { color: var(--cyan-ink); }
 .site-footer a { color: var(--ink); text-decoration: none; font-weight: 500; }
 .site-footer a:hover { color: var(--cyan-ink); }
 .site-footer .copy { flex-basis: 100%; }
+
+/* Legal pages: a single readable column */
+.legal { max-inline-size: 70ch; min-block-size: 60vh; padding-block: clamp(40px, 7vw, 80px); font-size: 1.05rem; line-height: 1.7; overflow-wrap: anywhere; }
+.legal h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; margin-block-end: .5rem; }
+.legal h2 { font-size: clamp(1.3rem, 2.6vw, 1.6rem); font-weight: 600; margin-block: 2.5rem .75rem; }
+.legal p, .legal ul { margin-block: 0 1rem; }
+.legal ul { padding-inline-start: 1.4em; }
+.legal li + li { margin-block-start: .4rem; }
+.legal li::marker { color: var(--cyan-ink); }
+.legal strong { font-weight: 600; }
+.legal .legal-updated { color: var(--muted); font-size: .95rem; margin-block-end: 2rem; }
+.legal-status { color: var(--muted); }
+.legal-error { display: grid; justify-items: start; gap: 1rem; }
+.legal-error p { color: #b42318; font-weight: 500; margin: 0; }
+.legal [hidden] { display: none; }

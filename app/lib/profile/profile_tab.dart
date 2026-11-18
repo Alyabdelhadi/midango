@@ -5,6 +5,7 @@ import '../booking/sign_in_flow.dart';
 import '../l10n/strings.dart';
 import '../session/session.dart';
 import '../theme/midango_colors.dart';
+import 'legal_page.dart';
 
 /// Name, phone, language and sign-out; sign-in and language when signed out.
 class ProfileTab extends StatelessWidget {
@@ -66,6 +67,24 @@ class ProfileTab extends StatelessWidget {
               selectedForegroundColor: MidangoColors.navy,
               foregroundColor: MidangoColors.navy,
               side: const BorderSide(color: MidangoColors.line),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final (i, (kind, title)) in [('privacy', s.privacyPolicy), ('terms', s.termsConditions)].indexed) ...[
+                  if (i > 0) const Divider(height: 1, color: MidangoColors.line),
+                  ListTile(
+                    title: Text(title, style: text.bodyLarge),
+                    trailing: Icon(s.isArabic ? LucideIcons.chevronLeft : LucideIcons.chevronRight,
+                        size: 20, color: MidangoColors.slate),
+                    onTap: () => Navigator.of(context, rootNavigator: true)
+                        .push(MaterialPageRoute<void>(builder: (_) => LegalPage(kind: kind, title: title))),
+                  ),
+                ],
+              ],
             ),
           ),
           if (session.signedIn) ...[

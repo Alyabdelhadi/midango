@@ -33,3 +33,18 @@ Project rules: **no automated tests** — verify by building and running. Biling
 ### Task 5: Verify (controller)
 - API: public GET both kinds (EN+AR non-empty, draft banner line present), unknown kind 404, PUT as operator updates `updatedAt`, empty/too long → 400, manager → 403; HTML in the body (`<script>`) shows as text on every client.
 - Browser: edit in admin (EN + AR), see it on the website pages (both languages, 390 px) and the Flutter web app's Profile → Privacy policy.
+
+---
+
+## Verification (2026-11-18)
+
+**API:**
+- Both kinds are seeded at startup: privacy EN 6,349 / AR 5,614 characters; terms EN 5,855 / AR 5,047. Each has the lawyer-review draft line.
+- `Cache-Control: max-age=300`. An unknown kind gets 404. A blank English body or one over 60,000 characters gets 400. Anonymous admin GET gets 401. Saving changes `updatedAt`.
+
+**Browser:**
+- **Website, Arabic privacy page at 390 px:** loads from the API, right to left, "Last updated" with Western digits, the draft line in bold, 31 list items, page title from the heading, no horizontal scroll.
+- **Admin "Legal pages", in Arabic:** English and Arabic side by side with live previews. Typed `<script>alert(1)</script>` showed as text and no script element was created. The "unsaved changes" note appeared on the tab. The test edit was not saved.
+- **Flutter web app:** Profile shows "Privacy policy" / "Terms & conditions", also when signed out. In Arabic, the terms page renders headings, bullets and "Last updated" right to left. (The running `flutter run` web server had to be restarted to pick up the new code; reloading the page doesn't rebuild it.)
+
+**Placeholders for the owner to fill before launch:** company legal name, CR number and address; hosting provider; SMS provider; retention months, reply days and minimum age; liability cap; city for court disputes; `privacy@` / `support@` addresses. **The drafts must be reviewed by a lawyer.**
