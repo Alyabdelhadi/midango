@@ -13,6 +13,7 @@ using Midango.Api.Loyalty;
 using Midango.Api.Media;
 using Midango.Api.Notifications;
 using Midango.Api.Platform;
+using Midango.Api.Tournaments;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -85,6 +86,7 @@ else
     builder.Services.AddSingleton<IPushSender, LogPushSender>();
 builder.Services.AddHostedService<ReminderService>();
 builder.Services.AddScoped<MatchNotifications>();
+builder.Services.AddScoped<TournamentNotifications>();
 
 var app = builder.Build();
 
@@ -152,5 +154,6 @@ app.MapOperatorEndpoints();
 app.MapMediaEndpoints();
 app.MapLegalEndpoints();
 app.MapLoyaltyEndpoints();
+app.MapTournamentEndpoints();
 
 app.Run();

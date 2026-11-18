@@ -93,6 +93,9 @@ public sealed class Booking
     /// Midango owes the venue the discount. Written only by Loyalty.Points.
     public int PointsRedeemed { get; set; }
     public decimal PointsDiscount { get; set; }
+
+    /// Set on the blocks a published tournament holds its courts with.
+    public Guid? TournamentId { get; init; }
 }
 
 /// Self-set skill band, per sport.

@@ -185,6 +185,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("total");
 
+                    b.Property<Guid?>("TournamentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tournament_id");
+
                     b.Property<decimal>("Vat")
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)")
@@ -200,6 +204,9 @@ namespace Midango.Api.Data.Migrations
                     b.HasIndex("Reference")
                         .IsUnique()
                         .HasDatabaseName("ix_bookings_reference");
+
+                    b.HasIndex("TournamentId")
+                        .HasDatabaseName("ix_bookings_tournament_id");
 
                     b.HasIndex("CourtId", "StartsAt")
                         .HasDatabaseName("ix_bookings_court_id_starts_at");
@@ -1043,6 +1050,211 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("venue_leads", (string)null);
                 });
 
+            modelBuilder.Entity("Midango.Api.Tournaments.Tournament", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("cancelled_at");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("category_id");
+
+                    b.PrimitiveCollection<Guid[]>("CourtIds")
+                        .IsRequired()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("court_ids");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<string>("DescriptionAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description_ar");
+
+                    b.Property<string>("DescriptionEn")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description_en");
+
+                    b.Property<DateTimeOffset>("EndsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ends_at");
+
+                    b.Property<decimal>("EntryFee")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("entry_fee");
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("format");
+
+                    b.Property<string>("Level")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("level");
+
+                    b.Property<int>("MaxTeams")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_teams");
+
+                    b.Property<string>("NameAr")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name_ar");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name_en");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("published_at");
+
+                    b.Property<DateTimeOffset>("RegistrationClosesAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("registration_closes_at");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("starts_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("TeamSize")
+                        .HasColumnType("integer")
+                        .HasColumnName("team_size");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tournaments");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("ix_tournaments_category_id");
+
+                    b.HasIndex("Status", "StartsAt")
+                        .HasDatabaseName("ix_tournaments_status_starts_at");
+
+                    b.HasIndex("VenueId", "CreatedAt")
+                        .HasDatabaseName("ix_tournaments_venue_id_created_at");
+
+                    b.ToTable("tournaments", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tournaments_ends_after_start", "ends_at > starts_at");
+
+                            t.HasCheckConstraint("ck_tournaments_registration_closes", "registration_closes_at <= starts_at");
+                        });
+                });
+
+            modelBuilder.Entity("Midango.Api.Tournaments.TournamentTeam", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CaptainCustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("captain_customer_id");
+
+                    b.Property<decimal?>("CashCollected")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("cash_collected");
+
+                    b.Property<DateTimeOffset?>("CheckedInAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("checked_in_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("registered_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TournamentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tournament_id");
+
+                    b.Property<DateTimeOffset?>("WithdrawnAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("withdrawn_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tournament_teams");
+
+                    b.HasIndex("CaptainCustomerId")
+                        .HasDatabaseName("ix_tournament_teams_captain_customer_id");
+
+                    b.HasIndex("TournamentId", "RegisteredAt")
+                        .HasDatabaseName("ix_tournament_teams_tournament_id_registered_at");
+
+                    b.ToTable("tournament_teams", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Tournaments.TournamentTeamMember", b =>
+                {
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("team_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.HasKey("TeamId", "Position")
+                        .HasName("pk_tournament_team_member");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_tournament_team_member_customer_id");
+
+                    b.ToTable("tournament_team_member", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Venues.Venue", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1188,6 +1400,12 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_bookings_customers_customer_id");
 
+                    b.HasOne("Midango.Api.Tournaments.Tournament", null)
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_bookings_tournaments_tournament_id");
+
                     b.HasOne("Midango.Api.Venues.Venue", null)
                         .WithMany()
                         .HasForeignKey("VenueId")
@@ -1329,6 +1547,56 @@ namespace Midango.Api.Data.Migrations
                         .HasConstraintName("fk_operator_actions_venues_venue_id");
                 });
 
+            modelBuilder.Entity("Midango.Api.Tournaments.Tournament", b =>
+                {
+                    b.HasOne("Midango.Api.Catalog.SportCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournaments_sport_categories_category_id");
+
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournaments_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Tournaments.TournamentTeam", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CaptainCustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournament_teams_customers_captain_customer_id");
+
+                    b.HasOne("Midango.Api.Tournaments.Tournament", null)
+                        .WithMany()
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournament_teams_tournaments_tournament_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Tournaments.TournamentTeamMember", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_tournament_team_member_customers_customer_id");
+
+                    b.HasOne("Midango.Api.Tournaments.TournamentTeam", null)
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tournament_team_member_tournament_teams_team_id");
+                });
+
             modelBuilder.Entity("Midango.Api.Venues.VenuePhoto", b =>
                 {
                     b.HasOne("Midango.Api.Venues.Venue", null)
@@ -1342,6 +1610,11 @@ namespace Midango.Api.Data.Migrations
             modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>
                 {
                     b.Navigation("Features");
+                });
+
+            modelBuilder.Entity("Midango.Api.Tournaments.TournamentTeam", b =>
+                {
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

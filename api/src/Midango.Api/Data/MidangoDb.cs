@@ -6,6 +6,7 @@ using Midango.Api.Identity;
 using Midango.Api.Loyalty;
 using Midango.Api.Notifications;
 using Midango.Api.Platform;
+using Midango.Api.Tournaments;
 using Midango.Api.Venues;
 
 namespace Midango.Api.Data;
@@ -32,6 +33,8 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<CustomerLevel> CustomerLevels => Set<CustomerLevel>();
     public DbSet<MatchPlayer> MatchPlayers => Set<MatchPlayer>();
     public DbSet<PointsEntry> PointsEntries => Set<PointsEntry>();
+    public DbSet<Tournament> Tournaments => Set<Tournament>();
+    public DbSet<TournamentTeam> TournamentTeams => Set<TournamentTeam>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -172,6 +175,50 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasIndex(x => new { x.CourtId, x.StartsAt });
             e.HasIndex(x => new { x.CustomerId, x.StartsAt });
             e.HasIndex(x => new { x.Status, x.StartsAt });
+            e.HasOne<Tournament>().WithMany().HasForeignKey(x => x.TournamentId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.TournamentId);
+        });
+
+        b.Entity<Tournament>(e =>
+        {
+            e.ToTable("tournaments", t =>
+            {
+                t.HasCheckConstraint("ck_tournaments_ends_after_start", "ends_at > starts_at");
+                t.HasCheckConstraint("ck_tournaments_registration_closes", "registration_closes_at <= starts_at");
+            });
+            e.Property(x => x.NameEn).HasMaxLength(120);
+            e.Property(x => x.NameAr).HasMaxLength(120);
+            e.Property(x => x.DescriptionEn).HasMaxLength(2000);
+            e.Property(x => x.DescriptionAr).HasMaxLength(2000);
+            e.Property(x => x.Format).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Level).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.EntryFee).HasPrecision(10, 2);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.CourtIds).HasColumnType("uuid[]");
+            e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<SportCategory>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.VenueId, x.CreatedAt });
+            e.HasIndex(x => new { x.Status, x.StartsAt });
+        });
+
+        b.Entity<TournamentTeam>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(40);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.CashCollected).HasPrecision(10, 2);
+            e.HasOne<Tournament>().WithMany().HasForeignKey(x => x.TournamentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CaptainCustomerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasMany(x => x.Members).WithOne().HasForeignKey(m => m.TeamId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => new { x.TournamentId, x.RegisteredAt });
+            e.HasIndex(x => x.CaptainCustomerId);
+        });
+
+        b.Entity<TournamentTeamMember>(e =>
+        {
+            e.HasKey(x => new { x.TeamId, x.Position });
+            e.Property(x => x.Name).HasMaxLength(60);
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<CustomerLevel>(e =>
