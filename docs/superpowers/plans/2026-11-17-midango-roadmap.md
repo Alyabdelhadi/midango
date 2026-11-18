@@ -43,6 +43,9 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | A1 | Venue control ✅ done | Operator opens any venue (1-h acting token, change log), suspend/unsuspend, staff deactivate + reset password | M6 |
 | A1b | Photos & icons ✅ done | Venue logo + up to 10 ordered photos, uploaded sport / feature icons; shown in the app | A1 |
 | L1 | Legal pages ✅ done | Privacy policy + terms (EN/AR drafts for lawyer review), operator editor, website /privacy /terms, app Profile links | M2 |
+| A2 | Customers (operator) ✅ done | Search all customers, activity, block/unblock, lift no-show limit | M9a |
+| A3 | App content | Home banner, featured venues, message to all users, force-update / maintenance | M9b |
+| A4 | Website content | Edit the website texts (EN/AR), FAQ, contact, store links from the admin | W1 |
 
 ## Later (not planned)
 
