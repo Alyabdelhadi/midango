@@ -27,3 +27,4 @@ api/src/Midango.Api/uploads/
 
 # Kotlin compiler cache
 app/android/.kotlin/
+website/.vite/
