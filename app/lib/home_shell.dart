@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'bookings/bookings_tab.dart';
 import 'l10n/strings.dart';
 import 'play/play_tab.dart';
+import 'profile/profile_tab.dart';
 import 'theme/midango_colors.dart';
 
 /// The selected tab. Pages pushed above the shell (the confirmation) switch tabs through it.
@@ -27,8 +29,8 @@ class HomeShell extends StatelessWidget {
           index: index,
           children: [
             const PlayTab(),
-            Center(child: Text(s.bookingsTitle)),
-            Center(child: Text(s.profileTitle)),
+            const BookingsTab(),
+            ProfileTab(onLanguage: onLanguage),
           ],
         ),
         bottomNavigationBar: NavigationBar(
