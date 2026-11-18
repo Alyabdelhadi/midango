@@ -248,4 +248,11 @@ export const ar: Record<MessageKey, string> = {
   weekOf: 'أسبوع {date}',
   total: 'الإجمالي',
   noCash: 'لا يوجد نقد مستلم في هذه الفترة.',
+  navRules: 'القواعد',
+  rulesIntro: 'تنطبق هذه القواعد على جميع المنشآت وجميع العملاء.',
+  reminderHours: 'إرسال «هل ستحضر؟» قبل البدء بعدد الساعات',
+  noShowLimit: 'عدد مرات الغياب التي تقيّد العميل',
+  noShowWindow: 'خلال آخر (يوماً)',
+  limitedUpcoming: 'عدد الحجوزات القادمة المسموحة للعميل المقيّد',
+  rulesSummary: '{n} حالات غياب خلال {d} يوماً ← {k} حجز قادم كحد أقصى.',
 };

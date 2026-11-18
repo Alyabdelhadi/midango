@@ -246,6 +246,13 @@ export const en = {
   weekOf: 'Week of {date}',
   total: 'Total',
   noCash: 'No cash taken in this period.',
+  navRules: 'Rules',
+  rulesIntro: 'These apply to every venue and every customer.',
+  reminderHours: 'Send "Still coming?" this many hours before',
+  noShowLimit: 'No-shows that limit a customer',
+  noShowWindow: 'Counted over the last (days)',
+  limitedUpcoming: 'Upcoming bookings a limited customer may hold',
+  rulesSummary: '{n} no-shows in {d} days → at most {k} upcoming booking(s).',
 };
 
 export type MessageKey = keyof typeof en;

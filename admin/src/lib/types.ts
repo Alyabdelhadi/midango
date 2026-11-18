@@ -184,6 +184,13 @@ export type Today = {
 
 export type HeatCell = { day: Day; hour: number; percent: number; bookedMinutes: number; openMinutes: number };
 export type CashRow = { weekStart: string; courtId: string; courtNameEn: string; courtNameAr: string; cash: number; checkIns: number };
+export type PlatformSettings = {
+  reminderHoursBefore: number;
+  noShowLimit: number;
+  noShowWindowDays: number;
+  limitedUpcomingBookings: number;
+};
+
 export type Report = {
   from: string;
   to: string;
