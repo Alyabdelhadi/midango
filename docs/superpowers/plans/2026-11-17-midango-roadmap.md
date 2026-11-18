@@ -33,7 +33,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M6b | Business: Schedule, Bookings, Customers, Today ✅ done | The court × time grid (click to book, drag to move, block time), booking side panel with state-driven primary action, Bookings list with quick filters, Customers (name + masked phone), Today numbers | M6a |
 | M7 | MIDANGO Desk ✅ done | Counter screen: Now & next list, *Take cash & check in*, walk-ins, QR lookup, undo, mark no-show | M6 |
 | M8 | MIDANGO App: booking ✅ done | Play tab (sport chips from categories, venue cards with open times), filters, venue page, confirm sheet, confirmation with QR, Bookings tab, cancel, Profile, guest browsing with sign-in at confirm, Arabic | M5 (M2 for sign-in) |
-| M9a | No-show limit & reminders (server) | Rules page (operator), no-show limit, push devices, reminder job (FCM when keyed, log otherwise) | M7, M8 |
+| M9a | No-show limit & reminders (server) ✅ done | Rules page (operator), no-show limit, push devices, reminder job (FCM when keyed, log otherwise) | M7, M8 |
 | M9b | Push in the app | firebase_messaging, device registration, open booking from a reminder | M9a + Firebase key and flutterfire configure |
 | M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
 

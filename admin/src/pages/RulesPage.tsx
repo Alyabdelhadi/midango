@@ -64,7 +64,7 @@ function RulesForm({ initial, onSaved }: { initial: PlatformSettings; onSaved: (
 
   return (
     <form className="card" onSubmit={save}>
-      <div className="form-grid">
+      <div className="form-grid rules-grid">
         {FIELDS.map((f) => (
           <Field key={f.key} label={t(f.label)}>
             <input

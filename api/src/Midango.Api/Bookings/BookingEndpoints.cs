@@ -177,6 +177,12 @@ public static class BookingStore
             {
                 return ApiErrors.Fail(409, "Someone just booked this time. Pick another one.");
             }
+            catch (DbUpdateException ex) when (attempt < 3 && ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.DeadlockDetected })
+            {
+                // Simultaneous inserts that overlap can wait on each other through the exclusion constraint;
+                // PostgreSQL then aborts one of them. Saving again lets the other commit first, so this one
+                // gets the usual "someone just booked this time" (or succeeds if they didn't actually overlap).
+            }
             catch (DbUpdateException ex) when (attempt < 3 && ex.InnerException is PostgresException
                    { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "ix_bookings_reference" })
             {

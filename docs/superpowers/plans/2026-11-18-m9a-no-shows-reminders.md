@@ -449,3 +449,11 @@ builder.Services.AddHostedService<ReminderService>();
 
 1. **Service-account key:** Firebase console → project `yallaplay-a00a3` → Project settings → Service accounts → *Generate new private key*. Save it **outside the repo** (e.g. `C:\Users\Lenovo\secrets\midango-firebase.json`), then from `api/src/Midango.Api` run `dotnet user-secrets set Firebase:CredentialsPath <path>` (or set the `Firebase__CredentialsPath` environment variable).
 2. **App registration:** `firebase login` (interactive, once), then `flutterfire configure --project=yallaplay-a00a3` adds the Android/iOS/web app configs. M9b then adds `firebase_messaging` to the Flutter app: permission prompt after the first booking, `PUT /me/devices` on sign-in and token refresh, `DELETE` before sign-out, and opening the booking when a reminder is tapped.
+
+## Verification results
+
+- API script (reminder interval 5 s, no Firebase key): `Failures: 0` — seeded rules, 400s, 403 for a manager; two desk no-shows → second app booking refused with the exact sentence, desk booking still allowed, limit 3 lets it through; device token moves between customers and only its owner can delete it; the due booking's English reminder appears once in the log, a booking made inside the window and a checked-in one get none; `reminder_sent_at` stamped as expected.
+- Browser: operator sees Rules (only operator), saves, reload keeps the value, Arabic RTL; settings restored to 3 / 2 / 30 / 1.
+- Fixed: the four Rules fields were misaligned when labels wrapped (`.rules-grid { align-items: end }`).
+- **Found by the M5 re-run:** the 5-way race once returned 500s — PostgreSQL `40P01 deadlock detected` between simultaneous overlapping inserts through the exclusion constraint. `BookingStore.SaveAsync` now retries a deadlock victim (which then gets the normal 409 or succeeds). After the fix: 3 × 5-way and 2 × 20-way races all clean (1 × 201, rest 409, no 500s). The deadlock did not recur in those runs, so the retry branch itself is not yet exercised live.
+- Script lesson: ProblemDetails bodies (`application/problem+json`) come back from `Invoke-WebRequest` as bytes — decode them before checking titles.

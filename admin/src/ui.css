@@ -223,3 +223,5 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .heat-legend-ramp { width: 160px; height: 10px; border-radius: 4px; background: linear-gradient(to right, rgb(7 19 41 / 0.06), rgb(7 19 41 / 1)); }
 [dir='rtl'] .heat-legend-ramp { background: linear-gradient(to left, rgb(7 19 41 / 0.06), rgb(7 19 41 / 1)); }
 .mg-table .total-row th, .mg-table .total-row td { font-weight: 700; background: var(--mg-cloud); }
+/* Rules: labels wrap to different heights; line the inputs up along the bottom. */
+.rules-grid { align-items: end; }
