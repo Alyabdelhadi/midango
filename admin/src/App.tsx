@@ -3,8 +3,10 @@ import { HomeRedirect, RequireRole, RequireStaff } from './app/guards';
 import { Shell } from './layout/Shell';
 import { AuthProvider, useAuth } from './lib/auth';
 import { I18nProvider } from './lib/i18n';
+import { AllCustomersPage } from './pages/AllCustomersPage';
 import { BookingsPage } from './pages/BookingsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DeskPage } from './pages/DeskPage';
 import { PricesPage } from './pages/PricesPage';
@@ -56,6 +58,22 @@ export default function App() {
                   element={
                     <RequireRole roles={['PlatformOperator']}>
                       <VenuesPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="all-customers"
+                  element={
+                    <RequireRole roles={['PlatformOperator']}>
+                      <AllCustomersPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="all-customers/:id"
+                  element={
+                    <RequireRole roles={['PlatformOperator']}>
+                      <CustomerDetailPage />
                     </RequireRole>
                   }
                 />

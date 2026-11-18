@@ -14,6 +14,7 @@ import {
   Tag,
   Trophy,
   Users,
+  UserSearch,
   type LucideIcon,
 } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
@@ -37,6 +38,7 @@ const NAV: NavItem[] = [
   { to: '/reports', label: 'navReports', icon: ChartColumnBig, roles: ['VenueManager'] },
   { to: '/categories', label: 'navCategories', icon: Shapes, roles: ['PlatformOperator'] },
   { to: '/venues', label: 'navVenues', icon: Building2, roles: ['PlatformOperator'] },
+  { to: '/all-customers', label: 'navCustomers', icon: UserSearch, roles: ['PlatformOperator'] },
   { to: '/rules', label: 'navRules', icon: ShieldCheck, roles: ['PlatformOperator'] },
   { to: '/leads', label: 'navLeads', icon: Inbox, roles: ['PlatformOperator'] },
   { to: '/legal', label: 'navLegal', icon: Scale, roles: ['PlatformOperator'] },

@@ -405,3 +405,82 @@ export const LEVEL_KEY: Record<PlayLevel, MessageKey> = {
   Intermediate: 'levelIntermediate',
   Advanced: 'levelAdvanced',
 };
+
+/** Operator view of an app customer (GET /admin/customers). createdAt is UTC; phone is full. */
+export type AdminCustomerRow = {
+  id: string;
+  name: string | null;
+  phone: string;
+  createdAt: string;
+  bookings: number;
+  noShowsInWindow: number;
+  limited: boolean;
+  blocked: boolean;
+};
+
+export type AdminCustomerList = { items: AdminCustomerRow[]; total: number };
+
+export type LoyaltyTier = 'Bronze' | 'Silver' | 'Gold';
+
+/** Times carry the booking's venue offset. The DTO has no currency. */
+export type AdminCustomerBooking = {
+  id: string;
+  reference: string;
+  venueNameEn: string;
+  venueNameAr: string;
+  courtNameEn: string;
+  courtNameAr: string;
+  startsAt: string;
+  minutes: number;
+  total: number;
+  currency: string;
+  status: BookingStatus;
+  role: 'organiser' | 'player';
+  checkedInAt: string | null;
+  noShowAt: string | null;
+  lateCancellation: boolean;
+  cancelledByVenue: boolean;
+};
+
+export type AdminCustomerTournament = {
+  tournamentId: string;
+  nameEn: string;
+  nameAr: string;
+  teamName: string;
+  status: TeamStatus;
+  startsAt: string;
+};
+
+/** blockedAt and noShowsClearedAt are UTC. */
+export type AdminCustomer = {
+  id: string;
+  name: string | null;
+  phone: string;
+  createdAt: string;
+  blockedAt: string | null;
+  blockedReason: string | null;
+  blockedBy: string | null;
+  noShowsClearedAt: string | null;
+  stats: {
+    bookings: number;
+    checkedIn: number;
+    cancelled: number;
+    lateCancellations: number;
+    noShows: number;
+    noShowsInWindow: number;
+    matchesJoined: number;
+    tournamentTeams: number;
+  };
+  limited: boolean;
+  points: { balance: number; tier: LoyaltyTier };
+  devices: number;
+  bookings: AdminCustomerBooking[];
+  tournaments: AdminCustomerTournament[];
+};
+
+export const TIER_KEY: Record<LoyaltyTier, MessageKey> = { Bronze: 'tierBronze', Silver: 'tierSilver', Gold: 'tierGold' };
+export const TEAM_STATUS_KEY: Record<TeamStatus, MessageKey> = {
+  Registered: 'teamRegistered',
+  Waitlisted: 'teamWaitlisted',
+  Withdrawn: 'teamWithdrawn',
+};

@@ -322,3 +322,9 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .bracket-side { display: flex; justify-content: space-between; gap: 8px; color: var(--mg-slate); }
 .bracket-side--winner { font-weight: 700; color: var(--mg-navy); }
 .bracket-meta { font: var(--mg-text-caption); color: var(--mg-muted); }
+
+/* Operator customers */
+.pill-row { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; color: var(--mg-slate); }
+.customer-status { display: grid; gap: 6px; }
+.customer-status p { margin: 0; }

@@ -55,3 +55,10 @@ export function formatDay(date: string, lang: Lang, style: 'long' | 'short' = 'l
 
 /** Within the API's 15-minute undo window. */
 export const recent = (iso: string | null) => iso !== null && Date.now() - new Date(iso).getTime() < 15 * 60_000;
+
+/** A UTC instant (sign-up, block) as a date in the viewer's local time. */
+export function formatUtcDate(iso: string, lang: Lang): string {
+  return new Intl.DateTimeFormat(lang === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB', { dateStyle: 'medium' }).format(
+    new Date(iso),
+  );
+}

@@ -42,3 +42,23 @@ Pages above. Build + lint clean. Don't commit.
 
 ### Task 3: Verify (controller)
 API: search by name / partial phone / local 05 form; detail stats; block → OTP request 403, verify 403, refresh 401, book/join/register/points 409, reads fine; unblock restores; lift limit lets a limited customer book again; operator-only (manager 403). Browser: list → detail → block/unblock/lift in EN + AR.
+
+---
+
+## Verification (2026-11-18)
+
+**API** (`a2-check.ps1`): 17 of 18 checks passed. The one miss was my own test: the name "Khalid Test 750" contains 3 digits, and by design that also matches phone numbers. A digit-free "khalid test" returns exactly that customer.
+- **Access:** a venue manager gets 403.
+- **Search and detail:** search finds the customer by local 05 number and by partial digits. The detail shows 1 booking with `currency: SAR` and role organiser.
+- **Blocking:** a 2-character reason gets 400. Blocking records the reason and "Midango Operator".
+- **While blocked:**
+  - OTP request gets **403** "This account is blocked. Contact Midango."
+  - Refresh gets 401.
+  - Booking, points, tournament team sign-up and match join all get **409** with the same sentence.
+  - `/me/bookings` still reads fine, and the list shows Blocked.
+- **Unblocking:** booking works again.
+- **Lifting the limit:** after two no-shows (set with SQL) the customer is limited: one more booking gets 409 "You missed 2 bookings…" and the detail shows `limited` with 2 recent no-shows. After lifting: `limited` false, 0 recent no-shows, 2 all-time, `noShowsClearedAt` set, and booking works again.
+
+**Browser:** operator → Customers → search → detail shows the stats tiles, points and tier, the "No-shows up to … no longer count" line, the latest bookings with SAR totals and status pills, and an empty tournaments section. A first load crashed with "CURRENCY is not defined": the Vite dev server had cached the file between my two quick edits that switched it to the API's `currency`. Touching the file fixed it, and the production build was always clean.
+
+**Defaults to confirm with the owner:** the operator sees full phone numbers.
