@@ -119,7 +119,7 @@ public sealed class MatchPlayer
     public bool RemovedByOrganiser { get; set; }
     public DateTimeOffset? ReminderSentAt { get; set; }
 
-    // Per-player desk state for MMb; nothing writes these yet.
+    // Per-player desk state, written by the Desk's player endpoints. CashCollected = the share.
     public DateTimeOffset? CheckedInAt { get; set; }
     public decimal? CashCollected { get; set; }
     public DateTimeOffset? NoShowAt { get; set; }

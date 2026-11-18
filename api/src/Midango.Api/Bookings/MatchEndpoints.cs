@@ -245,6 +245,10 @@ public static class MatchEndpoints
     /// The equal share everyone sees. The organiser pays the total minus the joiners' shares.
     internal static decimal Share(decimal total, int maxPlayers) => Math.Round(total / maxPlayers, 2, MidpointRounding.AwayFromZero);
 
+    /// What the organiser pays at the desk: the total minus each active joiner's share.
+    internal static decimal OrganiserShare(decimal total, int maxPlayers, int activeJoiners) =>
+        total - Share(total, maxPlayers) * activeJoiners;
+
     /// First word of a name; phone numbers never leave the server.
     internal static string FirstName(string? name) =>
         name?.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "";

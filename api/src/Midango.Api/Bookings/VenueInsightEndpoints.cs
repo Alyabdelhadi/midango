@@ -100,6 +100,9 @@ public static class VenueInsightEndpoints
                                                   && b.StartsAt >= from && b.StartsAt < to);
             var confirmed = await inWindow.Where(b => b.Status == BookingStatus.Confirmed)
                 .Select(b => new { b.Minutes, b.Total, b.CashCollected }).ToListAsync(ct);
+            // Open-match joiners pay their share at their own check-in. Expected cash stays Total per booking (= all shares).
+            var playerCash = await db.MatchPlayers.Where(p => inWindow.Any(b => b.Id == p.BookingId))
+                .SumAsync(p => p.CashCollected ?? 0, ct);
             var cancelled = await inWindow.CountAsync(b => b.Status == BookingStatus.Cancelled, ct);
             var noShows = await inWindow.CountAsync(b => b.Status == BookingStatus.NoShow, ct);
             var courts = await db.Courts.CountAsync(c => c.VenueId == venue.Id && c.Active, ct);
@@ -115,7 +118,7 @@ public static class VenueInsightEndpoints
             return Results.Ok(new TodayDto(
                 day, period is not null, TimeZoneInfo.ConvertTime(from, zone), TimeZoneInfo.ConvertTime(to, zone),
                 confirmed.Count, bookedMinutes, Math.Min(occupancy, 100), confirmed.Sum(b => b.Total),
-                venue.CurrencyCode, cancelled, confirmed.Sum(b => b.CashCollected ?? 0), noShows, next));
+                venue.CurrencyCode, cancelled, confirmed.Sum(b => b.CashCollected ?? 0) + playerCash, noShows, next));
         });
     }
 }

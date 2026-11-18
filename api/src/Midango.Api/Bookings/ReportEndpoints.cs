@@ -40,7 +40,12 @@ public static class ReportEndpoints
             var rows = await db.Bookings.AsNoTracking()
                 .Where(b => b.VenueId == venue.Id && b.Kind == BookingKind.Booking
                             && b.StartsAt >= windowFrom && b.StartsAt < windowTo)
-                .Select(b => new { b.CourtId, b.StartsAt, b.EndsAt, b.Status, b.CheckedInAt, b.CashCollected, b.LateCancellation, b.CancelledByVenue })
+                .Select(b => new
+                {
+                    b.CourtId, b.StartsAt, b.EndsAt, b.Status, b.CheckedInAt, b.LateCancellation, b.CancelledByVenue,
+                    // The organiser's cash plus every match player's share, all on the booking's court and start.
+                    Cash = (b.CashCollected ?? 0) + (db.MatchPlayers.Where(p => p.BookingId == b.Id).Sum(p => p.CashCollected) ?? 0),
+                })
                 .ToListAsync(ct);
             var courts = await db.Courts.AsNoTracking().Where(c => c.VenueId == venue.Id)
                 .OrderBy(c => c.SortOrder).ThenBy(c => c.NameEn)
@@ -75,7 +80,8 @@ public static class ReportEndpoints
 
             // Weeks start on Sunday; a booking belongs to its business day (00:30 is still last night).
             var checkedIn = rows.Where(r => r.CheckedInAt is not null).ToList();
-            var cash = checkedIn
+            // A match player can pay before (or without) the organiser checking in, so any booking with cash counts.
+            var cash = rows.Where(r => r.CheckedInAt is not null || r.Cash > 0)
                 .GroupBy(r =>
                 {
                     var day = Slots.BusinessDay(VenueClock.ToLocal(r.StartsAt, zone), hours);
@@ -84,16 +90,17 @@ public static class ReportEndpoints
                 .Select(g =>
                 {
                     var court = courts.First(c => c.Id == g.Key.CourtId);
-                    return new CashRowDto(g.Key.WeekStart, court.Id, court.NameEn, court.NameAr, g.Sum(r => r.CashCollected ?? 0), g.Count());
+                    return new CashRowDto(g.Key.WeekStart, court.Id, court.NameEn, court.NameAr, g.Sum(r => r.Cash), g.Count(r => r.CheckedInAt is not null));
                 })
                 .OrderBy(r => r.WeekStart).ThenBy(r => courts.FindIndex(c => c.Id == r.CourtId))
                 .ToList();
 
+            // No-show rate stays per booking: a match player's no-show doesn't change the booking (the court was used).
             var played = confirmed.Count(r => r.EndsAt <= now);
             var noShows = rows.Count(r => r.Status == BookingStatus.NoShow);
             return Results.Ok(new ReportDto(
                 first, last, venue.CurrencyCode, hours.Count == 0 ? 0 : hours.Min(h => h.Opens.Hour),
-                confirmed.Count, Percent(bookedTotal, openTotal), checkedIn.Sum(r => r.CashCollected ?? 0), checkedIn.Count,
+                confirmed.Count, Percent(bookedTotal, openTotal), rows.Sum(r => r.Cash), checkedIn.Count,
                 played, noShows, Percent(noShows, played + noShows),
                 rows.Count(r => r.Status == BookingStatus.Cancelled && r.LateCancellation),
                 rows.Count(r => r.Status == BookingStatus.Cancelled && r.CancelledByVenue),
