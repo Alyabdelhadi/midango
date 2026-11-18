@@ -35,6 +35,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<PointsEntry> PointsEntries => Set<PointsEntry>();
     public DbSet<Tournament> Tournaments => Set<Tournament>();
     public DbSet<TournamentTeam> TournamentTeams => Set<TournamentTeam>();
+    public DbSet<TournamentMatch> TournamentMatches => Set<TournamentMatch>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -219,6 +220,20 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasKey(x => new { x.TeamId, x.Position });
             e.Property(x => x.Name).HasMaxLength(60);
             e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<TournamentMatch>(e =>
+        {
+            e.Property(x => x.Stage).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.NextSlot).HasMaxLength(1);
+            e.HasOne<Tournament>().WithMany().HasForeignKey(x => x.TournamentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<TournamentTeam>().WithMany().HasForeignKey(x => x.TeamAId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<TournamentTeam>().WithMany().HasForeignKey(x => x.TeamBId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<TournamentTeam>().WithMany().HasForeignKey(x => x.WinnerTeamId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Court>().WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
+            // NO ACTION, not RESTRICT: a redraw deletes a whole bracket in one statement, checked at its end.
+            e.HasOne<TournamentMatch>().WithMany().HasForeignKey(x => x.NextMatchId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(x => new { x.TournamentId, x.Round, x.Position });
         });
 
         b.Entity<CustomerLevel>(e =>

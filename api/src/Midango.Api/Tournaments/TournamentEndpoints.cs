@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Midango.Api.Bookings;
 using Midango.Api.Data;
@@ -31,7 +32,7 @@ public static class TournamentEndpoints
     /// Members = teammates only (positions 1..n); the captain is in Captain.
     public sealed record StaffTeamDto(
         Guid Id, string Name, TeamStatus Status, DateTimeOffset RegisteredAt, CaptainDto Captain,
-        IReadOnlyList<string> Members, DateTimeOffset? CheckedInAt, decimal? CashCollected);
+        IReadOnlyList<string> Members, DateTimeOffset? CheckedInAt, decimal? CashCollected, int? DrawPosition, int? GroupNo);
 
     public sealed record VenueTournamentRowDto(
         Guid Id, string NameEn, string NameAr, Guid CategoryId, TournamentFormat Format, TournamentStatus Status,
@@ -44,7 +45,26 @@ public static class TournamentEndpoints
         TournamentFormat Format, int TeamSize, int MaxTeams, decimal EntryFee, string Currency, PlayLevel? Level,
         DateTimeOffset StartsAt, DateTimeOffset EndsAt, DateTimeOffset RegistrationClosesAt,
         TournamentStatus Status, DateTimeOffset CreatedAt, DateTimeOffset? PublishedAt, DateTimeOffset? CancelledAt,
-        int Registered, int Waitlisted, IReadOnlyList<CourtNameDto> Courts, IReadOnlyList<StaffTeamDto> Teams);
+        int Registered, int Waitlisted, IReadOnlyList<CourtNameDto> Courts, IReadOnlyList<StaffTeamDto> Teams,
+        int? MatchMinutes, int? GroupCount, DateTimeOffset? DrawnAt, Guid? ChampionTeamId, bool OverrunsEnd,
+        IReadOnlyList<MatchDto> Matches, IReadOnlyList<GroupDto> Groups);
+
+    public sealed record TeamRefDto(Guid Id, string Name);
+
+    /// TeamA/TeamB null = not known yet (a later knockout round) or the empty side of a bye.
+    public sealed record MatchDto(
+        Guid Id, MatchStage Stage, int Round, int Position, int? GroupNo, TeamRefDto? TeamA, TeamRefDto? TeamB,
+        int? ScoreA, int? ScoreB, Guid? WinnerTeamId, bool IsBye, Guid? CourtId, string? CourtNameEn, string? CourtNameAr,
+        DateTimeOffset? StartsAt, Guid? NextMatchId, string? NextSlot);
+
+    public sealed record GroupDto(int GroupNo, IReadOnlyList<TournamentDraw.Standing> Standings);
+
+    /// MatchMinutes null = 60. GroupCount: round robin only; null = the default for the number of teams.
+    public sealed record DrawBody(int? MatchMinutes, int? GroupCount);
+
+    public sealed record ResultBody(int? ScoreA, int? ScoreB);
+
+    public sealed record ScheduleBody(Guid CourtId, DateTimeOffset StartsAt);
 
     public sealed record ClashDto(string CourtNameEn, string CourtNameAr, DateTimeOffset StartsAt, DateTimeOffset EndsAt, string Reference);
 
@@ -65,11 +85,13 @@ public static class TournamentEndpoints
         decimal EntryFee, string Currency, int MaxTeams, int Registered, int Waitlisted, PlayLevel? Level,
         bool RegistrationOpen, TournamentStatus Status,
         string? DescriptionEn, string? DescriptionAr, string? AddressEn, string? AddressAr,
-        IReadOnlyList<CourtNameDto> Courts, IReadOnlyList<PublicTeamDto> Teams);
+        IReadOnlyList<CourtNameDto> Courts, IReadOnlyList<PublicTeamDto> Teams,
+        IReadOnlyList<MatchDto> Matches, IReadOnlyList<GroupDto> Groups, string? ChampionTeamName);
 
     /// The captain's own team: full names, captain first. WaitlistPosition is 1-based, null unless waitlisted.
     public sealed record MyTeamDto(
-        Guid Id, string Name, TeamStatus Status, IReadOnlyList<string> Members, DateTimeOffset? CheckedInAt, int? WaitlistPosition);
+        Guid Id, string Name, TeamStatus Status, IReadOnlyList<string> Members, DateTimeOffset? CheckedInAt, int? WaitlistPosition,
+        MatchDto? NextMatch);
 
     public sealed record TeamResultDto(MyTeamDto Team, TournamentPageDto Tournament);
 
@@ -162,7 +184,8 @@ public static class TournamentEndpoints
                     t.DescriptionAr = Blank(body.DescriptionAr);
                     t.RegistrationClosesAt = closes;
                     t.MaxTeams = body.MaxTeams;
-                    promoted = Promote(t, teams);
+                    // Once drawn, a promoted team would be registered but in no match.
+                    promoted = t.Status == TournamentStatus.Published ? Promote(t, teams) : [];
                 }
                 await db.SaveChangesAsync(ct);
                 await tx.CommitAsync(ct);
@@ -176,8 +199,8 @@ public static class TournamentEndpoints
             var venueId = user.StaffVenueId()!.Value;
             var t = await db.Tournaments.SingleOrDefaultAsync(x => x.Id == id && x.VenueId == venueId, ct);
             if (t is null) return ApiErrors.Fail(404, "Tournament not found.");
-            if (t.Status == TournamentStatus.Published) return Results.Ok(await VenueDetailAsync(db, user, id, ct));
             if (t.Status == TournamentStatus.Cancelled) return ApiErrors.Fail(409, "This tournament was cancelled.");
+            if (t.Status != TournamentStatus.Draft) return Results.Ok(await VenueDetailAsync(db, user, id, ct));
             var now = clock.GetUtcNow();
             if (t.StartsAt <= now) return ApiErrors.Fail(409, "The start has already passed. Change the times first.");
 
@@ -236,7 +259,7 @@ public static class TournamentEndpoints
                 var t = await LockAsync(db, id, ct);
                 if (t is null || t.VenueId != venueId) return ApiErrors.Fail(404, "Tournament not found.");
                 if (t.Status == TournamentStatus.Cancelled) return Results.Ok(await VenueDetailAsync(db, user, id, ct));
-                if (t.EndsAt <= now) return ApiErrors.Fail(409, "This tournament has already finished.");
+                if (t.Status == TournamentStatus.Finished || t.EndsAt <= now) return ApiErrors.Fail(409, "This tournament has already finished.");
 
                 t.Status = TournamentStatus.Cancelled;
                 t.CancelledAt = now;
@@ -261,7 +284,8 @@ public static class TournamentEndpoints
             ChangeTeamAsync(db, user, id, teamId, ct, (t, team) =>
             {
                 if (team.CheckedInAt is not null) return null; // already done: same answer again
-                if (t.Status != TournamentStatus.Published) return "Only a published tournament can check teams in.";
+                if (t.Status is not (TournamentStatus.Published or TournamentStatus.InProgress))
+                    return "Only a published tournament can check teams in.";
                 if (team.Status != TeamStatus.Registered) return "Only a registered team can be checked in.";
                 var now = clock.GetUtcNow();
                 if (now < t.StartsAt.AddMinutes(-DeskEndpoints.CheckInOpensMinutesBefore))
@@ -284,12 +308,182 @@ public static class TournamentEndpoints
                 return null;
             }));
 
+        venue.MapPost("/{id:guid}/draw", async (
+            Guid id, DrawBody body, ClaimsPrincipal user, MidangoDb db, TournamentNotifications notify, TimeProvider clock, CancellationToken ct) =>
+        {
+            var venueId = user.StaffVenueId()!.Value;
+            var now = clock.GetUtcNow();
+            var minutes = body.MatchMinutes ?? 60;
+            if (minutes is < 15 or > 240) return ApiErrors.Fail(400, "Set a match length between 15 and 240 minutes.");
+            List<TournamentMatch> matches;
+            List<TournamentTeam> drawn;
+            await using (var tx = await db.Database.BeginTransactionAsync(ct))
+            {
+                var t = await LockAsync(db, id, ct);
+                if (t is null || t.VenueId != venueId) return ApiErrors.Fail(404, "Tournament not found.");
+                if (t.Status == TournamentStatus.Draft) return ApiErrors.Fail(409, "Publish the tournament first.");
+                if (await PlayLockedAsync(db, t, ct) is { } locked) return ApiErrors.Fail(409, locked);
+                if (now < t.RegistrationClosesAt) return ApiErrors.Fail(409, "Registration is still open.");
+
+                var teams = await db.TournamentTeams.Where(x => x.TournamentId == id).ToListAsync(ct);
+                drawn = teams.Where(x => x.Status == TeamStatus.Registered).ToList();
+                var n = drawn.Count;
+                if (n < 2) return ApiErrors.Fail(409, "A draw needs at least 2 registered teams.");
+                int? groupCount = null;
+                if (t.Format == TournamentFormat.RoundRobin)
+                {
+                    groupCount = body.GroupCount ?? TournamentDraw.DefaultGroupCount(n);
+                    if (groupCount < 1 || groupCount > n / 2)
+                        return ApiErrors.Fail(400, n / 2 == 1 ? $"{n} teams make 1 group." : $"Choose 1 to {n / 2} groups: each needs at least 2 teams.");
+                }
+
+                await ClearDrawAsync(db, t, teams, ct);
+                var shuffled = drawn.ToArray();
+                RandomNumberGenerator.Shuffle(shuffled.AsSpan());
+                drawn = shuffled.ToList();
+                for (var i = 0; i < n; i++) drawn[i].DrawPosition = i + 1;
+                var order = drawn.Select(x => x.Id).ToList();
+
+                var knockout = t.Format == TournamentFormat.Knockout;
+                var planned = knockout ? TournamentDraw.Knockout(order) : TournamentDraw.RoundRobin(order, groupCount!.Value);
+                var ids = planned.Select(_ => Guid.CreateVersion7()).ToList();
+                matches = planned.Select((p, i) => new TournamentMatch
+                {
+                    Id = ids[i],
+                    TournamentId = id,
+                    Stage = knockout ? MatchStage.Knockout : MatchStage.Group,
+                    Round = p.Round,
+                    Position = p.Position,
+                    GroupNo = p.GroupNo,
+                    TeamAId = p.TeamA,
+                    TeamBId = p.TeamB,
+                    IsBye = p.IsBye,
+                    WinnerTeamId = p.IsBye ? p.TeamA : null,
+                    NextMatchId = p.Next is { } next ? ids[next] : null,
+                    NextSlot = p.NextSlot,
+                }).ToList();
+                if (!knockout)
+                {
+                    var byId = drawn.ToDictionary(x => x.Id);
+                    foreach (var m in matches) byId[m.TeamAId!.Value].GroupNo = byId[m.TeamBId!.Value].GroupNo = m.GroupNo;
+                }
+
+                var played = matches.Where(m => !m.IsBye).ToList();
+                var slots = TournamentDraw.Schedule(
+                    played.Select(m => new TournamentDraw.ScheduleItem(m.Round, m.TeamAId, m.TeamBId)).ToList(),
+                    t.CourtIds.Length, t.StartsAt, minutes, roundBarrier: knockout);
+                for (var i = 0; i < played.Count; i++)
+                {
+                    played[i].CourtId = t.CourtIds[slots[i].Court];
+                    played[i].StartsAt = slots[i].StartsAt;
+                }
+
+                db.TournamentMatches.AddRange(matches);
+                t.Status = TournamentStatus.InProgress;
+                t.DrawnAt = now;
+                t.MatchMinutes = minutes;
+                t.GroupCount = groupCount;
+                await db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+            }
+
+            var names = drawn.ToDictionary(x => x.Id, x => x.Name);
+            var courtIds = matches.Where(m => m.CourtId != null).Select(m => m.CourtId!.Value).Distinct().ToList();
+            var courts = await db.Courts.AsNoTracking().Where(c => courtIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, ct);
+            var notices = drawn.Select(x =>
+            {
+                if (matches.Any(m => m.IsBye && m.TeamAId == x.Id)) return new TournamentNotifications.DrawNotice(x.CaptainCustomerId, null, null, null, null);
+                var first = matches.Where(m => !m.IsBye && (m.TeamAId == x.Id || m.TeamBId == x.Id)).MinBy(m => m.StartsAt)!;
+                var court = courts[first.CourtId!.Value];
+                return new TournamentNotifications.DrawNotice(x.CaptainCustomerId,
+                    names[first.TeamAId == x.Id ? first.TeamBId!.Value : first.TeamAId!.Value], first.StartsAt, court.NameEn, court.NameAr);
+            }).ToList();
+            await notify.DrawAsync(id, notices);
+            return Results.Ok(await VenueDetailAsync(db, user, id, ct));
+        }).RequireAuthorization(Policies.VenueManager);
+
+        // A no-show, say. No waitlist promotion: registration has closed. A drawn team takes the draw with it.
+        venue.MapPost("/{id:guid}/teams/{teamId:guid}/withdraw", async (
+            Guid id, Guid teamId, ClaimsPrincipal user, MidangoDb db, TimeProvider clock, CancellationToken ct) =>
+        {
+            var venueId = user.StaffVenueId()!.Value;
+            await using (var tx = await db.Database.BeginTransactionAsync(ct))
+            {
+                var t = await LockAsync(db, id, ct);
+                if (t is null || t.VenueId != venueId) return ApiErrors.Fail(404, "Tournament not found.");
+                var teams = await db.TournamentTeams.Where(x => x.TournamentId == id).ToListAsync(ct);
+                var team = teams.FirstOrDefault(x => x.Id == teamId);
+                if (team is null) return ApiErrors.Fail(404, "Team not found.");
+                if (team.Status == TeamStatus.Withdrawn) return Results.Ok(await VenueDetailAsync(db, user, id, ct));
+                if (await PlayLockedAsync(db, t, ct) is { } locked) return ApiErrors.Fail(409, locked);
+
+                team.Status = TeamStatus.Withdrawn;
+                team.WithdrawnAt = clock.GetUtcNow();
+                if (team.DrawPosition is not null) await ClearDrawAsync(db, t, teams, ct);
+                await db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+            }
+            return Results.Ok(await VenueDetailAsync(db, user, id, ct));
+        });
+
+        venue.MapPut("/{id:guid}/matches/{matchId:guid}/result", (
+            Guid id, Guid matchId, ResultBody body, ClaimsPrincipal user, MidangoDb db, TournamentNotifications notify, TimeProvider clock, CancellationToken ct) =>
+            ChangeMatchAsync(db, user, notify, id, matchId, ct, (_, matches, m) =>
+            {
+                if (body.ScoreA is not (>= 0 and <= 99) || body.ScoreB is not (>= 0 and <= 99))
+                    return ApiErrors.Fail(400, "Enter both scores, from 0 to 99.");
+                if (m.IsBye) return ApiErrors.Fail(409, "A bye has no result.");
+                if (m.TeamAId is null || m.TeamBId is null) return ApiErrors.Fail(409, "Both teams must be known before the result.");
+                int a = body.ScoreA.Value, b = body.ScoreB.Value;
+                if (m.ScoreA == a && m.ScoreB == b) return null; // the same result again
+                if (m.Stage == MatchStage.Knockout && a == b) return ApiErrors.Fail(400, "A knockout match needs a winner. Enter different scores.");
+                var next = matches.FirstOrDefault(x => x.Id == m.NextMatchId);
+                if (next?.ScoreA is not null) return ApiErrors.Fail(409, "The next match already has a result. Clear that one first.");
+
+                m.ScoreA = a;
+                m.ScoreB = b;
+                m.WinnerTeamId = a > b ? m.TeamAId : b > a ? m.TeamBId : null;
+                m.ResultAt = clock.GetUtcNow();
+                if (next is not null) FillSlot(next, m.NextSlot, m.WinnerTeamId);
+                return null;
+            }));
+
+        venue.MapDelete("/{id:guid}/matches/{matchId:guid}/result", (
+            Guid id, Guid matchId, ClaimsPrincipal user, MidangoDb db, TournamentNotifications notify, CancellationToken ct) =>
+            ChangeMatchAsync(db, user, notify, id, matchId, ct, (_, matches, m) =>
+            {
+                if (m.ScoreA is null) return null;
+                var next = matches.FirstOrDefault(x => x.Id == m.NextMatchId);
+                if (next?.ScoreA is not null) return ApiErrors.Fail(409, "The next match already has a result. Clear that one first.");
+                m.ScoreA = m.ScoreB = null;
+                m.WinnerTeamId = null;
+                m.ResultAt = null;
+                if (next is not null) FillSlot(next, m.NextSlot, null);
+                return null;
+            }));
+
+        venue.MapPut("/{id:guid}/matches/{matchId:guid}/schedule", (
+            Guid id, Guid matchId, ScheduleBody body, ClaimsPrincipal user, MidangoDb db, TournamentNotifications notify, CancellationToken ct) =>
+            ChangeMatchAsync(db, user, notify, id, matchId, ct, (t, matches, m) =>
+            {
+                if (m.IsBye) return ApiErrors.Fail(409, "A bye isn't played.");
+                if (!t.CourtIds.Contains(body.CourtId)) return ApiErrors.Fail(400, "Choose one of the tournament's courts.");
+                var start = body.StartsAt.ToUniversalTime();
+                if (start < t.StartsAt || start > t.EndsAt) return ApiErrors.Fail(400, "Choose a time during the tournament.");
+                var length = TimeSpan.FromMinutes(t.MatchMinutes ?? 60);
+                if (matches.Any(x => x.Id != m.Id && x.CourtId == body.CourtId && x.StartsAt is { } s && s < start + length && s + length > start))
+                    return ApiErrors.Fail(409, "Another match of this tournament is on that court then.");
+                m.CourtId = body.CourtId;
+                m.StartsAt = start;
+                return null;
+            }));
+
         // Public, like /matches.
         app.MapGet("/tournaments", async (Guid? categoryId, MidangoDb db, TimeProvider clock, CancellationToken ct) =>
         {
             var now = clock.GetUtcNow();
             var loaded = await LoadAsync(db, db.Tournaments.Where(t =>
-                t.Status == TournamentStatus.Published && t.EndsAt > now
+                t.Status != TournamentStatus.Draft && t.Status != TournamentStatus.Cancelled && t.EndsAt > now
                 && (categoryId == null || t.CategoryId == categoryId)
                 && db.Venues.Any(v => v.Id == t.VenueId && v.Published)), ct);
             return Results.Ok(loaded.OrderBy(l => l.T.StartsAt).Select(l => Card(l, now)));
@@ -368,6 +562,7 @@ public static class TournamentEndpoints
                     return ApiErrors.Fail(404, "Team not found.");
                 }
                 if (team.CheckedInAt is not null) return ApiErrors.Fail(409, "Your team has checked in at the venue.");
+                if (team.DrawPosition is not null) return ApiErrors.Fail(409, "The draw has been made. Ask the venue to withdraw your team.");
                 if (t.StartsAt <= now) return ApiErrors.Fail(409, "This tournament has already started.");
 
                 var wasRegistered = team.Status == TeamStatus.Registered;
@@ -408,6 +603,82 @@ public static class TournamentEndpoints
 
     private static async Task<Tournament?> LockAsync(MidangoDb db, Guid id, CancellationToken ct) =>
         (await db.Tournaments.FromSql($"SELECT * FROM tournaments WHERE id = {id} FOR UPDATE").ToListAsync(ct)).SingleOrDefault();
+
+    /// Why the draw (and the drawn teams) can no longer change, or null.
+    private static async Task<string?> PlayLockedAsync(MidangoDb db, Tournament t, CancellationToken ct)
+    {
+        if (t.Status == TournamentStatus.Cancelled) return "This tournament was cancelled.";
+        if (t.Status == TournamentStatus.Finished || await db.TournamentMatches.AnyAsync(m => m.TournamentId == t.Id && m.ScoreA != null, ct))
+            return "Results have been entered, so the draw can't change.";
+        return null;
+    }
+
+    /// Deletes the matches and puts the tournament back to Published. Teams must be all of its tracked teams.
+    private static async Task ClearDrawAsync(MidangoDb db, Tournament t, List<TournamentTeam> teams, CancellationToken ct)
+    {
+        await db.TournamentMatches.Where(m => m.TournamentId == t.Id).ExecuteDeleteAsync(ct);
+        foreach (var x in teams) x.DrawPosition = x.GroupNo = null;
+        if (t.Status == TournamentStatus.InProgress) t.Status = TournamentStatus.Published;
+        t.DrawnAt = null;
+        t.MatchMinutes = null;
+        t.GroupCount = null;
+        t.ChampionTeamId = null;
+    }
+
+    private static void FillSlot(TournamentMatch next, string? slot, Guid? team)
+    {
+        if (slot == "A") next.TeamAId = team;
+        else next.TeamBId = team;
+    }
+
+    /// Loads the tournament (locked) and all its matches, applies change (an error result, or null to save), then
+    /// settles status and champion. A new champion is pushed after commit.
+    private static async Task<IResult> ChangeMatchAsync(
+        MidangoDb db, ClaimsPrincipal user, TournamentNotifications notify, Guid id, Guid matchId, CancellationToken ct,
+        Func<Tournament, List<TournamentMatch>, TournamentMatch, IResult?> change)
+    {
+        var venueId = user.StaffVenueId()!.Value;
+        (string Team, List<Guid> Captains)? champion = null;
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            var t = await LockAsync(db, id, ct);
+            if (t is null || t.VenueId != venueId) return ApiErrors.Fail(404, "Tournament not found.");
+            if (t.Status == TournamentStatus.Cancelled) return ApiErrors.Fail(409, "This tournament was cancelled.");
+            var matches = await db.TournamentMatches.Where(m => m.TournamentId == id).ToListAsync(ct);
+            var match = matches.FirstOrDefault(m => m.Id == matchId);
+            if (match is null) return ApiErrors.Fail(404, "Match not found.");
+            if (change(t, matches, match) is { } error) return error;
+
+            var drawn = await db.TournamentTeams.AsNoTracking().Where(x => x.TournamentId == id && x.DrawPosition != null).ToListAsync(ct);
+            var before = t.ChampionTeamId;
+            Settle(t, matches, drawn);
+            if (t.ChampionTeamId is { } c && c != before)
+                champion = (drawn.Single(x => x.Id == c).Name, drawn.Select(x => x.CaptainCustomerId).ToList());
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+        if (champion is { } won) await notify.ChampionAsync(id, won.Team, won.Captains);
+        return Results.Ok(await VenueDetailAsync(db, user, id, ct));
+    }
+
+    /// Finished with a champion once every played match has a result; otherwise back in progress.
+    private static void Settle(Tournament t, List<TournamentMatch> matches, List<TournamentTeam> drawn)
+    {
+        if (matches.Any(m => !m.IsBye && m.ScoreA is null))
+        {
+            t.Status = TournamentStatus.InProgress;
+            t.ChampionTeamId = null;
+            return;
+        }
+        t.Status = TournamentStatus.Finished;
+        t.ChampionTeamId = t.Format == TournamentFormat.Knockout
+            ? matches.MaxBy(m => m.Round)!.WinnerTeamId
+            : t.GroupCount == 1 ? TournamentDraw.Standings(drawn.Select(x => (x.Id, x.Name)).ToList(), ScoredResults(matches))[0].TeamId : null;
+    }
+
+    private static List<TournamentDraw.Result> ScoredResults(IEnumerable<TournamentMatch> matches) =>
+        matches.Where(m => m is { ScoreA: not null, ScoreB: not null, TeamAId: not null, TeamBId: not null })
+            .Select(m => new TournamentDraw.Result(m.TeamAId!.Value, m.TeamBId!.Value, m.ScoreA!.Value, m.ScoreB!.Value)).ToList();
 
     private static async Task<IResult> ChangeTeamAsync(
         MidangoDb db, ClaimsPrincipal user, Guid id, Guid teamId, CancellationToken ct, Func<Tournament, TournamentTeam, string?> change)
@@ -486,10 +757,11 @@ public static class TournamentEndpoints
 
     /// A tournament with its venue, all its teams (members in position order), court names and captains.
     private sealed record Loaded(
-        Tournament T, Venue Venue, List<TournamentTeam> Teams,
+        Tournament T, Venue Venue, List<TournamentTeam> Teams, List<TournamentMatch> Matches,
         Dictionary<Guid, CourtNameDto> CourtNames, Dictionary<Guid, (string? Name, string Phone)> Captains)
     {
         private readonly TimeZoneInfo zone = VenueClock.Zone(Venue);
+        private readonly Dictionary<Guid, TournamentTeam> byId = Teams.ToDictionary(x => x.Id);
 
         public DateTimeOffset Local(DateTimeOffset instant) => TimeZoneInfo.ConvertTime(instant, zone);
 
@@ -499,6 +771,32 @@ public static class TournamentEndpoints
 
         /// Registered by time, then Waitlisted by time, then Withdrawn.
         public IEnumerable<TournamentTeam> Ordered => Teams.OrderBy(x => x.Status).ThenBy(x => x.RegisteredAt);
+
+        public MatchDto Match(TournamentMatch m)
+        {
+            var court = m.CourtId is { } c ? CourtNames.GetValueOrDefault(c) : null;
+            return new MatchDto(m.Id, m.Stage, m.Round, m.Position, m.GroupNo, Ref(m.TeamAId), Ref(m.TeamBId),
+                m.ScoreA, m.ScoreB, m.WinnerTeamId, m.IsBye, m.CourtId, court?.NameEn, court?.NameAr,
+                m.StartsAt is { } s ? Local(s) : null, m.NextMatchId, m.NextSlot);
+        }
+
+        private TeamRefDto? Ref(Guid? id) => id is { } x && byId.TryGetValue(x, out var team) ? new TeamRefDto(x, team.Name) : null;
+
+        public List<MatchDto> MatchDtos => Matches.OrderBy(m => m.Stage).ThenBy(m => m.Round).ThenBy(m => m.Position).Select(Match).ToList();
+
+        /// Round robin tables; empty for a knockout or before the draw.
+        public List<GroupDto> Groups => Teams.Where(x => x.GroupNo != null).GroupBy(x => x.GroupNo!.Value).OrderBy(g => g.Key)
+            .Select(g => new GroupDto(g.Key, TournamentDraw.Standings(
+                g.Select(x => (x.Id, x.Name)).ToList(), ScoredResults(Matches.Where(m => m.GroupNo == g.Key))))).ToList();
+
+        public bool OverrunsEnd => T.MatchMinutes is { } minutes && Matches.Any(m => m.StartsAt is { } s && s.AddMinutes(minutes) > T.EndsAt);
+
+        public string? ChampionName => T.ChampionTeamId is { } c ? byId.GetValueOrDefault(c)?.Name : null;
+
+        /// The team's earliest unplayed, scheduled match.
+        public MatchDto? NextMatch(Guid teamId) => Matches
+            .Where(m => !m.IsBye && m.ScoreA == null && m.StartsAt != null && (m.TeamAId == teamId || m.TeamBId == teamId))
+            .OrderBy(m => m.StartsAt).Select(Match).FirstOrDefault();
     }
 
     // ponytail: loads every team of every tournament in the query. Fine for a venue's dozens; page it if lists grow.
@@ -514,8 +812,9 @@ public static class TournamentEndpoints
         var captainIds = teams.Select(x => x.CaptainCustomerId).Distinct().ToList();
         var captains = await db.Customers.AsNoTracking().Where(c => captainIds.Contains(c.Id))
             .ToDictionaryAsync(c => c.Id, c => (c.Name, c.PhoneE164), ct);
+        var matches = (await db.TournamentMatches.AsNoTracking().Where(m => ids.Contains(m.TournamentId)).ToListAsync(ct)).ToLookup(m => m.TournamentId);
         var byTournament = teams.ToLookup(x => x.TournamentId);
-        return rows.Select(r => new Loaded(r.t, r.v, byTournament[r.t.Id].ToList(), courts, captains)).ToList();
+        return rows.Select(r => new Loaded(r.t, r.v, byTournament[r.t.Id].ToList(), matches[r.t.Id].ToList(), courts, captains)).ToList();
     }
 
     private static async Task<VenueTournamentDto?> VenueDetailAsync(MidangoDb db, ClaimsPrincipal user, Guid id, CancellationToken ct)
@@ -533,8 +832,10 @@ public static class TournamentEndpoints
                 var captain = l.Captains.GetValueOrDefault(x.CaptainCustomerId);
                 return new StaffTeamDto(x.Id, x.Name, x.Status, l.Local(x.RegisteredAt),
                     new CaptainDto(captain.Name, captain.Phone is null ? "" : PhoneNumber.Mask(captain.Phone)),
-                    x.Members.Where(m => m.Position > 0).Select(m => m.Name).ToList(), x.CheckedInAt is { } at ? l.Local(at) : null, x.CashCollected);
-            }).ToList());
+                    x.Members.Where(m => m.Position > 0).Select(m => m.Name).ToList(), x.CheckedInAt is { } at ? l.Local(at) : null, x.CashCollected,
+                    x.DrawPosition, x.GroupNo);
+            }).ToList(),
+            t.MatchMinutes, t.GroupCount, t.DrawnAt is { } d ? l.Local(d) : null, t.ChampionTeamId, l.OverrunsEnd, l.MatchDtos, l.Groups);
     }
 
     private static bool RegistrationOpen(Tournament t, DateTimeOffset now) =>
@@ -558,7 +859,8 @@ public static class TournamentEndpoints
             l.Count(TeamStatus.Registered), l.Count(TeamStatus.Waitlisted), t.Level, RegistrationOpen(t, now), t.Status,
             t.DescriptionEn, t.DescriptionAr, l.Venue.AddressEn, l.Venue.AddressAr, l.Courts,
             l.Ordered.Where(x => x.Status == TeamStatus.Registered)
-                .Select(x => new PublicTeamDto(x.Name, x.Members.Select(m => MatchEndpoints.FirstName(m.Name)).ToList())).ToList());
+                .Select(x => new PublicTeamDto(x.Name, x.Members.Select(m => MatchEndpoints.FirstName(m.Name)).ToList())).ToList(),
+            l.MatchDtos, l.Groups, l.ChampionName);
     }
 
     private static MyTeamDto MyTeam(Loaded l, TournamentTeam team)
@@ -566,7 +868,7 @@ public static class TournamentEndpoints
         int? position = team.Status != TeamStatus.Waitlisted ? null
             : l.Teams.Where(x => x.Status == TeamStatus.Waitlisted).OrderBy(x => x.RegisteredAt).ToList().FindIndex(x => x.Id == team.Id) + 1;
         return new MyTeamDto(team.Id, team.Name, team.Status, team.Members.Select(m => m.Name).ToList(),
-            team.CheckedInAt is { } at ? l.Local(at) : null, position);
+            team.CheckedInAt is { } at ? l.Local(at) : null, position, l.NextMatch(team.Id));
     }
 
     /// Published or cancelled tournaments at published venues; drafts are never public.
