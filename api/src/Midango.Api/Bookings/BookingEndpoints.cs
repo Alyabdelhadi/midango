@@ -51,6 +51,21 @@ public static class BookingEndpoints
             if (start > now.AddDays(Slots.MaxDaysAhead + 1))
                 return ApiErrors.Fail(400, $"Book within the next {Slots.MaxDaysAhead} days.");
 
+            // Customers who keep not turning up can only hold a few bookings at a time (M9 rules, across venues).
+            var rules = await db.PlatformSettings.AsNoTracking().SingleAsync(ct);
+            var since = now.AddDays(-rules.NoShowWindowDays);
+            var missed = await db.Bookings.CountAsync(
+                b => b.CustomerId == customerId && b.Status == BookingStatus.NoShow && b.NoShowAt > since, ct);
+            if (missed >= rules.NoShowLimit)
+            {
+                var upcoming = await db.Bookings.CountAsync(
+                    b => b.CustomerId == customerId && b.Status == BookingStatus.Confirmed && b.EndsAt > now, ct);
+                if (upcoming >= rules.LimitedUpcomingBookings)
+                    return ApiErrors.Fail(409,
+                        $"You missed {missed} bookings in the last {rules.NoShowWindowDays} days, so for now you can hold " +
+                        $"{rules.LimitedUpcomingBookings} upcoming booking{(rules.LimitedUpcomingBookings == 1 ? "" : "s")} at a time.");
+            }
+
             var zone = VenueClock.Zone(venue);
             var local = VenueClock.ToLocal(start, zone);
             var hours = await db.OpeningHours.AsNoTracking().Where(h => h.VenueId == venue.Id).ToListAsync(ct);

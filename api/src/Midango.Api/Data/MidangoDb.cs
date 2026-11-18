@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Identity;
+using Midango.Api.Notifications;
+using Midango.Api.Platform;
 using Midango.Api.Venues;
 
 namespace Midango.Api.Data;
@@ -20,6 +22,8 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<OpeningHours> OpeningHours => Set<OpeningHours>();
     public DbSet<PriceBand> PriceBands => Set<PriceBand>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<PlatformSettings> PlatformSettings => Set<PlatformSettings>();
+    public DbSet<CustomerDevice> CustomerDevices => Set<CustomerDevice>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -143,6 +147,24 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => new { x.CourtId, x.StartsAt });
             e.HasIndex(x => new { x.CustomerId, x.StartsAt });
+            e.HasIndex(x => new { x.Status, x.StartsAt });
+        });
+
+        b.Entity<PlatformSettings>(e =>
+        {
+            e.ToTable("platform_settings", t => t.HasCheckConstraint("ck_platform_settings_singleton", "id = 1"));
+            e.Property(s => s.Id).ValueGeneratedNever();
+            e.HasData(new PlatformSettings());
+        });
+
+        b.Entity<CustomerDevice>(e =>
+        {
+            e.Property(d => d.Token).HasMaxLength(512);
+            e.HasIndex(d => d.Token).IsUnique();
+            e.Property(d => d.Platform).HasMaxLength(16);
+            e.Property(d => d.Language).HasMaxLength(2);
+            e.HasOne<Customer>().WithMany().HasForeignKey(d => d.CustomerId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(d => d.CustomerId);
         });
 
         // Ids are created in code (Guid.CreateVersion7). Left as "generated on add", EF treats a new entity

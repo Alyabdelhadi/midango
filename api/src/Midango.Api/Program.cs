@@ -8,6 +8,8 @@ using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Notifications;
+using Midango.Api.Platform;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -118,5 +120,7 @@ app.MapStaffBookingEndpoints();
 app.MapVenueInsightEndpoints();
 app.MapDeskEndpoints();
 app.MapReportEndpoints();
+app.MapSettingsEndpoints();
+app.MapDeviceEndpoints();
 
 app.Run();

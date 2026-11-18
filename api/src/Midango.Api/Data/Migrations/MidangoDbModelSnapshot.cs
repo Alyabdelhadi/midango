@@ -138,6 +138,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(12)")
                         .HasColumnName("reference");
 
+                    b.Property<DateTimeOffset?>("ReminderSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reminder_sent_at");
+
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -180,6 +184,9 @@ namespace Midango.Api.Data.Migrations
 
                     b.HasIndex("CustomerId", "StartsAt")
                         .HasDatabaseName("ix_bookings_customer_id_starts_at");
+
+                    b.HasIndex("Status", "StartsAt")
+                        .HasDatabaseName("ix_bookings_status_starts_at");
 
                     b.HasIndex("VenueId", "StartsAt")
                         .HasDatabaseName("ix_bookings_venue_id_starts_at");
@@ -583,6 +590,96 @@ namespace Midango.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Midango.Api.Notifications.CustomerDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("language");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("platform");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("token");
+
+                    b.HasKey("Id")
+                        .HasName("pk_customer_devices");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_customer_devices_customer_id");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("ix_customer_devices_token");
+
+                    b.ToTable("customer_devices", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.PlatformSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<int>("LimitedUpcomingBookings")
+                        .HasColumnType("integer")
+                        .HasColumnName("limited_upcoming_bookings");
+
+                    b.Property<int>("NoShowLimit")
+                        .HasColumnType("integer")
+                        .HasColumnName("no_show_limit");
+
+                    b.Property<int>("NoShowWindowDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("no_show_window_days");
+
+                    b.Property<int>("ReminderHoursBefore")
+                        .HasColumnType("integer")
+                        .HasColumnName("reminder_hours_before");
+
+                    b.HasKey("Id")
+                        .HasName("pk_platform_settings");
+
+                    b.ToTable("platform_settings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_platform_settings_singleton", "id = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            LimitedUpcomingBookings = 1,
+                            NoShowLimit = 2,
+                            NoShowWindowDays = 30,
+                            ReminderHoursBefore = 3
+                        });
+                });
+
             modelBuilder.Entity("Midango.Api.Venues.Venue", b =>
                 {
                     b.Property<Guid>("Id")
@@ -748,6 +845,16 @@ namespace Midango.Api.Data.Migrations
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_staff_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Notifications.CustomerDevice", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_devices_customers_customer_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>

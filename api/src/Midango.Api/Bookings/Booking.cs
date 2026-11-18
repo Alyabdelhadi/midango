@@ -76,6 +76,9 @@ public sealed class Booking
     public decimal? CashCollected { get; set; }
 
     public DateTimeOffset? NoShowAt { get; set; }
+
+    /// When the "Still coming?" reminder was handled (sent, or skipped: no device, or booked too late for one).
+    public DateTimeOffset? ReminderSentAt { get; set; }
 }
 
 public static class BookingReference
