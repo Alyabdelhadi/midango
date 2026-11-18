@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../api/api_client.dart';
 import '../api/models.dart';
 import '../booking/confirmation_page.dart';
 import '../home_shell.dart';
+import '../l10n/format.dart';
 import '../l10n/strings.dart';
 import '../matches/match_page.dart';
 import '../matches/match_widgets.dart';
@@ -35,11 +37,37 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
 
   bool get _organiser => !_booking.isPlayer && _booking.cancellable;
 
+  /// The customer's points and redeem rules; null until loaded or when points can't be used here.
+  Points? _points;
+  late int _redeem = _booking.pointsRedeemed;
+
+  /// Points can go on a live booking that's still ahead, by the organiser or a player still in it.
+  /// The booking doesn't say whether it's checked in; the API refuses then.
+  bool get _canRedeem =>
+      _booking.upcoming && _booking.playerStatus != 'left' && _booking.playerStatus != 'removed';
+
   @override
   void initState() {
     super.initState();
     if (_organiser) _loadCap();
     if (_booking.match != null) _refresh();
+    if (_canRedeem) _loadPoints();
+  }
+
+  Future<void> _loadPoints() async {
+    try {
+      final points = Points.fromJson(await SessionScope.read(context).api.get('/me/points', auth: true) as JsonMap);
+      if (mounted) setState(() => _points = points);
+    } catch (_) {
+      // Offline: the points control stays hidden.
+    }
+  }
+
+  Future<void> _savePoints(int points) async {
+    final s = Strings.of(context);
+    await _run((api) => api.post('/bookings/${_booking.id}/points', {'points': points}, true),
+        points == 0 ? s.pointsRemoved : s.pointsApplied);
+    if (mounted) _loadPoints();
   }
 
   /// The list's copy can be stale for a match: players join and leave while it's on screen.
@@ -51,6 +79,7 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
       if (fresh == null || !mounted) return;
       setState(() {
         _booking = fresh;
+        _redeem = fresh.pointsRedeemed;
         _players = fresh.match?.maxPlayers ?? _players;
         _level = fresh.match?.level;
       });
@@ -90,6 +119,7 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
       if (!mounted) return;
       setState(() {
         _booking = booking;
+        _redeem = booking.pointsRedeemed;
         _busy = false;
         _openOn = false;
         _players = booking.match?.maxPlayers ?? _cap;
@@ -201,6 +231,7 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
           ),
           const SizedBox(height: 12),
           BookingSummary(booking: b),
+          ..._pointsSection(b, s, text),
           ..._matchSection(b, s, text),
           if (_error != null) ...[
             const SizedBox(height: 12),
@@ -284,6 +315,64 @@ class _BookingDetailPageState extends State<BookingDetailPage> {
           const SizedBox(height: 4),
           Text(s.closeBlocked, style: text.bodySmall),
         ],
+      ],
+    ];
+  }
+
+  List<Widget> _pointsSection(Booking b, Strings s, TextTheme text) {
+    final p = _points;
+    if (p == null || !_canRedeem) return const [];
+    // Points already on this booking come back before the new amount is taken.
+    final byBalance = (p.balance + b.pointsRedeemed) ~/ p.pointsPerStep;
+    final byCap = (b.ownAmount * p.maxPercent / 100 / p.sarPerStep + 1e-9).floor();
+    final maxSteps = byBalance < byCap ? byBalance : byCap;
+    final steps = (_redeem ~/ p.pointsPerStep).clamp(0, maxSteps);
+    final off = steps * p.sarPerStep;
+    final change = _busy ? null : (int n) => setState(() => _redeem = n * p.pointsPerStep);
+    return [
+      const Divider(height: 32, color: MidangoColors.line),
+      Text(s.usePoints, style: text.titleMedium),
+      const SizedBox(height: 4),
+      Text(
+        '${s.pointsHave(p.balance)} · ${s.usePointsHelp(p.pointsPerStep, money(p.sarPerStep, b.currency, s), plain(p.maxPercent))}',
+        style: text.bodySmall,
+      ),
+      // Nothing to use, and nothing already used to take back.
+      if (maxSteps == 0 && b.pointsRedeemed == 0) ...[
+        const SizedBox(height: 8),
+        Text(s.notEnoughPoints, style: text.bodyLarge),
+      ] else ...[
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            IconButton.outlined(
+              tooltip: s.fewerPoints,
+              onPressed: change == null || steps <= 0 ? null : () => change(steps - 1),
+              icon: const Icon(LucideIcons.minus, size: 20),
+            ),
+            Expanded(
+              child: Text(s.pointsCount(steps * p.pointsPerStep),
+                  textAlign: TextAlign.center, style: text.titleMedium),
+            ),
+            IconButton.outlined(
+              tooltip: s.morePoints,
+              onPressed: change == null || steps >= maxSteps ? null : () => change(steps + 1),
+              icon: const Icon(LucideIcons.plus, size: 20),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          s.pointsOffYouPay(money(off, b.currency, s), money(b.ownAmount - off, b.currency, s)),
+          textAlign: TextAlign.center,
+          style: text.bodyLarge,
+        ),
+        const SizedBox(height: 12),
+        BusyButton(
+          label: s.save,
+          busy: _busy,
+          onPressed: steps * p.pointsPerStep == b.pointsRedeemed ? null : () => _savePoints(steps * p.pointsPerStep),
+        ),
       ],
     ];
   }

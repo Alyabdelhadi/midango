@@ -27,3 +27,6 @@ String money(double amount, String currency, Strings s) =>
 
 String isoDate(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+/// 1.0 → "1", 1.25 → "1.25": multipliers and percentages without trailing zeros.
+String plain(double v) => v == v.roundToDouble() ? v.toInt().toString() : v.toString();

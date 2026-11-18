@@ -136,6 +136,25 @@ class Strings {
     required this.playerRemoved,
     required this.fewerPlayers,
     required this.morePlayers,
+    required this.pointsTitle,
+    required this.pointsCount,
+    required this.tierName,
+    required this.gamesToNext,
+    required this.topTier,
+    required this.earnMultiplier,
+    required this.pointsHistory,
+    required this.noPointsYet,
+    required this.pointsKind,
+    required this.usePoints,
+    required this.usePointsHelp,
+    required this.pointsHave,
+    required this.notEnoughPoints,
+    required this.fewerPoints,
+    required this.morePoints,
+    required this.pointsOffYouPay,
+    required this.pointsApplied,
+    required this.pointsRemoved,
+    required this.withPoints,
   });
 
   final bool isArabic;
@@ -292,6 +311,31 @@ class Strings {
   final String fewerPlayers;
   final String morePlayers;
 
+  // Points
+  final String pointsTitle;
+  final String Function(int n) pointsCount;
+
+  /// "Bronze" | "Silver" | "Gold" in words.
+  final String Function(String tier) tierName;
+  final String Function(int games, String tier) gamesToNext;
+  final String topTier;
+  final String Function(String multiplier) earnMultiplier;
+  final String pointsHistory;
+  final String noPointsYet;
+
+  /// "Earn" | "Redeem" | "EarnReversal" | "RedeemReleased" in words.
+  final String Function(String kind) pointsKind;
+  final String usePoints;
+  final String Function(int points, String off, String percent) usePointsHelp;
+  final String Function(int n) pointsHave;
+  final String notEnoughPoints;
+  final String fewerPoints;
+  final String morePoints;
+  final String Function(String off, String pay) pointsOffYouPay;
+  final String pointsApplied;
+  final String pointsRemoved;
+  final String Function(String off) withPoints;
+
   static Strings of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<StringsScope>()!.strings;
 }
 
@@ -442,7 +486,43 @@ const en = Strings(
   playerRemoved: 'Player removed.',
   fewerPlayers: 'Fewer players',
   morePlayers: 'More players',
+  pointsTitle: 'Your points',
+  pointsCount: _enPoints,
+  tierName: _enTier,
+  gamesToNext: _enGamesToNext,
+  topTier: "You're at the top tier.",
+  earnMultiplier: _enEarn,
+  pointsHistory: 'Points history',
+  noPointsYet: 'No points yet. You earn them when you check in at the desk.',
+  pointsKind: _enKind,
+  usePoints: 'Use points',
+  usePointsHelp: _enUseHelp,
+  pointsHave: _enHave,
+  notEnoughPoints: "You don't have enough points to use on this booking yet.",
+  fewerPoints: 'Fewer points',
+  morePoints: 'More points',
+  pointsOffYouPay: _enOffPay,
+  pointsApplied: 'Points applied.',
+  pointsRemoved: 'Points removed.',
+  withPoints: _enWithPoints,
 );
+
+String _enPoints(int n) => n == 1 ? '1 point' : '$n points';
+String _enTier(String tier) => tier; // the API's tier names are the English words
+String _enGamesToNext(int games, String tier) => '$games more ${games == 1 ? 'game' : 'games'} to $tier';
+String _enEarn(String m) => 'You earn points ${ltr('×$m')}';
+String _enKind(String kind) => switch (kind) {
+      'Earn' => 'Earned',
+      'Redeem' => 'Used on a booking',
+      'EarnReversal' => 'Check-in undone',
+      'RedeemReleased' => 'Returned to you',
+      _ => kind,
+    };
+String _enUseHelp(int points, String off, String percent) =>
+    '${_enPoints(points)} = $off off, up to $percent% of your amount.';
+String _enHave(int n) => 'You have ${_enPoints(n)}';
+String _enOffPay(String off, String pay) => '$off off · you pay $pay at the desk';
+String _enWithPoints(String off) => '$off with points';
 
 String _enLastUpdated(String date) => 'Last updated $date';
 String _enLevel(String level) => level; // the API's band names are the English words
@@ -596,7 +676,59 @@ const ar = Strings(
   playerRemoved: 'تمت إزالة اللاعب.',
   fewerPlayers: 'لاعبون أقل',
   morePlayers: 'لاعبون أكثر',
+  pointsTitle: 'نقاطك',
+  pointsCount: _arPoints,
+  tierName: _arTier,
+  gamesToNext: _arGamesToNext,
+  topTier: 'وصلت إلى أعلى مستوى.',
+  earnMultiplier: _arEarn,
+  pointsHistory: 'سجل النقاط',
+  noPointsYet: 'لا توجد نقاط بعد. تكسبها عند تسجيل حضورك في الاستقبال.',
+  pointsKind: _arKind,
+  usePoints: 'استخدم نقاطك',
+  usePointsHelp: _arUseHelp,
+  pointsHave: _arHave,
+  notEnoughPoints: 'نقاطك لا تكفي للاستخدام في هذا الحجز بعد.',
+  fewerPoints: 'نقاط أقل',
+  morePoints: 'نقاط أكثر',
+  pointsOffYouPay: _arOffPay,
+  pointsApplied: 'تم تطبيق النقاط.',
+  pointsRemoved: 'تمت إزالة النقاط.',
+  withPoints: _arWithPoints,
 );
+
+String _arPoints(int n) => switch (n) {
+      1 => 'نقطة واحدة',
+      2 => 'نقطتان',
+      >= 3 && <= 10 => '$n نقاط',
+      _ => '$n نقطة',
+    };
+String _arTier(String tier) => switch (tier) {
+      'Bronze' => 'برونزي',
+      'Silver' => 'فضي',
+      'Gold' => 'ذهبي',
+      _ => tier,
+    };
+String _arGames(int n) => switch (n) {
+      1 => 'مباراة واحدة',
+      2 => 'مباراتان',
+      >= 3 && <= 10 => '$n مباريات',
+      _ => '$n مباراة',
+    };
+String _arGamesToNext(int games, String tier) => 'تنقصك ${_arGames(games)} للوصول إلى المستوى ال${_arTier(tier)}';
+String _arEarn(String m) => 'تكسب النقاط ${ltr('×$m')}';
+String _arKind(String kind) => switch (kind) {
+      'Earn' => 'نقاط مكتسبة',
+      'Redeem' => 'استُخدمت في حجز',
+      'EarnReversal' => 'أُلغي تسجيل الحضور',
+      'RedeemReleased' => 'أُعيدت إليك',
+      _ => kind,
+    };
+String _arUseHelp(int points, String off, String percent) =>
+    '${_arPoints(points)} = خصم $off، بحد أقصى $percent% من مبلغك.';
+String _arHave(int n) => 'لديك ${_arPoints(n)}';
+String _arOffPay(String off, String pay) => 'خصم $off · تدفع $pay في الاستقبال';
+String _arWithPoints(String off) => '$off بالنقاط';
 
 String _arLastUpdated(String date) => 'آخر تحديث: $date';
 String _arLevel(String level) => switch (level) {

@@ -89,7 +89,7 @@ class BookingCode extends StatelessWidget {
   }
 }
 
-/// Venue, day and time, court, total, cash at the venue and the free-cancellation line.
+/// Venue, day and time, court, cash at the venue (after any points) and the free-cancellation line.
 class BookingSummary extends StatelessWidget {
   const BookingSummary({super.key, required this.booking});
   final Booking booking;
@@ -111,7 +111,11 @@ class BookingSummary extends StatelessWidget {
         // Only a live booking is still to be paid or cancelled.
         if (b.confirmed) ...[
           // In a match each player pays their share; the organiser covers the empty spots.
-          InfoLine(icon: LucideIcons.banknote, text: s.payAmountAtVenue(money(b.myShare ?? b.total, b.currency, s))),
+          InfoLine(
+            icon: LucideIcons.banknote,
+            text: s.payAmountAtVenue(money(b.toPay, b.currency, s)) +
+                (b.pointsDiscount > 0 ? ' (${s.withPoints(money(b.pointsDiscount, b.currency, s))})' : ''),
+          ),
           InfoLine(
             icon: LucideIcons.calendarX,
             text: DateTime.now().isBefore(DateTime.parse(until))

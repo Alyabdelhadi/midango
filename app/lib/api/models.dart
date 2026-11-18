@@ -217,7 +217,10 @@ class Booking {
         role = j['role'] as String? ?? 'organiser',
         match = j['match'] == null ? null : BookingMatch.fromJson(j['match'] as JsonMap),
         myShare = j['myShare'] == null ? null : _money(j['myShare']),
-        playerStatus = j['playerStatus'] as String?;
+        playerStatus = j['playerStatus'] as String?,
+        pointsRedeemed = j['pointsRedeemed'] as int? ?? 0,
+        pointsDiscount = j['pointsDiscount'] == null ? 0 : _money(j['pointsDiscount']),
+        amountToPay = j['amountToPay'] == null ? null : _money(j['amountToPay']);
   final String id;
   final String reference;
   final String venueId;
@@ -254,7 +257,18 @@ class Booking {
   /// A player's place: "joined" | "left" | "removed"; null for the organiser.
   final String? playerStatus;
 
+  /// Points this customer spent on this booking, and the money they took off.
+  final int pointsRedeemed;
+  final double pointsDiscount;
+
+  /// What this customer pays at the desk after their points discount.
+  final double? amountToPay;
+
   bool get isPlayer => role == 'player';
+
+  /// This customer's own amount before points: their share in a match, else the total.
+  double get ownAmount => myShare ?? total;
+  double get toPay => amountToPay ?? ownAmount - pointsDiscount;
 
   String venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn)!;
   String courtName(bool arabic) => _pick(arabic, courtNameAr, courtNameEn)!;
@@ -362,4 +376,53 @@ class Me {
   final String id;
   final String phone;
   final String? name;
+}
+
+/// The customer's points: balance, tier and the redeem rules (`GET /me/points`).
+class Points {
+  Points.fromJson(JsonMap j)
+      : balance = j['balance'] as int,
+        tier = j['tier'] as String,
+        gamesInWindow = j['gamesInWindow'] as int,
+        nextTierName = (j['nextTier'] as JsonMap?)?['name'] as String?,
+        nextTierGames = (j['nextTier'] as JsonMap?)?['gamesNeeded'] as int?,
+        multiplier = _money(j['multiplier']),
+        pointsPerStep = (j['redeem'] as JsonMap)['pointsPerStep'] as int,
+        sarPerStep = _money((j['redeem'] as JsonMap)['sarPerStep']),
+        maxPercent = _money((j['redeem'] as JsonMap)['maxPercent']),
+        history = _list(j['history'], PointsEntry.fromJson);
+  final int balance;
+
+  /// "Bronze" | "Silver" | "Gold"
+  final String tier;
+  final int gamesInWindow;
+
+  /// Null at the top tier.
+  final String? nextTierName;
+  final int? nextTierGames;
+  final double multiplier;
+  final int pointsPerStep;
+  final double sarPerStep;
+  final double maxPercent;
+  final List<PointsEntry> history;
+}
+
+class PointsEntry {
+  PointsEntry.fromJson(JsonMap j)
+      : at = j['at'] as String,
+        points = j['points'] as int,
+        kind = j['kind'] as String,
+        bookingId = j['bookingId'] as String?,
+        venueNameEn = j['venueNameEn'] as String?,
+        venueNameAr = j['venueNameAr'] as String?;
+  final String at;
+  final int points;
+
+  /// "Earn" | "Redeem" | "EarnReversal" | "RedeemReleased"
+  final String kind;
+  final String? bookingId;
+  final String? venueNameEn;
+  final String? venueNameAr;
+
+  String? venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn);
 }

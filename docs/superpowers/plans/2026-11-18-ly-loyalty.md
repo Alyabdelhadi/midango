@@ -48,3 +48,27 @@ Profile card + history page, booking-detail "Use points", summaries. `flutter an
 ### Task 3: Verify (controller)
 - API script: check-in earns floor(cash × rate × multiplier); undo reverses; tier thresholds via SQL-seeded check-ins; redeem validation (step, balance, 50 % cap); concurrent redeems can't overdraw; cancel/leave/no-show release; desk amountToPay and cash recorded; Today/report "with points" figures; settings validation.
 - Browser: Rules loyalty card; app Profile points card + history; apply points on a booking; desk shows reduced amount and checks in; EN + AR.
+
+---
+
+## Verification (2026-11-18)
+
+**API** (`ly-check.ps1`, with tier thresholds temporarily set to Silver 1 / Gold 2 and then restored): **0 failures.** The first two runs failed only because of the script: its SQL time moves collided with earlier test bookings through the no-overlap constraint, and the fixed future slots clashed with earlier runs. The script now uses a random day and a retrying move into the past.
+- **Settings:** defaults seeded (1 / 10 / 25 / 100 / 50 …). Gold ≤ Silver gets 400.
+- **Earning:** check-in earns 160 at Bronze. Undo reverses it to 0. Game 2 earns 200 at Silver (×1.25), giving 360 and Gold. History lists the earns and the reversal.
+- **Redeeming:**
+  - 350 points gets 400 "steps of 100". 900 gets 400 "up to 800" (the 50% cap). 400 gets 409 "You have 360 points".
+  - 300 points is SAR 30 off, paying 130, with 60 left. Changing to 200 gives the difference back (balance 160, pay 140). 0 returns everything.
+  - **Two redemptions at once of 300 each: one 200, one 409, balance 60.** Cancelling releases the points.
+  - Once checked in, the redemption can't be changed (409).
+- **At the desk:** it sees `amountToPay` 130 with discount 30, records SAR 130 cash, and earns floor(130 × 1.5) = 195.
+- **Money:** Today's "paid with points" rose by 30. The reports' `pointsDiscount` is ≥ 30.
+
+**Browser:** the Rules page shows the Loyalty card with 9 fields and the live example ("A Silver player paying SAR 100 earns 125 points; 100 points = SAR 10 off").
+
+**Not walked:** the app's points card, history and "Use points" screens. The browser automation stopped responding to taps and screenshots late in the session. These screens pass `flutter analyze`, and every API they call is verified above.
+
+**Known gaps:**
+- A cancel and a redemption at the same instant could leave points on a cancelled booking (marked `ponytail:` in `Points.Release`).
+- The organiser's discount isn't re-capped when players join.
+- Undoing a no-show doesn't restore released points.

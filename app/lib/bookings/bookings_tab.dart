@@ -173,7 +173,14 @@ class _BookingRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(money(b.myShare ?? b.total, b.currency, s), style: text.labelLarge),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(money(b.toPay, b.currency, s), style: text.labelLarge),
+                  if (b.pointsDiscount > 0)
+                    Text(s.withPoints(money(b.pointsDiscount, b.currency, s)), style: text.bodySmall),
+                ],
+              ),
             ],
           ),
         ),

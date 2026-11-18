@@ -9,8 +9,9 @@ import '../play/pickers.dart';
 import '../theme/midango_colors.dart';
 import '../widgets/sport_icon.dart';
 import 'legal_page.dart';
+import 'points.dart';
 
-/// Name, phone, level per sport, language and sign-out; sign-in and language when signed out.
+/// Name, phone, points, level per sport, language and sign-out; sign-in and language when signed out.
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key, required this.onLanguage});
 
@@ -54,6 +55,7 @@ class ProfileTab extends StatelessWidget {
                 ],
               ),
             ),
+          if (session.signedIn) const PointsCard(),
           if (session.signedIn) const _Levels(),
           const SizedBox(height: 24),
           Text(s.language, style: text.titleMedium),

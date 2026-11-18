@@ -36,7 +36,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M9a | No-show limit & reminders (server) ✅ done | Rules page (operator), no-show limit, push devices, reminder job (FCM when keyed, log otherwise) | M7, M8 |
 | M9b | Push in the app 🟡 built (phone test pending) | firebase_messaging (Android), device registration, open booking from a reminder | M9a + Firebase (done) |
 | MM | Matchmaking ✅ done (MMa server+app, MMb desk) | Open matches: join a booking, split at the desk, levels | M9b |
-| LY | Loyalty | Points for checked-in games, tiers, redeem at the desk | MM |
+| LY | Loyalty ✅ done | Points for checked-in games, tiers, redeem at the desk | MM |
 | T | Tournaments | Venue events, team sign-up, draw and results | MM, LY |
 | M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
 | W1 | Website ✅ done | Static EN/AR informative site (`website/`), demo form → `POST /leads`, operator "Venue requests" page | M2 |
