@@ -157,9 +157,9 @@ function BookingsTable({ query }: { query: string }) {
       )}
       <BookingPanel
         booking={rows.find((b) => b.id === openId)}
-        onDone={(message) => {
+        onDone={(message, undo) => {
           setOpenId(undefined);
-          toast.show('success', message);
+          toast.show('success', message, undo && (async () => { await undo(); list.reload(); }));
           list.reload();
         }}
         onClose={() => setOpenId(undefined)}

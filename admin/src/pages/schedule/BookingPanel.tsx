@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { BookingStatusPill } from '../../components/BookingStatusPill';
 import { Button } from '../../components/Button';
+import { DeskActions, type Undo } from '../../components/DeskActions';
 import { Dialog } from '../../components/Dialog';
 import { Field } from '../../components/Field';
 import { Notice } from '../../components/Notice';
@@ -8,6 +9,9 @@ import { api, errorText } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
 import { clock, dayOf, formatDay, minutesBetween, slotStarts } from '../../lib/time';
 import type { Schedule, StaffBooking } from '../../lib/types';
+
+/** Within the API's 15-minute undo window. */
+const recent = (iso: string | null) => iso !== null && Date.now() - new Date(iso).getTime() < 15 * 60_000;
 
 /** One booking or block: details, Move (when that day's schedule is at hand) and Cancel / Remove. */
 export function BookingPanel({
@@ -18,7 +22,7 @@ export function BookingPanel({
 }: {
   booking: StaffBooking | undefined;
   schedule?: Schedule;
-  onDone: (message: string) => void;
+  onDone: (message: string, undo?: Undo) => void;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -38,7 +42,7 @@ function PanelBody({
 }: {
   booking: StaffBooking;
   schedule?: Schedule;
-  onDone: (message: string) => void;
+  onDone: (message: string, undo?: Undo) => void;
   onClose: () => void;
 }) {
   const { t, lang, name, money } = useI18n();
@@ -90,6 +94,18 @@ function PanelBody({
             <dd>
               <BookingStatusPill booking={b} />
             </dd>
+            {b.checkedInAt && (
+              <>
+                <dt>{t('statusCheckedIn')}</dt>
+                <dd>{t('checkedInLine', { time: clock(b.checkedInAt), amount: money(b.cashCollected ?? b.total, b.currency) })}</dd>
+              </>
+            )}
+            {b.noShowAt && (
+              <>
+                <dt>{t('statusNoShow')}</dt>
+                <dd>{t('noShowLine', { time: clock(b.noShowAt) })}</dd>
+              </>
+            )}
           </>
         )}
         {b.note && (
@@ -99,6 +115,21 @@ function PanelBody({
           </>
         )}
       </dl>
+      <DeskActions booking={b} onDone={onDone} />
+      {recent(b.checkedInAt) && (
+        <div>
+          <Button variant="secondary" disabled={busy} onClick={() => void act(`/venue/bookings/${b.id}/undo-check-in`, 'POST', undefined, t('undone'))}>
+            {t('undoCheckIn')}
+          </Button>
+        </div>
+      )}
+      {b.status === 'NoShow' && recent(b.noShowAt) && (
+        <div>
+          <Button variant="secondary" disabled={busy} onClick={() => void act(`/venue/bookings/${b.id}/undo-no-show`, 'POST', undefined, t('undone'))}>
+            {t('undoNoShow')}
+          </Button>
+        </div>
+      )}
 
       {live && schedule && (
         <MoveForm
@@ -112,7 +143,7 @@ function PanelBody({
         />
       )}
 
-      {live &&
+      {live && !b.checkedInAt &&
         (confirming ? (
           <div className="panel-section">
             <p>{t(isBlock ? 'confirmRemoveBlock' : 'confirmCancel')}</p>

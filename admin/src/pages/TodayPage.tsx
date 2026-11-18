@@ -57,7 +57,12 @@ export function TodayPage() {
       <div className="tiles">
         <Tile label={t('tileBookings')} value={String(d.bookings)} />
         <Tile label={t('tileOccupancy')} value={`${d.occupancyPercent}%`} />
-        <Tile label={t('tileCash')} value={money(d.cashExpected, d.currency)} />
+        <Tile
+          label={t('tileCashTaken')}
+          value={money(d.cashCollected, d.currency)}
+          note={t('ofExpected', { amount: money(d.cashExpected, d.currency) })}
+        />
+        <Tile label={t('tileNoShows')} value={String(d.noShows)} />
         <Tile label={t('tileCancelled')} value={String(d.cancelled)} />
       </div>
       <section className="card">
@@ -88,11 +93,12 @@ export function TodayPage() {
   );
 }
 
-function Tile({ label, value }: { label: string; value: string }) {
+function Tile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="tile">
       <span className="tile-label">{label}</span>
       <span className="tile-value">{value}</span>
+      {note && <span className="tile-note">{note}</span>}
     </div>
   );
 }

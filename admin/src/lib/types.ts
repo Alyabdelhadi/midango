@@ -112,7 +112,7 @@ export const MISSING_KEY: Record<MissingItem, MessageKey> = {
 };
 
 export type BookingKind = 'Booking' | 'Block';
-export type BookingStatus = 'Confirmed' | 'Cancelled';
+export type BookingStatus = 'Confirmed' | 'Cancelled' | 'NoShow';
 
 /** Times carry the venue's offset, e.g. "2026-11-19T20:00:00+03:00". phoneMasked is "•••• 1234" or null (walk-in, block). */
 export type StaffBooking = {
@@ -136,6 +136,9 @@ export type StaffBooking = {
   lateCancellation: boolean;
   cancelledByVenue: boolean;
   createdAt: string;
+  checkedInAt: string | null;
+  cashCollected: number | null;
+  noShowAt: string | null;
 };
 
 export type ScheduleCourt = { id: string; categoryId: string; nameEn: string; nameAr: string; durationsMinutes: number[] };
@@ -157,6 +160,7 @@ export type VenueCustomer = {
   phoneMasked: string;
   bookings: number;
   cancellations: number;
+  noShows: number;
   lastBookingAt: string;
 };
 
@@ -173,5 +177,7 @@ export type Today = {
   cashExpected: number;
   currency: string;
   cancelled: number;
+  cashCollected: number;
+  noShows: number;
   next: StaffBooking[];
 };

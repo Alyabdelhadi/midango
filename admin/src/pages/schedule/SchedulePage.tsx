@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { Button } from '../../components/Button';
+import { type Undo } from '../../components/DeskActions';
 import { Notice } from '../../components/Notice';
 import { PageHeader } from '../../components/PageHeader';
 import { api, errorText } from '../../lib/api';
@@ -28,10 +29,10 @@ function ScheduleDay({ date, onDate }: { date: string; onDate: (date: string) =>
   const [openId, setOpenId] = useState<string>();
   const [dropAt, setDropAt] = useState<string>();
 
-  function done(message: string) {
+  function done(message: string, undo?: Undo) {
     setNewAt(undefined);
     setOpenId(undefined);
-    toast.show('success', message);
+    toast.show('success', message, undo && (async () => { await undo(); schedule.reload(); }));
     schedule.reload();
   }
 
