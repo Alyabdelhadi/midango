@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { BookingStatusPill } from '../components/BookingStatusPill';
 import { Notice } from '../components/Notice';
 import { PageHeader } from '../components/PageHeader';
 import { Pill } from '../components/Pill';
@@ -84,6 +85,7 @@ export function TodayPage() {
                   </bdi>
                 </span>
                 {new Date(b.startsAt).getTime() <= now && <Pill tone="success">{t('playingNow')}</Pill>}
+                {b.checkedInAt && <BookingStatusPill booking={b} />}
               </li>
             ))}
           </ul>

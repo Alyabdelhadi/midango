@@ -52,6 +52,7 @@ function CustomersTable({ q }: { q: string }) {
           <th>{t('phone')}</th>
           <th className="numeric">{t('navBookings')}</th>
           <th className="numeric">{t('cancellations')}</th>
+          <th className="numeric">{t('tileNoShows')}</th>
           <th>{t('lastBooking')}</th>
         </tr>
       </thead>
@@ -64,6 +65,7 @@ function CustomersTable({ q }: { q: string }) {
             </td>
             <td className="numeric">{c.bookings}</td>
             <td className="numeric">{c.cancellations}</td>
+            <td className="numeric">{c.noShows}</td>
             <td>
               {formatDay(dayOf(c.lastBookingAt), lang, 'short')} · {clock(c.lastBookingAt)}
             </td>
