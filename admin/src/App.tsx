@@ -9,6 +9,7 @@ import { CustomersPage } from './pages/CustomersPage';
 import { DeskPage } from './pages/DeskPage';
 import { PricesPage } from './pages/PricesPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { LeadsPage } from './pages/LeadsPage';
 import { RulesPage } from './pages/RulesPage';
 import { SignInPage } from './pages/SignInPage';
 import { SchedulePage } from './pages/schedule/SchedulePage';
@@ -60,6 +61,14 @@ export default function App() {
                   element={
                     <RequireRole roles={['PlatformOperator']}>
                       <RulesPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="leads"
+                  element={
+                    <RequireRole roles={['PlatformOperator']}>
+                      <LeadsPage />
                     </RequireRole>
                   }
                 />

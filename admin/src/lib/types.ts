@@ -208,3 +208,16 @@ export type Report = {
   heatmap: HeatCell[];
   cash: CashRow[];
 };
+
+export type VenueLead = {
+  id: string;
+  venueName: string;
+  contactName: string;
+  phone: string;
+  city: string;
+  courts: number;
+  message: string | null;
+  language: string;
+  createdAt: string;
+  contactedAt: string | null;
+};
