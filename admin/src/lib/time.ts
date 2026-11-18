@@ -45,3 +45,6 @@ export function formatDay(date: string, lang: Lang, style: 'long' | 'short' = 'l
     timeZone: 'UTC',
   }).format(new Date(`${date}T12:00:00Z`));
 }
+
+/** Within the API's 15-minute undo window. */
+export const recent = (iso: string | null) => iso !== null && Date.now() - new Date(iso).getTime() < 15 * 60_000;

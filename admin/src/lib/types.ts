@@ -150,6 +150,26 @@ export type StaffBooking = {
   checkedInAt: string | null;
   cashCollected: number | null;
   noShowAt: string | null;
+  /** Open match: the organiser is the booking's customer; `players` are the active joiners in join order. */
+  match: StaffMatch | null;
+};
+
+export type StaffMatchPlayer = {
+  customerId: string;
+  name: string | null;
+  maskedPhone: string;
+  joinedAt: string;
+  checkedInAt: string | null;
+  cashCollected: number | null;
+  noShowAt: string | null;
+};
+
+export type StaffMatch = {
+  maxPlayers: number;
+  level: string | null;
+  share: number;
+  organiserShare: number;
+  players: StaffMatchPlayer[];
 };
 
 export type ScheduleCourt = { id: string; categoryId: string; nameEn: string; nameAr: string; durationsMinutes: number[] };

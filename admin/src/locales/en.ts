@@ -317,6 +317,17 @@ export const en = {
   removeIcon: 'Remove icon',
   removeIconFor: 'Remove icon for {name}',
   uploadIconFor: 'Upload icon for {name}',
+  matchPlayers: 'Players',
+  matchCollected: 'Collected {taken} of {total}',
+  openMatchCount: 'Open match · {n}/{max}',
+  statusWaiting: 'Waiting',
+  statusCheckedInAmount: 'Checked in · {amount}',
+  takeCashCheckInFor: 'Take {amount} and check in {name}',
+  markNoShowFor: 'Mark {name} as a no-show',
+  undoCheckInFor: 'Undo check-in for {name}',
+  undoNoShowFor: 'Undo no-show for {name}',
+  playerNoShowNotice: '{name} marked as a no-show.',
+  noPlayersYet: 'No one has joined yet.',
 };
 
 export type MessageKey = keyof typeof en;

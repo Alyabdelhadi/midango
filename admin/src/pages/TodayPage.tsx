@@ -86,6 +86,7 @@ export function TodayPage() {
                 </span>
                 {new Date(b.startsAt).getTime() <= now && <Pill tone="success">{t('playingNow')}</Pill>}
                 {b.checkedInAt && <BookingStatusPill booking={b} />}
+                {b.match && <Pill>{t('openMatchCount', { n: b.match.players.length + 1, max: b.match.maxPlayers })}</Pill>}
               </li>
             ))}
           </ul>

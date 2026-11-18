@@ -1,17 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { BookingStatusPill } from '../../components/BookingStatusPill';
 import { Button } from '../../components/Button';
-import { DeskActions, type Undo } from '../../components/DeskActions';
+import { DeskActions, MatchPlayers, type Undo } from '../../components/DeskActions';
 import { Dialog } from '../../components/Dialog';
 import { Field } from '../../components/Field';
 import { Notice } from '../../components/Notice';
 import { api, errorText } from '../../lib/api';
 import { useI18n } from '../../lib/i18n';
-import { clock, dayOf, formatDay, minutesBetween, slotStarts } from '../../lib/time';
+import { clock, dayOf, formatDay, minutesBetween, recent, slotStarts } from '../../lib/time';
 import type { Schedule, StaffBooking } from '../../lib/types';
-
-/** Within the API's 15-minute undo window. */
-const recent = (iso: string | null) => iso !== null && Date.now() - new Date(iso).getTime() < 15 * 60_000;
 
 /** One booking or block: details, Move (when that day's schedule is at hand) and Cancel / Remove. */
 export function BookingPanel({
@@ -130,6 +127,7 @@ function PanelBody({
           </Button>
         </div>
       )}
+      <MatchPlayers booking={b} onDone={onDone} />
 
       {live && schedule && (
         <MoveForm

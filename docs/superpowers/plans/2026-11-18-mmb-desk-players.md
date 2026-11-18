@@ -37,3 +37,23 @@ Desk + Schedule panel + any Today list that shows bookings. `npm run build` + `l
 ### Task 3: Verify (controller)
 - API script: match with 3 joiners; organiser check-in takes organiser share; each player check-in takes share; double check-in 409; undo within window; no-show before start 409, after start ok, undo; Today cash = sum; report cash includes players; staff cancel of an open match → joiner pushes attempted (fake-token pruning trick).
 - Browser: Desk lookup by reference shows players; take cash per player in EN and AR; Schedule panel shows the same.
+
+---
+
+## Verification (2026-11-18)
+
+The routes follow the existing desk prefix, `/venue/bookings/{id}/players/{customerId}/…`. The plan's `/venue/desk/…` was wrong.
+
+**API** (`mmb-check.ps1`): **0 failures.**
+- **Lookup:** an operator acting as the venue sees 3 players with share 40 and organiser share 40, plus names and masked phones.
+- **Check-in:** the organiser's check-in takes 40, not the full 160. A player's check-in takes 40, and a second check-in gets 409. Undo works. An unknown player gets 404.
+- **No-show:** before the start it gets 409 "Wait until the booking has started". After the start it works and the booking stays Confirmed. A player marked no-show can't check in (409). Undo works.
+- **Money:** Today's cash rose by exactly 80. The reports' cash total includes the player's 40.
+- **Cancelling:** staff cancel with checked-in players gets 409. Staff cancel of another open match removed the joiner's fake FCM device row, which shows the cancellation push was attempted.
+
+**Browser** (Business, operator inside Smash Padel Club):
+- The Desk "Now" row shows "Open match · 4/4" and "Collected SAR 80.00 of SAR 160.00". Pia shows "Checked in · SAR 40.00" with Undo; Quinn and Rami show Waiting with "Take SAR 40.00 & check in" and No-show.
+- Taking Quinn's cash gave "Collected SAR 120.00 of SAR 160.00" and an undo toast.
+- The Arabic layout is right to left and correct.
+
+**Known edge:** a joiner leaving after the organiser checked in doesn't recalculate the organiser's recorded cash.

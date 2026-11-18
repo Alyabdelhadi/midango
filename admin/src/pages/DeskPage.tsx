@@ -1,10 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { BookingStatusPill } from '../components/BookingStatusPill';
 import { Button } from '../components/Button';
-import { DeskActions, type Undo } from '../components/DeskActions';
+import { DeskActions, MatchPlayers, type Undo } from '../components/DeskActions';
 import { Field } from '../components/Field';
 import { Notice } from '../components/Notice';
 import { PageHeader } from '../components/PageHeader';
+import { Pill } from '../components/Pill';
 import { api, errorText } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import { clock, minutesBetween, slotStarts } from '../lib/time';
@@ -199,9 +200,15 @@ function DeskRow({
           <span>{money(b.total, b.currency)}</span>
           <span>{b.reference}</span>
           <BookingStatusPill booking={b} />
+          {b.match && <Pill>{t('openMatchCount', { n: b.match.players.length + 1, max: b.match.maxPlayers })}</Pill>}
         </span>
       </span>
       <DeskActions booking={b} onDone={onDone} />
+      {b.match && (
+        <div className="desk-row-match">
+          <MatchPlayers booking={b} onDone={onDone} />
+        </div>
+      )}
     </li>
   );
 }
