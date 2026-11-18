@@ -639,6 +639,55 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("customer_devices", (string)null);
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.OperatorAction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("method");
+
+                    b.Property<Guid>("OperatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operator_id");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("path");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_operator_actions");
+
+                    b.HasIndex("OperatorId")
+                        .HasDatabaseName("ix_operator_actions_operator_id");
+
+                    b.HasIndex("VenueId", "At")
+                        .HasDatabaseName("ix_operator_actions_venue_id_at");
+
+                    b.ToTable("operator_actions", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Platform.PlatformSettings", b =>
                 {
                     b.Property<int>("Id")
@@ -796,6 +845,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("published");
 
+                    b.Property<bool>("Suspended")
+                        .HasColumnType("boolean")
+                        .HasColumnName("suspended");
+
                     b.Property<string>("TimeZoneId")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -917,6 +970,23 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_customer_devices_customers_customer_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.OperatorAction", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("OperatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_operator_actions_staff_operator_id");
+
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_operator_actions_venues_venue_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Catalog.SportCategory", b =>

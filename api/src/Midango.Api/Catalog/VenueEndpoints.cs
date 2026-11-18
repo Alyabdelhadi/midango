@@ -133,6 +133,8 @@ public static class VenueEndpoints
             var venueId = user.StaffVenueId()!.Value;
             var current = await LoadAsync(db, venueId, ct);
             if (current is null) return ApiErrors.Fail(404, "Venue not found.");
+            if (await db.Venues.AnyAsync(v => v.Id == venueId && v.Suspended, ct))
+                return ApiErrors.Fail(409, "Midango has suspended this venue. Contact Midango to reopen it.");
             if (current.MissingForPublish.Count > 0)
                 return Results.Problem(statusCode: 409, title: "Finish the venue before publishing.",
                     extensions: new Dictionary<string, object?> { ["missing"] = current.MissingForPublish });

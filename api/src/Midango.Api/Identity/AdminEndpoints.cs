@@ -9,9 +9,11 @@ namespace Midango.Api.Identity;
 public static class AdminEndpoints
 {
     public sealed record CreateVenueBody(string? NameEn, string? NameAr);
-    public sealed record VenueSummary(Guid Id, string NameEn, string NameAr);
+    public sealed record VenueSummary(Guid Id, string NameEn, string NameAr, bool Published, bool Suspended);
     public sealed record CreateVenueStaffBody(string? Email, string? DisplayName, StaffRole Role, string? TemporaryPassword);
     public sealed record CreateDeskStaffBody(string? Email, string? DisplayName, string? TemporaryPassword);
+    public sealed record ActiveBody(bool Active);
+    public sealed record ResetPasswordBody(string? TemporaryPassword);
 
     public static void MapAdminEndpoints(this IEndpointRouteBuilder app)
     {
@@ -20,7 +22,7 @@ public static class AdminEndpoints
         admin.MapGet("/venues", async (MidangoDb db, CancellationToken ct) =>
             Results.Ok(await db.Venues
                 .OrderBy(v => v.NameEn)
-                .Select(v => new VenueSummary(v.Id, v.NameEn, v.NameAr))
+                .Select(v => new VenueSummary(v.Id, v.NameEn, v.NameAr, v.Published, v.Suspended))
                 .ToListAsync(ct)));
 
         admin.MapPost("/venues", async (CreateVenueBody body, MidangoDb db, CancellationToken ct) =>
@@ -34,7 +36,7 @@ public static class AdminEndpoints
             var venue = new Venue { NameEn = nameEn, NameAr = nameAr };
             db.Venues.Add(venue);
             await db.SaveChangesAsync(ct);
-            return Results.Json(new VenueSummary(venue.Id, venue.NameEn, venue.NameAr), statusCode: 201);
+            return Results.Json(new VenueSummary(venue.Id, venue.NameEn, venue.NameAr, false, false), statusCode: 201);
         });
 
         admin.MapPost("/venues/{venueId:guid}/staff", (
@@ -60,5 +62,39 @@ public static class AdminEndpoints
             StaffAccounts.CreateAsync(
                 db, hasher, user.StaffVenueId()!.Value, StaffRole.DeskStaff,
                 body.Email, body.DisplayName, body.TemporaryPassword, ct));
+
+        venueStaff.MapPut("/{id:guid}/active", async (
+            Guid id, ActiveBody body, ClaimsPrincipal user, MidangoDb db, TokenService tokens, CancellationToken ct) =>
+        {
+            if (await TargetAsync(db, user, id, ct) is not { } staff) return ApiErrors.Fail(404, "Staff member not found.");
+            staff.Active = body.Active;
+            await db.SaveChangesAsync(ct);
+            if (!body.Active) await tokens.RevokeAllAsync(SubjectKind.Staff, staff.Id, ct);
+            return Results.Ok(new StaffSummary(staff.Id, staff.Email, staff.DisplayName, staff.Role, staff.Active));
+        });
+
+        venueStaff.MapPost("/{id:guid}/reset-password", async (
+            Guid id, ResetPasswordBody body, ClaimsPrincipal user, MidangoDb db,
+            IPasswordHasher<StaffMember> hasher, TokenService tokens, CancellationToken ct) =>
+        {
+            if (await TargetAsync(db, user, id, ct) is not { } staff) return ApiErrors.Fail(404, "Staff member not found.");
+            if (body.TemporaryPassword is not { Length: >= StaffAccounts.MinPasswordLength } temp)
+                return ApiErrors.Fail(400, $"Use at least {StaffAccounts.MinPasswordLength} characters.");
+            staff.PasswordHash = hasher.HashPassword(staff, temp);
+            staff.MustChangePassword = true;
+            await db.SaveChangesAsync(ct);
+            await tokens.RevokeAllAsync(SubjectKind.Staff, staff.Id, ct);
+            return Results.NoContent();
+        });
+    }
+
+    /// Same venue, never yourself; a venue manager may change desk staff only, an operator anyone.
+    private static Task<StaffMember?> TargetAsync(MidangoDb db, ClaimsPrincipal user, Guid id, CancellationToken ct)
+    {
+        var venueId = user.StaffVenueId();
+        var self = user.SubjectId();
+        var operatorActing = user.ActingOperatorId() is not null;
+        return db.Staff.SingleOrDefaultAsync(s => s.Id == id && s.Id != self && s.VenueId == venueId
+            && (operatorActing || s.Role == StaffRole.DeskStaff), ct);
     }
 }

@@ -88,6 +88,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.UseOperatorActionLog();
 
 if (app.Environment.IsDevelopment())
 {
@@ -131,5 +132,6 @@ app.MapReportEndpoints();
 app.MapSettingsEndpoints();
 app.MapDeviceEndpoints();
 app.MapLeadEndpoints();
+app.MapOperatorEndpoints();
 
 app.Run();

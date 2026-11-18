@@ -24,5 +24,8 @@ public sealed class Venue
 
     /// Visible in the app. Only allowed when nothing is missing (see VenueEndpoints.MissingForPublish).
     public bool Published { get; set; }
+
+    /// Set by Midango: suspending unpublishes it, signs its staff out and keeps them out, and blocks publishing.
+    public bool Suspended { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }

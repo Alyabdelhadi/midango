@@ -15,6 +15,7 @@ public sealed class TokenService(MidangoDb db, JwtOptions jwt, TimeProvider cloc
 {
     public static readonly TimeSpan AccessLifetime = TimeSpan.FromMinutes(15);
     public static readonly TimeSpan RefreshLifetime = TimeSpan.FromDays(30);
+    public static readonly TimeSpan ActingLifetime = TimeSpan.FromMinutes(60);
 
     public async Task<TokenPair> IssueAsync(
         SubjectKind kind, Guid subjectId, IReadOnlyList<Claim> claims, CancellationToken ct)
@@ -31,18 +32,26 @@ public sealed class TokenService(MidangoDb db, JwtOptions jwt, TimeProvider cloc
         });
         await db.SaveChangesAsync(ct);
 
-        var accessExpires = now + AccessLifetime;
-        var access = new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
+        var (access, accessExpires) = CreateAccess(claims, AccessLifetime);
+        return new TokenPair(access, accessExpires, rawRefresh);
+    }
+
+    /// A signed access token on its own, with no refresh token behind it.
+    public (string Token, DateTimeOffset ExpiresAt) CreateAccess(IReadOnlyList<Claim> claims, TimeSpan lifetime)
+    {
+        var now = clock.GetUtcNow();
+        var expires = now + lifetime;
+        var token = new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {
             Issuer = jwt.Issuer,
             Audience = jwt.Audience,
             IssuedAt = now.UtcDateTime,
             NotBefore = now.UtcDateTime,
-            Expires = accessExpires.UtcDateTime,
+            Expires = expires.UtcDateTime,
             Subject = new ClaimsIdentity(claims),
             SigningCredentials = new SigningCredentials(jwt.Key(), SecurityAlgorithms.HmacSha256),
         });
-        return new TokenPair(access, accessExpires, rawRefresh);
+        return (token, expires);
     }
 
     /// Spends a refresh token: returns it if it was valid, otherwise null.

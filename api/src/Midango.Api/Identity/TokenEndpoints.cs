@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Midango.Api.Data;
 
 namespace Midango.Api.Identity;
@@ -33,6 +34,7 @@ public static class TokenEndpoints
                     ? AppClaims.For(customer)
                     : null,
                 SubjectKind.Staff => await db.Staff.FindAsync([spent.SubjectId], ct) is { Active: true } staff
+                    && (staff.VenueId is not { } venueId || !await db.Venues.AnyAsync(v => v.Id == venueId && v.Suspended, ct))
                     ? AppClaims.For(staff)
                     : null,
                 _ => null,

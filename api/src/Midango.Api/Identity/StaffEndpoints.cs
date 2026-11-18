@@ -23,6 +23,8 @@ public static class StaffEndpoints
             var staff = email is null ? null : await db.Staff.SingleOrDefaultAsync(s => s.Email == email && s.Active, ct);
             if (!StaffAccounts.CheckPassword(hasher, staff, body.Password))
                 return ApiErrors.Fail(401, "Email or password is wrong.");
+            if (staff!.VenueId is { } venueId && await db.Venues.AnyAsync(v => v.Id == venueId && v.Suspended, ct))
+                return ApiErrors.Fail(403, "This venue is suspended. Contact Midango.");
 
             var pair = await tokens.IssueAsync(SubjectKind.Staff, staff!.Id, AppClaims.For(staff), ct);
             return Results.Ok(new StaffSignInResponse(

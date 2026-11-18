@@ -25,6 +25,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<PlatformSettings> PlatformSettings => Set<PlatformSettings>();
     public DbSet<CustomerDevice> CustomerDevices => Set<CustomerDevice>();
     public DbSet<VenueLead> VenueLeads => Set<VenueLead>();
+    public DbSet<OperatorAction> OperatorActions => Set<OperatorAction>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -177,6 +178,16 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(x => x.Message).HasMaxLength(1000);
             e.Property(x => x.Language).HasMaxLength(2);
             e.HasIndex(x => x.CreatedAt);
+        });
+
+        // Id is a long database identity; the Guid-only loop below leaves it generated on add.
+        b.Entity<OperatorAction>(e =>
+        {
+            e.Property(x => x.Method).HasMaxLength(8);
+            e.Property(x => x.Path).HasMaxLength(300);
+            e.HasIndex(x => new { x.VenueId, x.At });
+            e.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.OperatorId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Ids are created in code (Guid.CreateVersion7). Left as "generated on add", EF treats a new entity
