@@ -84,6 +84,12 @@ function PanelBody({
             <dt>{t('price')}</dt>
             <dd>
               {money(b.total, b.currency)} · {t('cashAtVenue')}
+              {b.pointsDiscount > 0 && (
+                <>
+                  <br />
+                  <span className="muted">{t('withPoints', { amount: money(b.pointsDiscount, b.currency) })}</span>
+                </>
+              )}
             </dd>
             <dt>{t('source')}</dt>
             <dd>{t(b.source === 'App' ? 'sourceApp' : 'sourceStaff')}</dd>
@@ -94,7 +100,7 @@ function PanelBody({
             {b.checkedInAt && (
               <>
                 <dt>{t('statusCheckedIn')}</dt>
-                <dd>{t('checkedInLine', { time: clock(b.checkedInAt), amount: money(b.cashCollected ?? b.total, b.currency) })}</dd>
+                <dd>{t('checkedInLine', { time: clock(b.checkedInAt), amount: money(b.cashCollected ?? b.amountToPay, b.currency) })}</dd>
               </>
             )}
             {b.noShowAt && (

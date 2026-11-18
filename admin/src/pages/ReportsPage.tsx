@@ -81,6 +81,7 @@ function ReportBody({ from, to }: { from: string; to: string }) {
         <Tile label={t('tileBookings')} value={String(r.bookings)} />
         <Tile label={t('tileOccupancy')} value={`${r.occupancyPercent}%`} />
         <Tile label={t('tileCashTaken')} value={money(r.cashCollected, r.currency)} note={t('checkInsNote', { n: r.checkIns })} />
+        <Tile label={t('owedByMidangoPoints')} value={money(r.pointsDiscount, r.currency)} />
         <Tile
           label={t('tileNoShowRate')}
           value={`${r.noShowRatePercent}%`}
@@ -194,6 +195,7 @@ function CashTable({ report: r }: { report: Report }) {
   const cell = (week: string, courtId: string) => r.cash.find((c) => c.weekStart === week && c.courtId === courtId)?.cash ?? 0;
   const weekTotal = (week: string) => r.cash.filter((c) => c.weekStart === week).reduce((s, c) => s + c.cash, 0);
   const courtTotal = (courtId: string) => r.cash.filter((c) => c.courtId === courtId).reduce((s, c) => s + c.cash, 0);
+  const weekPoints = (week: string) => r.cash.filter((c) => c.weekStart === week).reduce((s, c) => s + c.pointsDiscount, 0);
 
   return (
     <section className="card">
@@ -210,6 +212,9 @@ function CashTable({ report: r }: { report: Report }) {
             <th scope="col" className="numeric">
               {t('total')}
             </th>
+            <th scope="col" className="numeric">
+              {t('owedByMidangoPoints')}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -222,6 +227,7 @@ function CashTable({ report: r }: { report: Report }) {
                 </td>
               ))}
               <td className="numeric">{money(weekTotal(week), r.currency)}</td>
+              <td className="numeric">{money(weekPoints(week), r.currency)}</td>
             </tr>
           ))}
           <tr className="total-row">
@@ -232,6 +238,7 @@ function CashTable({ report: r }: { report: Report }) {
               </td>
             ))}
             <td className="numeric">{money(r.cashCollected, r.currency)}</td>
+            <td className="numeric">{money(r.pointsDiscount, r.currency)}</td>
           </tr>
         </tbody>
       </table>

@@ -72,7 +72,7 @@ public sealed class Booking
     public DateTimeOffset? CheckedInAt { get; set; }
     public Guid? CheckedInByStaffId { get; set; }
 
-    /// Cash taken at check-in: the full total (no partial payments yet).
+    /// Cash taken at check-in: the organiser's amount minus any points discount.
     public decimal? CashCollected { get; set; }
 
     public DateTimeOffset? NoShowAt { get; set; }
@@ -88,6 +88,11 @@ public sealed class Booking
 
     /// Null = any level.
     public PlayLevel? MatchLevel { get; set; }
+
+    /// The organiser's points redemption on this booking: the points spent and the SAR off their amount.
+    /// Midango owes the venue the discount. Written only by Loyalty.Points.
+    public int PointsRedeemed { get; set; }
+    public decimal PointsDiscount { get; set; }
 }
 
 /// Self-set skill band, per sport.
@@ -123,6 +128,10 @@ public sealed class MatchPlayer
     public DateTimeOffset? CheckedInAt { get; set; }
     public decimal? CashCollected { get; set; }
     public DateTimeOffset? NoShowAt { get; set; }
+
+    /// This player's points redemption on their share. Written only by Loyalty.Points.
+    public int PointsRedeemed { get; set; }
+    public decimal PointsDiscount { get; set; }
 }
 
 public static class BookingReference

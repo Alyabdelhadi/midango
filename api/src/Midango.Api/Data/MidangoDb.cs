@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Identity;
+using Midango.Api.Loyalty;
 using Midango.Api.Notifications;
 using Midango.Api.Platform;
 using Midango.Api.Venues;
@@ -30,6 +31,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
     public DbSet<CustomerLevel> CustomerLevels => Set<CustomerLevel>();
     public DbSet<MatchPlayer> MatchPlayers => Set<MatchPlayer>();
+    public DbSet<PointsEntry> PointsEntries => Set<PointsEntry>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -163,6 +165,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(x => x.Vat).HasPrecision(10, 2);
             e.Property(x => x.CashCollected).HasPrecision(10, 2);
             e.Property(x => x.MatchLevel).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.PointsDiscount).HasPrecision(10, 2);
             e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Court>().WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
@@ -183,6 +186,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         {
             e.HasKey(x => new { x.BookingId, x.CustomerId });
             e.Property(x => x.CashCollected).HasPrecision(10, 2);
+            e.Property(x => x.PointsDiscount).HasPrecision(10, 2);
             e.HasOne<Booking>().WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.CustomerId);
@@ -192,6 +196,10 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         {
             e.ToTable("platform_settings", t => t.HasCheckConstraint("ck_platform_settings_singleton", "id = 1"));
             e.Property(s => s.Id).ValueGeneratedNever();
+            e.Property(s => s.PointsPerSar).HasPrecision(6, 2);
+            e.Property(s => s.SilverMultiplier).HasPrecision(4, 2);
+            e.Property(s => s.GoldMultiplier).HasPrecision(4, 2);
+            e.Property(s => s.SarPerRedeemStep).HasPrecision(10, 2);
             e.HasData(new PlatformSettings());
         });
 
@@ -224,6 +232,17 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasIndex(x => new { x.VenueId, x.At });
             e.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.OperatorId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // The points ledger. Id is a long identity, like OperatorAction. Balance = SUM(points) per customer.
+        b.Entity<PointsEntry>(e =>
+        {
+            e.ToTable("points_entries");
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Note).HasMaxLength(200);
+            e.HasIndex(x => new { x.CustomerId, x.At });
+            e.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Booking>().WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<LegalDocument>(e =>

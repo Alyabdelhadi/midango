@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Loyalty;
 using Midango.Api.Notifications;
 
 namespace Midango.Api.Bookings;
@@ -161,6 +162,7 @@ public static class MatchEndpoints
 
             row.LeftAt = now;
             row.LateLeave = now > booking.FreeCancellationUntil;
+            Points.Release(db, row, now);
             await db.SaveChangesAsync(ct);
             return Results.Ok((await LoadMatchesAsync(db, db.Bookings.Where(b => b.Id == id), ct)).Single());
         });
@@ -225,6 +227,7 @@ public static class MatchEndpoints
 
             row.LeftAt = now;
             row.RemovedByOrganiser = true;
+            Points.Release(db, row, now);
             await db.SaveChangesAsync(ct);
             await notify.RemovedAsync(id, playerId);
             return Results.Ok((await BookingEndpoints.LoadAsync(db, db.Bookings.Where(b => b.Id == id), customerId, ct)).Single());
@@ -253,10 +256,12 @@ public static class MatchEndpoints
     internal static string FirstName(string? name) =>
         name?.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "";
 
-    private static async Task<Booking?> LockAsync(MidangoDb db, Guid id, CancellationToken ct) =>
+    internal static async Task<Booking?> LockAsync(MidangoDb db, Guid id, CancellationToken ct) =>
         (await db.Bookings.FromSql($"SELECT * FROM bookings WHERE id = {id} FOR UPDATE").ToListAsync(ct)).SingleOrDefault();
 
-    internal sealed record PersonRow(Guid BookingId, Guid CustomerId, string? Name, DateTimeOffset JoinedAt, DateTimeOffset? LeftAt, bool RemovedByOrganiser);
+    internal sealed record PersonRow(
+        Guid BookingId, Guid CustomerId, string? Name, DateTimeOffset JoinedAt, DateTimeOffset? LeftAt, bool RemovedByOrganiser,
+        int PointsRedeemed, decimal PointsDiscount);
 
     /// Joiner rows (any state) and organiser names for a set of bookings.
     internal sealed class People(ILookup<Guid, PersonRow> rows, Dictionary<Guid, string?> names)
@@ -275,7 +280,8 @@ public static class MatchEndpoints
         var rows = await (from p in db.MatchPlayers
                           join c in db.Customers on p.CustomerId equals c.Id
                           where ids.Contains(p.BookingId)
-                          select new PersonRow(p.BookingId, p.CustomerId, c.Name, p.JoinedAt, p.LeftAt, p.RemovedByOrganiser))
+                          select new PersonRow(p.BookingId, p.CustomerId, c.Name, p.JoinedAt, p.LeftAt, p.RemovedByOrganiser,
+                              p.PointsRedeemed, p.PointsDiscount))
             .AsNoTracking().ToListAsync(ct);
         var organiserIds = bookings.Where(b => b.IsOpenMatch && b.CustomerId != null).Select(b => b.CustomerId!.Value).Distinct().ToList();
         var names = await db.Customers.AsNoTracking().Where(c => organiserIds.Contains(c.Id))

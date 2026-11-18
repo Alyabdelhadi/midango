@@ -328,6 +328,21 @@ export const en = {
   undoNoShowFor: 'Undo no-show for {name}',
   playerNoShowNotice: '{name} marked as a no-show.',
   noPlayersYet: 'No one has joined yet.',
+  withPoints: '{amount} with points',
+  loyaltyTitle: 'Loyalty',
+  pointsPerSar: 'Points per SAR paid',
+  silverGames: 'Games for Silver',
+  silverMultiplier: 'Silver earns ×',
+  goldGames: 'Games for Gold',
+  goldMultiplier: 'Gold earns ×',
+  tierWindowDays: 'Count games over (days)',
+  pointsPerRedeemStep: 'Points per redeem step',
+  sarPerRedeemStep: 'SAR off per step',
+  maxRedeemPercent: 'Most of an amount paid with points (%)',
+  loyaltyExample: 'A Silver player paying SAR 100 earns {points} points; {step} points = SAR {sar} off.',
+  tilePaidWithPoints: 'Paid with points',
+  owedByMidango: 'Owed by Midango',
+  owedByMidangoPoints: 'Owed by Midango (points)',
 };
 
 export type MessageKey = keyof typeof en;

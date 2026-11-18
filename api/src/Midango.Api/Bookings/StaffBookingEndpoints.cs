@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Loyalty;
 using Midango.Api.Notifications;
 using Midango.Api.Venues;
 
@@ -20,12 +21,14 @@ public static class StaffBookingEndpoints
         DateTimeOffset StartsAt, DateTimeOffset EndsAt, int Minutes, decimal Total, string Currency, BookingStatus Status,
         Guid? CustomerId, string? CustomerName, string? PhoneMasked, string? Note,
         bool LateCancellation, bool CancelledByVenue, DateTimeOffset CreatedAt,
-        DateTimeOffset? CheckedInAt, decimal? CashCollected, DateTimeOffset? NoShowAt, StaffMatchDto? Match);
+        DateTimeOffset? CheckedInAt, decimal? CashCollected, DateTimeOffset? NoShowAt, StaffMatchDto? Match,
+        decimal PointsDiscount, decimal AmountToPay);
 
     /// Active joiners in join order. The name is the account's own: they joined this venue's match in the app.
     public sealed record StaffMatchPlayerDto(
         Guid CustomerId, string? Name, string MaskedPhone, DateTimeOffset JoinedAt,
-        DateTimeOffset? CheckedInAt, decimal? CashCollected, DateTimeOffset? NoShowAt);
+        DateTimeOffset? CheckedInAt, decimal? CashCollected, DateTimeOffset? NoShowAt,
+        decimal PointsDiscount, decimal AmountToPay);
 
     /// Null on a booking that isn't an open match. OrganiserShare = Total − Share × active joiners.
     public sealed record StaffMatchDto(
@@ -234,6 +237,7 @@ public static class StaffBookingEndpoints
                 booking.CancelledAt = now;
                 booking.CancelledByVenue = true;
                 booking.LateCancellation = false;
+                await Points.ReleaseAllAsync(db, booking, now, ct);
                 await db.SaveChangesAsync(ct);
                 if (booking.IsOpenMatch) await notify.CancelledAsync(booking.Id);
             }
@@ -308,22 +312,26 @@ public static class StaffBookingEndpoints
         StaffMatchDto? Match(Booking b)
         {
             if (!b.IsOpenMatch || b.MaxPlayers is not { } max) return null;
+            var share = MatchEndpoints.Share(b.Total, max);
             var joiners = playersOf[b.Id].Select(p => new StaffMatchPlayerDto(
                 p.Player.CustomerId, p.Name, PhoneNumber.Mask(p.Phone), Local(p.Player.JoinedAt),
-                LocalOrNull(p.Player.CheckedInAt), p.Player.CashCollected, LocalOrNull(p.Player.NoShowAt))).ToList();
-            return new StaffMatchDto(max, b.MatchLevel, MatchEndpoints.Share(b.Total, max),
+                LocalOrNull(p.Player.CheckedInAt), p.Player.CashCollected, LocalOrNull(p.Player.NoShowAt),
+                p.Player.PointsDiscount, Points.AmountToPay(share, p.Player.PointsDiscount))).ToList();
+            return new StaffMatchDto(max, b.MatchLevel, share,
                 MatchEndpoints.OrganiserShare(b.Total, max, joiners.Count), joiners);
         }
 
         return rows.OrderBy(r => r.Booking.StartsAt).Select(r =>
         {
             var b = r.Booking;
+            var match = Match(b);
             return new StaffBookingDto(
                 b.Id, b.Reference, b.Kind, b.Source, b.CourtId, r.CourtEn, r.CourtAr,
                 Local(b.StartsAt), Local(b.EndsAt), b.Minutes, b.Total, b.Currency, b.Status,
                 b.CustomerId, b.GuestName ?? r.CustomerName, r.Phone is null ? null : PhoneNumber.Mask(r.Phone), b.Note,
                 b.LateCancellation, b.CancelledByVenue, Local(b.CreatedAt),
-                LocalOrNull(b.CheckedInAt), b.CashCollected, LocalOrNull(b.NoShowAt), Match(b));
+                LocalOrNull(b.CheckedInAt), b.CashCollected, LocalOrNull(b.NoShowAt), match,
+                b.PointsDiscount, Points.AmountToPay(match?.OrganiserShare ?? b.Total, b.PointsDiscount));
         }).ToList();
     }
 

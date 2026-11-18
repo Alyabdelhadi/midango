@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Loyalty;
 using Midango.Api.Notifications;
 using Npgsql;
 
@@ -23,7 +24,8 @@ public static class BookingEndpoints
         decimal Total, decimal Net, decimal Vat, string Currency, string PaymentMethod,
         BookingStatus Status, DateTimeOffset FreeCancellationUntil, bool LateCancellation, DateTimeOffset? CancelledAt,
         bool CancelledByVenue,
-        string Role, MatchEndpoints.BookingMatchDto? Match, decimal? MyShare, string? PlayerStatus);
+        string Role, MatchEndpoints.BookingMatchDto? Match, decimal? MyShare, string? PlayerStatus,
+        int PointsRedeemed, decimal PointsDiscount, decimal? AmountToPay);
 
     public const string Organiser = "organiser";
     public const string Player = "player";
@@ -133,6 +135,7 @@ public static class BookingEndpoints
                 booking.Status = BookingStatus.Cancelled;
                 booking.CancelledAt = now;
                 booking.LateCancellation = now > booking.FreeCancellationUntil;
+                await Points.ReleaseAllAsync(db, booking, now, ct);
                 await db.SaveChangesAsync(ct);
                 if (booking.IsOpenMatch) await notify.CancelledAsync(booking.Id);
             }
@@ -187,11 +190,16 @@ public static class BookingEndpoints
             decimal? myShare = match is null ? null
                 : role == Organiser ? b.Total - match.Share * people.Active(b.Id).Count
                 : playerStatus == "joined" ? match.Share : null;
+            // The viewer's own points on it: the booking's for the organiser, their row's for a joiner.
+            var (pointsRedeemed, pointsDiscount) = role == Organiser ? (b.PointsRedeemed, b.PointsDiscount)
+                : mine is null ? (0, 0m) : (mine.PointsRedeemed, mine.PointsDiscount);
+            var own = role == Organiser ? myShare ?? b.Total : myShare;
             return new BookingDto(
                 b.Id, b.Reference, b.VenueId, r.VenueEn, r.VenueAr, b.CourtId, r.CourtEn, r.CourtAr,
                 Local(b.StartsAt), Local(b.EndsAt), b.Minutes, b.Total, b.Net, b.Vat, b.Currency, CashAtVenue,
                 b.Status, Local(b.FreeCancellationUntil), b.LateCancellation, b.CancelledAt is { } c ? Local(c) : null,
-                b.CancelledByVenue, role, match, myShare, playerStatus);
+                b.CancelledByVenue, role, match, myShare, playerStatus,
+                pointsRedeemed, pointsDiscount, own is { } amount ? Points.AmountToPay(amount, pointsDiscount) : null);
         }).ToList();
     }
 }

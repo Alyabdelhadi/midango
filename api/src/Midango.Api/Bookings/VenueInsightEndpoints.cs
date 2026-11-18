@@ -16,7 +16,8 @@ public static class VenueInsightEndpoints
         DateOnly Date, bool Open, DateTimeOffset From, DateTimeOffset To,
         int Bookings, int BookedMinutes, int OccupancyPercent, decimal CashExpected, string Currency, int Cancelled,
         decimal CashCollected, int NoShows,
-        IReadOnlyList<StaffBookingEndpoints.StaffBookingDto> Next);
+        IReadOnlyList<StaffBookingEndpoints.StaffBookingDto> Next,
+        decimal PaidWithPoints);
 
     public static void MapVenueInsightEndpoints(this IEndpointRouteBuilder app)
     {
@@ -99,10 +100,13 @@ public static class VenueInsightEndpoints
             var inWindow = db.Bookings.Where(b => b.VenueId == venue.Id && b.Kind == BookingKind.Booking
                                                   && b.StartsAt >= from && b.StartsAt < to);
             var confirmed = await inWindow.Where(b => b.Status == BookingStatus.Confirmed)
-                .Select(b => new { b.Minutes, b.Total, b.CashCollected }).ToListAsync(ct);
+                .Select(b => new { b.Minutes, b.Total, b.CashCollected, Points = b.CheckedInAt == null ? 0 : b.PointsDiscount }).ToListAsync(ct);
             // Open-match joiners pay their share at their own check-in. Expected cash stays Total per booking (= all shares).
             var playerCash = await db.MatchPlayers.Where(p => inWindow.Any(b => b.Id == p.BookingId))
                 .SumAsync(p => p.CashCollected ?? 0, ct);
+            // Points discounts at check-ins so far: Midango owes these to the venue.
+            var playerPoints = await db.MatchPlayers.Where(p => p.CheckedInAt != null && inWindow.Any(b => b.Id == p.BookingId))
+                .SumAsync(p => p.PointsDiscount, ct);
             var cancelled = await inWindow.CountAsync(b => b.Status == BookingStatus.Cancelled, ct);
             var noShows = await inWindow.CountAsync(b => b.Status == BookingStatus.NoShow, ct);
             var courts = await db.Courts.CountAsync(c => c.VenueId == venue.Id && c.Active, ct);
@@ -118,7 +122,8 @@ public static class VenueInsightEndpoints
             return Results.Ok(new TodayDto(
                 day, period is not null, TimeZoneInfo.ConvertTime(from, zone), TimeZoneInfo.ConvertTime(to, zone),
                 confirmed.Count, bookedMinutes, Math.Min(occupancy, 100), confirmed.Sum(b => b.Total),
-                venue.CurrencyCode, cancelled, confirmed.Sum(b => b.CashCollected ?? 0) + playerCash, noShows, next));
+                venue.CurrencyCode, cancelled, confirmed.Sum(b => b.CashCollected ?? 0) + playerCash, noShows, next,
+                confirmed.Sum(b => b.Points) + playerPoints));
         });
     }
 }

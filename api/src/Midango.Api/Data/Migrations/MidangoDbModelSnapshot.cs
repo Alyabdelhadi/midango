@@ -145,6 +145,15 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("note");
 
+                    b.Property<decimal>("PointsDiscount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("points_discount");
+
+                    b.Property<int>("PointsRedeemed")
+                        .HasColumnType("integer")
+                        .HasColumnName("points_redeemed");
+
                     b.Property<string>("Reference")
                         .IsRequired()
                         .HasMaxLength(12)
@@ -273,6 +282,15 @@ namespace Midango.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("NoShowAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("no_show_at");
+
+                    b.Property<decimal>("PointsDiscount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("points_discount");
+
+                    b.Property<int>("PointsRedeemed")
+                        .HasColumnType("integer")
+                        .HasColumnName("points_redeemed");
 
                     b.Property<DateTimeOffset?>("ReminderSentAt")
                         .HasColumnType("timestamp with time zone")
@@ -698,6 +716,54 @@ namespace Midango.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Midango.Api.Loyalty.PointsEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("booking_id");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("note");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("integer")
+                        .HasColumnName("points");
+
+                    b.HasKey("Id")
+                        .HasName("pk_points_entries");
+
+                    b.HasIndex("BookingId")
+                        .HasDatabaseName("ix_points_entries_booking_id");
+
+                    b.HasIndex("CustomerId", "At")
+                        .HasDatabaseName("ix_points_entries_customer_id_at");
+
+                    b.ToTable("points_entries", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Notifications.CustomerDevice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -831,9 +897,22 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id");
 
+                    b.Property<int>("GoldGames")
+                        .HasColumnType("integer")
+                        .HasColumnName("gold_games");
+
+                    b.Property<decimal>("GoldMultiplier")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)")
+                        .HasColumnName("gold_multiplier");
+
                     b.Property<int>("LimitedUpcomingBookings")
                         .HasColumnType("integer")
                         .HasColumnName("limited_upcoming_bookings");
+
+                    b.Property<int>("MaxRedeemPercent")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_redeem_percent");
 
                     b.Property<int>("NoShowLimit")
                         .HasColumnType("integer")
@@ -843,9 +922,36 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("no_show_window_days");
 
+                    b.Property<int>("PointsPerRedeemStep")
+                        .HasColumnType("integer")
+                        .HasColumnName("points_per_redeem_step");
+
+                    b.Property<decimal>("PointsPerSar")
+                        .HasPrecision(6, 2)
+                        .HasColumnType("numeric(6,2)")
+                        .HasColumnName("points_per_sar");
+
                     b.Property<int>("ReminderHoursBefore")
                         .HasColumnType("integer")
                         .HasColumnName("reminder_hours_before");
+
+                    b.Property<decimal>("SarPerRedeemStep")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("sar_per_redeem_step");
+
+                    b.Property<int>("SilverGames")
+                        .HasColumnType("integer")
+                        .HasColumnName("silver_games");
+
+                    b.Property<decimal>("SilverMultiplier")
+                        .HasPrecision(4, 2)
+                        .HasColumnType("numeric(4,2)")
+                        .HasColumnName("silver_multiplier");
+
+                    b.Property<int>("TierWindowDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("tier_window_days");
 
                     b.HasKey("Id")
                         .HasName("pk_platform_settings");
@@ -859,10 +965,19 @@ namespace Midango.Api.Data.Migrations
                         new
                         {
                             Id = 1,
+                            GoldGames = 25,
+                            GoldMultiplier = 1.5m,
                             LimitedUpcomingBookings = 1,
+                            MaxRedeemPercent = 50,
                             NoShowLimit = 2,
                             NoShowWindowDays = 30,
-                            ReminderHoursBefore = 3
+                            PointsPerRedeemStep = 100,
+                            PointsPerSar = 1m,
+                            ReminderHoursBefore = 3,
+                            SarPerRedeemStep = 10m,
+                            SilverGames = 10,
+                            SilverMultiplier = 1.25m,
+                            TierWindowDays = 90
                         });
                 });
 
@@ -1169,6 +1284,22 @@ namespace Midango.Api.Data.Migrations
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_staff_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Loyalty.PointsEntry", b =>
+                {
+                    b.HasOne("Midango.Api.Bookings.Booking", null)
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_points_entries_bookings_booking_id");
+
+                    b.HasOne("Midango.Api.Identity.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_points_entries_customers_customer_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Notifications.CustomerDevice", b =>

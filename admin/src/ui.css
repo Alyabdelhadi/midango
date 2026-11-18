@@ -284,5 +284,6 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .mg-table .total-row th, .mg-table .total-row td { font-weight: 700; background: var(--mg-cloud); }
 /* Rules: labels wrap to different heights; line the inputs up along the bottom. */
 .rules-grid { align-items: end; }
+.rules-form { display: grid; gap: 20px; }
 .lead-message { max-width: 360px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .nowrap { white-space: nowrap; }

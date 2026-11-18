@@ -13,13 +13,15 @@ public static class ReportEndpoints
 
     public sealed record HeatCellDto(DayOfWeek Day, int Hour, int Percent, int BookedMinutes, int OpenMinutes);
 
-    public sealed record CashRowDto(DateOnly WeekStart, Guid CourtId, string CourtNameEn, string CourtNameAr, decimal Cash, int CheckIns);
+    /// PointsDiscount = the points discounts at check-in, owed to the venue by Midango (not in Cash).
+    public sealed record CashRowDto(
+        DateOnly WeekStart, Guid CourtId, string CourtNameEn, string CourtNameAr, decimal Cash, int CheckIns, decimal PointsDiscount);
 
     public sealed record ReportDto(
         DateOnly From, DateOnly To, string Currency, int DayStartHour,
         int Bookings, int OccupancyPercent, decimal CashCollected, int CheckIns,
         int Played, int NoShows, int NoShowRatePercent, int LateCancellations, int VenueCancellations,
-        IReadOnlyList<HeatCellDto> Heatmap, IReadOnlyList<CashRowDto> Cash);
+        IReadOnlyList<HeatCellDto> Heatmap, IReadOnlyList<CashRowDto> Cash, decimal PointsDiscount);
 
     public static void MapReportEndpoints(this IEndpointRouteBuilder app)
     {
@@ -45,6 +47,9 @@ public static class ReportEndpoints
                     b.CourtId, b.StartsAt, b.EndsAt, b.Status, b.CheckedInAt, b.LateCancellation, b.CancelledByVenue,
                     // The organiser's cash plus every match player's share, all on the booking's court and start.
                     Cash = (b.CashCollected ?? 0) + (db.MatchPlayers.Where(p => p.BookingId == b.Id).Sum(p => p.CashCollected) ?? 0),
+                    // Likewise the points discounts, counted once paid (checked in).
+                    Points = (b.CheckedInAt == null ? 0 : b.PointsDiscount)
+                             + db.MatchPlayers.Where(p => p.BookingId == b.Id && p.CheckedInAt != null).Sum(p => p.PointsDiscount),
                 })
                 .ToListAsync(ct);
             var courts = await db.Courts.AsNoTracking().Where(c => c.VenueId == venue.Id)
@@ -90,7 +95,8 @@ public static class ReportEndpoints
                 .Select(g =>
                 {
                     var court = courts.First(c => c.Id == g.Key.CourtId);
-                    return new CashRowDto(g.Key.WeekStart, court.Id, court.NameEn, court.NameAr, g.Sum(r => r.Cash), g.Count(r => r.CheckedInAt is not null));
+                    return new CashRowDto(g.Key.WeekStart, court.Id, court.NameEn, court.NameAr, g.Sum(r => r.Cash),
+                        g.Count(r => r.CheckedInAt is not null), g.Sum(r => r.Points));
                 })
                 .OrderBy(r => r.WeekStart).ThenBy(r => courts.FindIndex(c => c.Id == r.CourtId))
                 .ToList();
@@ -104,7 +110,7 @@ public static class ReportEndpoints
                 played, noShows, Percent(noShows, played + noShows),
                 rows.Count(r => r.Status == BookingStatus.Cancelled && r.LateCancellation),
                 rows.Count(r => r.Status == BookingStatus.Cancelled && r.CancelledByVenue),
-                heatmap, cash));
+                heatmap, cash, rows.Sum(r => r.Points)));
         }).RequireAuthorization(Policies.VenueManager);
     }
 

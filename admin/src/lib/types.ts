@@ -152,6 +152,9 @@ export type StaffBooking = {
   noShowAt: string | null;
   /** Open match: the organiser is the booking's customer; `players` are the active joiners in join order. */
   match: StaffMatch | null;
+  /** The organiser's points discount (owed to the venue by Midango) and the cash left to take at the desk. */
+  pointsDiscount: number;
+  amountToPay: number;
 };
 
 export type StaffMatchPlayer = {
@@ -162,6 +165,9 @@ export type StaffMatchPlayer = {
   checkedInAt: string | null;
   cashCollected: number | null;
   noShowAt: string | null;
+  /** This player's points discount on their share, and the cash left to take. */
+  pointsDiscount: number;
+  amountToPay: number;
 };
 
 export type StaffMatch = {
@@ -211,15 +217,35 @@ export type Today = {
   cashCollected: number;
   noShows: number;
   next: StaffBooking[];
+  /** Points discounts at today's check-ins: owed to the venue by Midango, not in cashCollected. */
+  paidWithPoints: number;
 };
 
 export type HeatCell = { day: Day; hour: number; percent: number; bookedMinutes: number; openMinutes: number };
-export type CashRow = { weekStart: string; courtId: string; courtNameEn: string; courtNameAr: string; cash: number; checkIns: number };
+export type CashRow = {
+  weekStart: string;
+  courtId: string;
+  courtNameEn: string;
+  courtNameAr: string;
+  cash: number;
+  checkIns: number;
+  /** Points discounts at check-in: owed by Midango, not in cash. */
+  pointsDiscount: number;
+};
 export type PlatformSettings = {
   reminderHoursBefore: number;
   noShowLimit: number;
   noShowWindowDays: number;
   limitedUpcomingBookings: number;
+  pointsPerSar: number;
+  silverGames: number;
+  goldGames: number;
+  silverMultiplier: number;
+  goldMultiplier: number;
+  tierWindowDays: number;
+  pointsPerRedeemStep: number;
+  sarPerRedeemStep: number;
+  maxRedeemPercent: number;
 };
 
 export type Report = {
@@ -238,6 +264,7 @@ export type Report = {
   venueCancellations: number;
   heatmap: HeatCell[];
   cash: CashRow[];
+  pointsDiscount: number;
 };
 
 export type VenueLead = {

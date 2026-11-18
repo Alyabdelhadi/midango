@@ -9,6 +9,7 @@ using Midango.Api.Bookings;
 using Midango.Api.Catalog;
 using Midango.Api.Data;
 using Midango.Api.Identity;
+using Midango.Api.Loyalty;
 using Midango.Api.Media;
 using Midango.Api.Notifications;
 using Midango.Api.Platform;
@@ -150,5 +151,6 @@ app.MapLeadEndpoints();
 app.MapOperatorEndpoints();
 app.MapMediaEndpoints();
 app.MapLegalEndpoints();
+app.MapLoyaltyEndpoints();
 
 app.Run();

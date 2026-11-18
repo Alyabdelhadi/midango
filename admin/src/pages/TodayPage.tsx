@@ -63,6 +63,7 @@ export function TodayPage() {
           value={money(d.cashCollected, d.currency)}
           note={t('ofExpected', { amount: money(d.cashExpected, d.currency) })}
         />
+        <Tile label={t('tilePaidWithPoints')} value={money(d.paidWithPoints, d.currency)} note={t('owedByMidango')} />
         <Tile label={t('tileNoShows')} value={String(d.noShows)} />
         <Tile label={t('tileCancelled')} value={String(d.cancelled)} />
       </div>

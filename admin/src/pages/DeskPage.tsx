@@ -198,6 +198,7 @@ function DeskRow({
           <span>{name({ nameEn: b.courtNameEn, nameAr: b.courtNameAr })}</span>
           <bdi dir="ltr">{b.phoneMasked ?? t('walkIn')}</bdi>
           <span>{money(b.total, b.currency)}</span>
+          {b.pointsDiscount > 0 && <span>{t('withPoints', { amount: money(b.pointsDiscount, b.currency) })}</span>}
           <span>{b.reference}</span>
           <BookingStatusPill booking={b} />
           {b.match && <Pill>{t('openMatchCount', { n: b.match.players.length + 1, max: b.match.maxPlayers })}</Pill>}

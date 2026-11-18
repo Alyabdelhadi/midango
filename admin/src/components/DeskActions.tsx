@@ -30,8 +30,8 @@ export function DeskActions({ booking: b, onDone }: { booking: StaffBooking; onD
   const { canCheckIn, canNoShow } = deskWindow(b, Date.now());
   if (!canCheckIn && !canNoShow) return null;
 
-  // An open match's organiser pays only their part; each player pays a share at the counter.
-  const amount = money(b.match ? b.match.organiserShare : b.total, b.currency);
+  // An open match's organiser pays only their part; each player pays a share at the counter. Points come off it.
+  const amount = money(b.amountToPay, b.currency);
   const who = b.customerName ?? '';
 
   async function run(action: string, undoAction: string, message: string) {
@@ -53,6 +53,9 @@ export function DeskActions({ booking: b, onDone }: { booking: StaffBooking; onD
         <Button disabled={busy} onClick={() => void run('check-in', 'undo-check-in', t('checkedInNotice', { name: who, amount }))}>
           {t('takeCashCheckIn', { amount })}
         </Button>
+      )}
+      {canCheckIn && b.pointsDiscount > 0 && (
+        <span className="muted">{t('withPoints', { amount: money(b.pointsDiscount, b.currency) })}</span>
       )}
       {canNoShow && (
         <Button variant="secondary" disabled={busy} onClick={() => void run('no-show', 'undo-no-show', t('noShowNotice', { name: who }))}>
@@ -81,7 +84,8 @@ export function MatchPlayers({ booking: b, onDone }: { booking: StaffBooking; on
     // eslint-disable-next-line react/purity -- the buttons follow the clock; the page re-renders on reload
     b.status === 'Confirmed' ? deskWindow(b, Date.now()) : { canCheckIn: false, canNoShow: false };
   const taken = m.players.reduce((sum, p) => sum + (p.cashCollected ?? 0), b.cashCollected ?? 0);
-  const share = money(m.share, b.currency);
+  // The cash due: the total less every points discount (Midango pays those to the venue).
+  const due = m.players.reduce((sum, p) => sum - p.pointsDiscount, b.total - b.pointsDiscount);
   const url = (p: StaffMatchPlayer, action: string) => `/venue/bookings/${b.id}/players/${p.customerId}/${action}`;
 
   async function run(p: StaffMatchPlayer, action: string, undoAction: string | null, message: string) {
@@ -101,7 +105,7 @@ export function MatchPlayers({ booking: b, onDone }: { booking: StaffBooking; on
     <div className="match-players">
       <p className="match-players-head">
         <strong>{t('matchPlayers')}</strong>
-        <span>{t('matchCollected', { taken: money(taken, b.currency), total: money(b.total, b.currency) })}</span>
+        <span>{t('matchCollected', { taken: money(taken, b.currency), total: money(due, b.currency) })}</span>
       </p>
       {m.players.length === 0 ? (
         <p className="muted">{t('noPlayersYet')}</p>
@@ -110,6 +114,7 @@ export function MatchPlayers({ booking: b, onDone }: { booking: StaffBooking; on
           {m.players.map((p) => {
             const who = p.name ?? p.maskedPhone;
             const waiting = !p.checkedInAt && !p.noShowAt;
+            const share = money(p.amountToPay, b.currency);
             return (
               <li key={p.customerId} className="match-player">
                 <span className="match-player-who">
@@ -117,11 +122,14 @@ export function MatchPlayers({ booking: b, onDone }: { booking: StaffBooking; on
                   <bdi dir="ltr" className="muted">
                     {p.maskedPhone}
                   </bdi>
+                  {p.pointsDiscount > 0 && (
+                    <span className="muted"> · {t('withPoints', { amount: money(p.pointsDiscount, b.currency) })}</span>
+                  )}
                 </span>
                 {p.noShowAt ? (
                   <Pill tone="warning">{t('statusNoShow')}</Pill>
                 ) : p.checkedInAt ? (
-                  <Pill tone="success">{t('statusCheckedInAmount', { amount: money(p.cashCollected ?? m.share, b.currency) })}</Pill>
+                  <Pill tone="success">{t('statusCheckedInAmount', { amount: money(p.cashCollected ?? p.amountToPay, b.currency) })}</Pill>
                 ) : (
                   <Pill>{t('statusWaiting')}</Pill>
                 )}
