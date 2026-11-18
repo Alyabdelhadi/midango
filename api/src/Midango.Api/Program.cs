@@ -150,6 +150,7 @@ app.MapDeskEndpoints();
 app.MapReportEndpoints();
 app.MapSettingsEndpoints();
 app.MapAppContentEndpoints();
+app.MapSiteContentEndpoints();
 app.MapDeviceEndpoints();
 app.MapLeadEndpoints();
 app.MapOperatorEndpoints();

@@ -1192,6 +1192,364 @@ namespace Midango.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.SiteFaq", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AnswerAr")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("answer_ar");
+
+                    b.Property<string>("AnswerEn")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("answer_en");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("QuestionAr")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("question_ar");
+
+                    b.Property<string>("QuestionEn")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("question_en");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_site_faqs");
+
+                    b.HasIndex("SortOrder")
+                        .HasDatabaseName("ix_site_faqs_sort_order");
+
+                    b.ToTable("site_faqs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("019a9700-0000-7000-8000-000000000001"),
+                            AnswerAr = "نعم. تنزيل التطبيق والحجز من خلاله مجانيان، وتدفع فقط سعر الملعب.",
+                            AnswerEn = "Yes. Downloading the app and booking are free. You only pay for the court.",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            QuestionAr = "هل التطبيق مجاني للاعبين؟",
+                            QuestionEn = "Is the app free for players?",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("019a9700-0000-7000-8000-000000000002"),
+                            AnswerAr = "نقدًا في الملعب. أظهر رمز QR الخاص بحجزك في الاستقبال وادفع عند وصولك.",
+                            AnswerEn = "In cash at the venue. Show your booking's QR code at the desk and pay when you arrive.",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            QuestionAr = "كيف أدفع؟",
+                            QuestionEn = "How do I pay?",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("019a9700-0000-7000-8000-000000000003"),
+                            AnswerAr = "نعم، مجانًا حتى تبدأ مهلة الإلغاء التي يحددها الملعب.",
+                            AnswerEn = "Yes, free of charge until the venue's cancellation window starts.",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            QuestionAr = "هل يمكنني إلغاء الحجز؟",
+                            QuestionEn = "Can I cancel a booking?",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("019a9700-0000-7000-8000-000000000004"),
+                            AnswerAr = "تواصل معنا وسنجهّز منشأتك. أرسل طلب عرض تجريبي وسنتصل بك.",
+                            AnswerEn = "Talk to us and we'll set your venue up. Send a demo request and we'll call you.",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            QuestionAr = "كم تكلّف MIDANGO أصحاب الملاعب؟",
+                            QuestionEn = "What does MIDANGO cost venues?",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("019a9700-0000-7000-8000-000000000005"),
+                            AnswerAr = "البادل وكرة القدم وغيرها، حسب ما يقدّمه كل ملعب.",
+                            AnswerEn = "Padel, football and more, depending on what each venue offers.",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            QuestionAr = "ما الرياضات التي يمكنني حجزها؟",
+                            QuestionEn = "Which sports can I book?",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("019a9700-0000-7000-8000-000000000006"),
+                            AnswerAr = "نعم. التطبيق ولوحة التحكم ثنائيا اللغة بالكامل، بالعربية والإنجليزية.",
+                            AnswerEn = "Yes. The app and the dashboard are fully bilingual, in English and Arabic.",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            QuestionAr = "هل يدعم اللغة العربية؟",
+                            QuestionEn = "Is it available in Arabic?",
+                            SortOrder = 6
+                        });
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.SiteSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("contact_email");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("contact_phone");
+
+                    b.Property<string>("Instagram")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("instagram");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("WhatsApp")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("whats_app");
+
+                    b.HasKey("Id")
+                        .HasName("pk_site_settings");
+
+                    b.ToTable("site_settings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_site_settings_singleton", "id = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.SiteText", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("key");
+
+                    b.Property<string>("Ar")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)")
+                        .HasColumnName("ar");
+
+                    b.Property<string>("En")
+                        .IsRequired()
+                        .HasMaxLength(600)
+                        .HasColumnType("character varying(600)")
+                        .HasColumnName("en");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Key")
+                        .HasName("pk_site_texts");
+
+                    b.ToTable("site_texts", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Key = "hero.title",
+                            Ar = "مباراتك القادمة على بُعد ضغطة.",
+                            En = "Press play on your next game.",
+                            SortOrder = 1,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "hero.lede",
+                            Ar = "MIDANGO منصة لحجز الملاعب في الخليج. يجد اللاعبون ملعبًا ويحجزونه في ثوانٍ، وتدير الملاعب الجدول والاستقبال والنقد من لوحة تحكم واحدة.",
+                            En = "MIDANGO is court booking for the Gulf. Players find a court and book it in seconds. Venues run the schedule, the desk and the cash from one dashboard.",
+                            SortOrder = 2,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.kicker",
+                            Ar = "للاعبين",
+                            En = "For players",
+                            SortOrder = 3,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.title",
+                            Ar = "من بيتك إلى الملعب في ثلاث خطوات.",
+                            En = "From your sofa to the court in three steps.",
+                            SortOrder = 4,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.lede",
+                            Ar = "اعثر على ملعب قريب منك، وشاهد الأوقات المتاحة واحجز. لا تحتاج إلى بطاقة: الدفع في الملعب.",
+                            En = "Find a venue near you, see what's free and book it. No card needed: you pay at the venue.",
+                            SortOrder = 5,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.step1.title",
+                            Ar = "اختر رياضتك",
+                            En = "Pick your sport",
+                            SortOrder = 6,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.step1.body",
+                            Ar = "بادل وكرة قدم وغيرها. تصفّح الملاعب القريبة منك مع ملاعبها ومواعيدها وأسعارها.",
+                            En = "Padel, football and more. Browse venues near you with their courts, opening hours and prices.",
+                            SortOrder = 7,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.step2.title",
+                            Ar = "اختر الملعب والوقت",
+                            En = "Pick a court and time",
+                            SortOrder = 8,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.step2.body",
+                            Ar = "شاهد الأوقات المتاحة كما هي الآن واحجز ما يناسبك، ويتأكد حجزك فورًا.",
+                            En = "See open slots as they are and book the one that suits you. Your booking is confirmed straight away.",
+                            SortOrder = 9,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.step3.title",
+                            Ar = "أظهر رمز QR في الاستقبال",
+                            En = "Show your QR at the desk",
+                            SortOrder = 10,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "players.step3.body",
+                            Ar = "كل حجز يأتي برمز QR. أظهره عند وصولك وادفع نقدًا في الملعب.",
+                            En = "Every booking comes with a QR code. Show it when you arrive and pay cash at the venue.",
+                            SortOrder = 11,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "stores.note",
+                            Ar = "يصدر التطبيق قريبًا بالعربية والإنجليزية.",
+                            En = "The app launches soon, in English and Arabic.",
+                            SortOrder = 12,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "venues.kicker",
+                            Ar = "لأصحاب الملاعب",
+                            En = "For venues",
+                            SortOrder = 13,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "venues.title",
+                            Ar = "منشأتك كلها على شاشة واحدة.",
+                            En = "Your whole venue on one screen.",
+                            SortOrder = 14,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "venues.lede",
+                            Ar = "MIDANGO Business لوحة تحكم على الويب لموظفي الاستقبال والمديرين، بالعربية والإنجليزية.",
+                            En = "MIDANGO Business is the web dashboard for your front desk and your managers, in English and Arabic.",
+                            SortOrder = 15,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "request.kicker",
+                            Ar = "اطلب عرضًا تجريبيًا",
+                            En = "Request a demo",
+                            SortOrder = 16,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "request.title",
+                            Ar = "انضم بمنشأتك إلى MIDANGO.",
+                            En = "Bring your venue to MIDANGO.",
+                            SortOrder = 17,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "request.lede",
+                            Ar = "أخبرنا عن منشأتك وسنتصل بك لتجهيزها. بدون أي التزام.",
+                            En = "Tell us about your venue and we'll call you to set it up. No commitment.",
+                            SortOrder = 18,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "faq.title",
+                            Ar = "أسئلة وأجوبة.",
+                            En = "Questions, answered.",
+                            SortOrder = 19,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "faq.lede",
+                            Ar = "عندك سؤال آخر؟ اكتبه في نموذج طلب العرض.",
+                            En = "Something else? Ask us in the demo form.",
+                            SortOrder = 20,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Key = "footer.tagline",
+                            Ar = "حجز الملاعب في الخليج.",
+                            En = "Court booking for the Gulf.",
+                            SortOrder = 21,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
             modelBuilder.Entity("Midango.Api.Platform.VenueLead", b =>
                 {
                     b.Property<Guid>("Id")

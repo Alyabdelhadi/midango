@@ -39,6 +39,9 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<AppContent> AppContent => Set<AppContent>();
     public DbSet<AppBanner> AppBanners => Set<AppBanner>();
     public DbSet<Broadcast> Broadcasts => Set<Broadcast>();
+    public DbSet<SiteText> SiteTexts => Set<SiteText>();
+    public DbSet<SiteFaq> SiteFaqs => Set<SiteFaq>();
+    public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -302,6 +305,38 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(x => x.BodyAr).HasMaxLength(300);
             e.HasIndex(x => x.SentAt);
             e.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.SentByStaffId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<SiteText>(e =>
+        {
+            e.ToTable("site_texts");
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).HasMaxLength(60);
+            e.Property(x => x.En).HasMaxLength(600);
+            e.Property(x => x.Ar).HasMaxLength(600);
+            e.HasData(SiteSeed.Texts);
+        });
+
+        b.Entity<SiteFaq>(e =>
+        {
+            e.ToTable("site_faqs");
+            e.Property(x => x.QuestionEn).HasMaxLength(200);
+            e.Property(x => x.QuestionAr).HasMaxLength(200);
+            e.Property(x => x.AnswerEn).HasMaxLength(1000);
+            e.Property(x => x.AnswerAr).HasMaxLength(1000);
+            e.HasIndex(x => x.SortOrder);
+            e.HasData(SiteSeed.Faqs);
+        });
+
+        b.Entity<SiteSettings>(e =>
+        {
+            e.ToTable("site_settings", t => t.HasCheckConstraint("ck_site_settings_singleton", "id = 1"));
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.ContactEmail).HasMaxLength(120);
+            e.Property(x => x.ContactPhone).HasMaxLength(30);
+            e.Property(x => x.WhatsApp).HasMaxLength(30);
+            e.Property(x => x.Instagram).HasMaxLength(60);
+            e.HasData(new SiteSettings { UpdatedAt = SiteSeed.At });
         });
 
         b.Entity<CustomerDevice>(e =>
