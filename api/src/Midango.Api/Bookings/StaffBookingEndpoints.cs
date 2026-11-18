@@ -36,12 +36,14 @@ public static class StaffBookingEndpoints
     {
         var venueStaff = app.MapGroup("/venue").RequireAuthorization(Policies.VenueStaff);
 
-        venueStaff.MapGet("/schedule", async (DateOnly date, ClaimsPrincipal user, MidangoDb db, CancellationToken ct) =>
+        venueStaff.MapGet("/schedule", async (DateOnly? date, ClaimsPrincipal user, MidangoDb db, TimeProvider clock, CancellationToken ct) =>
         {
             var venue = await db.Venues.AsNoTracking().SingleAsync(v => v.Id == user.StaffVenueId()!.Value, ct);
             var zone = VenueClock.Zone(venue);
             var hours = await db.OpeningHours.AsNoTracking().Where(h => h.VenueId == venue.Id).ToListAsync(ct);
-            var (fromLocal, toLocal) = Slots.DayWindow(date, hours);
+            // No date = the venue's current business day (01:00 still belongs to last night).
+            var day = date ?? Slots.BusinessDay(VenueClock.ToLocal(clock.GetUtcNow(), zone), hours);
+            var (fromLocal, toLocal) = Slots.DayWindow(day, hours);
             var from = VenueClock.ToInstant(fromLocal, zone);
             var to = VenueClock.ToInstant(toLocal, zone);
             var fromUtc = from.ToUniversalTime();
@@ -59,7 +61,7 @@ public static class StaffBookingEndpoints
                 b.VenueId == venue.Id && b.Status == BookingStatus.Confirmed && b.StartsAt < toUtc && b.EndsAt > fromUtc), ct);
 
             return Results.Ok(new ScheduleDto(
-                date, Slots.Period(date, hours) is not null, from, to, venue.CurrencyCode, courts, bookings));
+                day, Slots.Period(day, hours) is not null, from, to, venue.CurrencyCode, courts, bookings));
         });
 
         venueStaff.MapPost("/bookings", async (

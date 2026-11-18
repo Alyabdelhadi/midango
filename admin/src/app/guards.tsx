@@ -22,5 +22,5 @@ export function RequireRole({ roles, children }: { roles: Role[]; children: Reac
 
 export function HomeRedirect() {
   const { staff } = useAuth();
-  return <Navigate to={staff?.role === 'PlatformOperator' ? '/categories' : '/venue'} replace />;
+  return <Navigate to={staff?.role === 'PlatformOperator' ? '/categories' : '/today'} replace />;
 }

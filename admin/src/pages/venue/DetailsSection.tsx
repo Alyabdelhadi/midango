@@ -12,6 +12,7 @@ export type DetailsInput = {
   latitude: number | null;
   longitude: number | null;
   timeZoneId: string;
+  freeCancellationHours: number;
 };
 
 export function DetailsSection({
@@ -31,6 +32,7 @@ export function DetailsSection({
     addressAr: venue.addressAr ?? '',
     latitude: venue.latitude?.toString() ?? '',
     longitude: venue.longitude?.toString() ?? '',
+    freeCancellationHours: String(venue.freeCancellationHours),
   });
   const set = (key: keyof typeof draft) => (value: string) => setDraft((d) => ({ ...d, [key]: value }));
   const toNumber = (value: string) => (value.trim() === '' ? null : Number(value));
@@ -45,6 +47,7 @@ export function DetailsSection({
       latitude: toNumber(draft.latitude),
       longitude: toNumber(draft.longitude),
       timeZoneId: venue.timeZoneId,
+      freeCancellationHours: Number(draft.freeCancellationHours),
     });
   }
 
@@ -85,6 +88,18 @@ export function DetailsSection({
               inputMode="decimal"
               value={draft.longitude}
               onChange={(e) => set('longitude')(e.target.value)}
+            />
+          </Field>
+          <Field label={t('freeCancellationHours')} hint={t('freeCancellationHint')}>
+            <input
+              type="number"
+              min={0}
+              max={168}
+              step={1}
+              required
+              inputMode="numeric"
+              value={draft.freeCancellationHours}
+              onChange={(e) => set('freeCancellationHours')(e.target.value)}
             />
           </Field>
         </fieldset>

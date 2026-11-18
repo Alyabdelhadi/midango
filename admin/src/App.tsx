@@ -3,10 +3,14 @@ import { HomeRedirect, RequireRole, RequireStaff } from './app/guards';
 import { Shell } from './layout/Shell';
 import { AuthProvider, useAuth } from './lib/auth';
 import { I18nProvider } from './lib/i18n';
+import { BookingsPage } from './pages/BookingsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { CustomersPage } from './pages/CustomersPage';
 import { PricesPage } from './pages/PricesPage';
 import { SignInPage } from './pages/SignInPage';
+import { SchedulePage } from './pages/schedule/SchedulePage';
 import { StaffPage } from './pages/StaffPage';
+import { TodayPage } from './pages/TodayPage';
 import { VenuePage } from './pages/venue/VenuePage';
 import { VenuesPage } from './pages/VenuesPage';
 import { Styleguide } from './Styleguide';
@@ -48,6 +52,20 @@ export default function App() {
                     </RequireRole>
                   }
                 />
+                {(
+                  [
+                    ['today', <TodayPage key="today" />],
+                    ['schedule', <SchedulePage key="schedule" />],
+                    ['bookings', <BookingsPage key="bookings" />],
+                    ['customers', <CustomersPage key="customers" />],
+                  ] as const
+                ).map(([path, page]) => (
+                  <Route
+                    key={path}
+                    path={path}
+                    element={<RequireRole roles={['VenueManager', 'DeskStaff']}>{page}</RequireRole>}
+                  />
+                ))}
                 <Route
                   path="venue"
                   element={

@@ -81,6 +81,7 @@ export type Venue = {
   timeZoneId: string;
   currencyCode: string;
   vatPercent: number;
+  freeCancellationHours: number;
   published: boolean;
   hours: Hours[];
   courts: Court[];
@@ -108,4 +109,69 @@ export const MISSING_KEY: Record<MissingItem, MessageKey> = {
   location: 'missingLocation',
   hours: 'missingHours',
   courts: 'missingCourts',
+};
+
+export type BookingKind = 'Booking' | 'Block';
+export type BookingStatus = 'Confirmed' | 'Cancelled';
+
+/** Times carry the venue's offset, e.g. "2026-11-19T20:00:00+03:00". phoneMasked is "•••• 1234" or null (walk-in, block). */
+export type StaffBooking = {
+  id: string;
+  reference: string;
+  kind: BookingKind;
+  source: 'App' | 'Staff';
+  courtId: string;
+  courtNameEn: string;
+  courtNameAr: string;
+  startsAt: string;
+  endsAt: string;
+  minutes: number;
+  total: number;
+  currency: string;
+  status: BookingStatus;
+  customerId: string | null;
+  customerName: string | null;
+  phoneMasked: string | null;
+  note: string | null;
+  lateCancellation: boolean;
+  cancelledByVenue: boolean;
+  createdAt: string;
+};
+
+export type ScheduleCourt = { id: string; categoryId: string; nameEn: string; nameAr: string; durationsMinutes: number[] };
+
+/** One business day: from/to are the opening period (or the calendar day when closed). */
+export type Schedule = {
+  date: string;
+  open: boolean;
+  from: string;
+  to: string;
+  currency: string;
+  courts: ScheduleCourt[];
+  bookings: StaffBooking[];
+};
+
+export type VenueCustomer = {
+  id: string;
+  name: string | null;
+  phoneMasked: string;
+  bookings: number;
+  cancellations: number;
+  lastBookingAt: string;
+};
+
+export type CustomerLookup = { id: string; name: string | null; phoneMasked: string };
+
+export type Today = {
+  date: string;
+  open: boolean;
+  from: string;
+  to: string;
+  bookings: number;
+  bookedMinutes: number;
+  occupancyPercent: number;
+  cashExpected: number;
+  currency: string;
+  cancelled: number;
+  next: StaffBooking[];
 };

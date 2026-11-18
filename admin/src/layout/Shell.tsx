@@ -1,4 +1,15 @@
-import { Building2, MapPin, Shapes, Tag, Users, type LucideIcon } from 'lucide-react';
+import {
+  Building2,
+  CalendarDays,
+  Contact,
+  LayoutDashboard,
+  ListChecks,
+  MapPin,
+  Shapes,
+  Tag,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 import { Button } from '../components/Button';
 import { LanguageToggle } from '../components/LanguageToggle';
@@ -11,6 +22,10 @@ type NavItem = { to: string; label: MessageKey; icon: LucideIcon; roles: Role[] 
 
 /** Only screens that work for the role are listed. */
 const NAV: NavItem[] = [
+  { to: '/today', label: 'navToday', icon: LayoutDashboard, roles: ['VenueManager', 'DeskStaff'] },
+  { to: '/schedule', label: 'navSchedule', icon: CalendarDays, roles: ['VenueManager', 'DeskStaff'] },
+  { to: '/bookings', label: 'navBookings', icon: ListChecks, roles: ['VenueManager', 'DeskStaff'] },
+  { to: '/customers', label: 'navCustomers', icon: Contact, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/categories', label: 'navCategories', icon: Shapes, roles: ['PlatformOperator'] },
   { to: '/venues', label: 'navVenues', icon: Building2, roles: ['PlatformOperator'] },
   { to: '/venue', label: 'navVenue', icon: MapPin, roles: ['VenueManager', 'DeskStaff'] },

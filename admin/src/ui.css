@@ -148,3 +148,49 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .quote { display: grid; gap: 4px; }
 .quote-line { margin: 0; font: var(--mg-text-title-m); color: var(--mg-navy); }
 .quote-segments { margin: 4px 0 0; padding-inline-start: 18px; color: var(--mg-slate); }
+
+/* Shared */
+.muted { color: var(--mg-muted); }
+[dir='rtl'] .flip-rtl { transform: scaleX(-1); }
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 0; }
+.details dt { font: var(--mg-text-label); color: var(--mg-muted); }
+.details dd { margin: 0; color: var(--mg-navy); }
+.panel-section { display: grid; gap: 12px; padding-block-start: 12px; border-block-start: 1px solid var(--mg-line); }
+.filter-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+.search-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.search-form .mg-field { width: min(320px, 100%); }
+
+/* Today */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.tile { display: grid; gap: 4px; padding: 16px; background: var(--mg-white); border: 1px solid var(--mg-line); border-radius: 12px; }
+.tile-label { font: var(--mg-text-label); color: var(--mg-muted); }
+.tile-value { font: var(--mg-text-display); color: var(--mg-navy); }
+.next-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.next-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding-block: 10px; border-block-end: 1px solid var(--mg-line); }
+.next-list li:last-child { border-block-end: 0; }
+.next-time { min-width: 104px; font: var(--mg-text-numeric); color: var(--mg-navy); }
+
+/* Schedule */
+.page--wide { max-width: none; }
+.day-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.schedule-scroll { overflow: auto; max-height: calc(100vh - 220px); background: var(--mg-white); border: 1px solid var(--mg-line); border-radius: 12px; }
+.schedule-grid { display: grid; min-width: max-content; }
+.schedule-corner, .schedule-court { position: sticky; top: 0; z-index: 3; background: var(--mg-cloud); border-block-end: 1px solid var(--mg-line); }
+.schedule-corner { inset-inline-start: 0; z-index: 4; }
+.schedule-court { display: flex; align-items: center; padding-inline: 10px; font: var(--mg-text-label); color: var(--mg-navy); }
+.schedule-time { position: sticky; inset-inline-start: 0; z-index: 2; padding-inline: 8px; background: var(--mg-white); font: var(--mg-text-caption); color: var(--mg-muted); }
+.schedule-cell { padding: 0; background: transparent; border: 0; border-block-start: 1px solid var(--mg-line); border-inline-start: 1px solid var(--mg-line); cursor: pointer; }
+.schedule-cell.on-hour { border-block-start-color: #c9d0db; }
+.schedule-cell:hover, .schedule-cell.drop-target { background: var(--mg-cloud); }
+.schedule-booking {
+  z-index: 1; display: grid; align-content: start; gap: 2px; margin: 2px; padding: 4px 8px; overflow: hidden;
+  background: var(--mg-lime); color: var(--mg-navy); border: 0; border-radius: 6px;
+  font: var(--mg-text-caption); text-align: start; cursor: pointer;
+}
+.schedule-booking[draggable='true'] { cursor: grab; }
+.schedule-booking--block {
+  background: repeating-linear-gradient(135deg, var(--mg-disabled-bg) 0 8px, var(--mg-white) 8px 16px);
+  color: var(--mg-slate); border: 1px solid #c9d0db;
+}
+.schedule-booking:focus-visible { outline: 3px solid var(--mg-cyan-ink); outline-offset: 1px; }
+.schedule-booking-time { font: var(--mg-text-numeric); font-size: 12px; }
