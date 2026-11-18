@@ -57,6 +57,7 @@ class Strings {
     required this.payAmountAtVenue,
     required this.freeCancellationUntil,
     required this.viewMyBookings,
+    required this.view,
     required this.done,
     required this.bookingsTitle,
     required this.signInForBookings,
@@ -158,6 +159,7 @@ class Strings {
   final String Function(String price) payAmountAtVenue;
   final String Function(String when) freeCancellationUntil;
   final String viewMyBookings;
+  final String view;
   final String done;
 
   // Bookings
@@ -265,6 +267,7 @@ const en = Strings(
   payAmountAtVenue: _enPayAmount,
   freeCancellationUntil: _enFreeUntil,
   viewMyBookings: 'View my bookings',
+  view: 'View',
   done: 'Done',
   bookingsTitle: 'My bookings',
   signInForBookings: 'Sign in to see your bookings.',
@@ -365,6 +368,7 @@ const ar = Strings(
   payAmountAtVenue: _arPayAmount,
   freeCancellationUntil: _arFreeUntil,
   viewMyBookings: 'عرض حجوزاتي',
+  view: 'عرض',
   done: 'تم',
   bookingsTitle: 'حجوزاتي',
   signInForBookings: 'سجّل الدخول لعرض حجوزاتك.',

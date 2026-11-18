@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../api/api_client.dart';
 import '../api/models.dart';
+import '../push/push.dart';
 
 /// The signed-in customer. Refresh token in secure storage; access token in memory only.
 class Session extends ChangeNotifier implements TokenSource {
@@ -78,6 +79,7 @@ class Session extends ChangeNotifier implements TokenSource {
   }
 
   Future<void> signOut() async {
+    await push.unregister(); // first: it needs the access token
     final token = _refresh;
     await _clear();
     notifyListeners();

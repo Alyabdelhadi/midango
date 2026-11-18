@@ -6,6 +6,7 @@ import '../api/models.dart';
 import '../home_shell.dart';
 import '../l10n/format.dart';
 import '../l10n/strings.dart';
+import '../push/push.dart';
 import '../session/session.dart';
 import '../theme/midango_colors.dart';
 import '../widgets/busy_button.dart';
@@ -73,6 +74,7 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
       bookingsChanged.value++;
       nav.pop();
       nav.push(MaterialPageRoute<void>(builder: (_) => ConfirmationPage(booking: booking)));
+      push.askPermissionOnce(); // over the confirmation page, after the first booking
     } on ApiException catch (e) {
       if (e.status == 409) bookingsChanged.value++; // someone took the time: the caller shows fresh times
       if (mounted) {

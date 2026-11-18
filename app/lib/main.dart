@@ -4,8 +4,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'api/api_client.dart';
+import 'api/models.dart';
+import 'bookings/booking_detail_page.dart';
 import 'home_shell.dart';
 import 'l10n/strings.dart';
+import 'push/push.dart';
 import 'session/session.dart';
 import 'theme/midango_theme.dart';
 
@@ -38,8 +41,48 @@ Future<void> main() async {
   }
   await _loadFonts();
   final session = Session(ApiClient(), storage: storage);
+  final language = lang == 'ar' ? 'ar' : 'en';
+  await push.init(session, storage,
+      language: language,
+      open: (id) => _openBooking(session, id),
+      foreground: (title, body, id) => _showReminder(session, title, body, id));
   session.restore(); // not awaited: the Play tab needs no account, so don't hold the first frame for the network
-  runApp(MidangoApp(session: session, storage: storage, initialLanguage: lang == 'ar' ? 'ar' : 'en'));
+  runApp(MidangoApp(session: session, storage: storage, initialLanguage: language));
+}
+
+final _navigator = GlobalKey<NavigatorState>();
+final _messenger = GlobalKey<ScaffoldMessengerState>();
+
+/// A tapped reminder: the Bookings tab, then that booking if it's still listed.
+Future<void> _openBooking(Session session, String id) async {
+  final nav = _navigator.currentState;
+  if (nav == null) {
+    // Launched by the tap: wait for the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openBooking(session, id));
+    return;
+  }
+  nav.popUntil((route) => route.isFirst);
+  shellTab.value = 1;
+  if (!session.signedIn) return;
+  try {
+    final data = MyBookings.fromJson(await session.api.get('/me/bookings', auth: true) as JsonMap);
+    final booking = [...data.upcoming, ...data.history].where((b) => b.id == id).firstOrNull;
+    if (booking != null) nav.push(MaterialPageRoute<void>(builder: (_) => BookingDetailPage(booking: booking)));
+  } catch (_) {
+    // Offline: the Bookings tab shows its own retry.
+  }
+}
+
+/// A reminder arriving while the app is open.
+void _showReminder(Session session, String title, String body, String? bookingId) {
+  final context = _navigator.currentContext;
+  if (context == null) return;
+  _messenger.currentState?.showSnackBar(SnackBar(
+    content: Text(body.isEmpty ? title : '$title\n$body'),
+    action: bookingId == null
+        ? null
+        : SnackBarAction(label: Strings.of(context).view, onPressed: () => _openBooking(session, bookingId)),
+  ));
 }
 
 class MidangoApp extends StatefulWidget {
@@ -59,6 +102,8 @@ class _MidangoAppState extends State<MidangoApp> {
   void _setLanguage(String lang) {
     setState(() => _lang = lang);
     widget.storage.write(key: _langKey, value: lang).catchError((_) {});
+    push.language = lang;
+    push.register(); // reminders follow the app language
   }
 
   @override
@@ -68,6 +113,8 @@ class _MidangoAppState extends State<MidangoApp> {
       session: widget.session,
       child: MaterialApp(
         title: 'Midango',
+        navigatorKey: _navigator,
+        scaffoldMessengerKey: _messenger,
         debugShowCheckedModeBanner: false,
         theme: buildMidangoTheme(),
         locale: Locale(_lang),

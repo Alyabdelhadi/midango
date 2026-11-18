@@ -30,6 +30,7 @@ class ApiClient {
       _send('GET', path, query: query, auth: auth);
   Future<dynamic> post(String path, [Object? body, bool auth = false]) => _send('POST', path, body: body, auth: auth);
   Future<dynamic> put(String path, Object? body, {bool auth = true}) => _send('PUT', path, body: body, auth: auth);
+  Future<dynamic> delete(String path, {Map<String, String>? query}) => _send('DELETE', path, query: query, auth: true);
 
   Future<dynamic> _send(String method, String path,
       {Map<String, String>? query, Object? body, required bool auth}) async {

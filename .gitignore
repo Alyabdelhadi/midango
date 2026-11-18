@@ -24,3 +24,6 @@ secrets/
 
 # Uploaded images (local media store)
 api/src/Midango.Api/uploads/
+
+# Kotlin compiler cache
+app/android/.kotlin/
