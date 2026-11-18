@@ -11,6 +11,7 @@ import 'l10n/strings.dart';
 import 'push/push.dart';
 import 'session/session.dart';
 import 'theme/midango_theme.dart';
+import 'tournaments/tournament_page.dart';
 
 const _langKey = 'lang';
 
@@ -45,7 +46,8 @@ Future<void> main() async {
   await push.init(session, storage,
       language: language,
       open: (id) => _openBooking(session, id),
-      foreground: (title, body, id) => _showReminder(session, title, body, id));
+      openTournament: _openTournament,
+      foreground: _showReminder);
   session.restore(); // not awaited: the Play tab needs no account, so don't hold the first frame for the network
   runApp(MidangoApp(session: session, storage: storage, initialLanguage: language));
 }
@@ -73,15 +75,25 @@ Future<void> _openBooking(Session session, String id) async {
   }
 }
 
+/// A tapped tournament push (cancelled, off the waitlist): the Play tab, then that tournament's page.
+void _openTournament(String id) {
+  final nav = _navigator.currentState;
+  if (nav == null) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _openTournament(id));
+    return;
+  }
+  nav.popUntil((route) => route.isFirst);
+  shellTab.value = 0;
+  nav.push(MaterialPageRoute<void>(builder: (_) => TournamentPage(tournamentId: id)));
+}
+
 /// A reminder arriving while the app is open.
-void _showReminder(Session session, String title, String body, String? bookingId) {
+void _showReminder(String title, String body, VoidCallback? view) {
   final context = _navigator.currentContext;
   if (context == null) return;
   _messenger.currentState?.showSnackBar(SnackBar(
     content: Text(body.isEmpty ? title : '$title\n$body'),
-    action: bookingId == null
-        ? null
-        : SnackBarAction(label: Strings.of(context).view, onPressed: () => _openBooking(session, bookingId)),
+    action: view == null ? null : SnackBarAction(label: Strings.of(context).view, onPressed: view),
   ));
 }
 

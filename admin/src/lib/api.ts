@@ -2,11 +2,14 @@
 export class ApiError extends Error {
   readonly status: number;
   readonly missing?: string[];
+  /** The whole problem body, for endpoints that add their own members (e.g. a publish 409's `clashes`). */
+  readonly problem: Record<string, unknown>;
 
-  constructor(status: number, message: string, missing?: string[]) {
+  constructor(status: number, message: string, missing?: string[], problem: Record<string, unknown> = {}) {
     super(message);
     this.status = status;
     this.missing = missing;
+    this.problem = problem;
   }
 }
 
@@ -90,8 +93,8 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     else sessionEnded();
   }
   if (!res.ok) {
-    const problem = (await res.json().catch(() => ({}))) as { title?: string; missing?: string[] };
-    throw new ApiError(res.status, problem.title ?? `Request failed (${res.status})`, problem.missing);
+    const problem = (await res.json().catch(() => ({}))) as { title?: string; missing?: string[] } & Record<string, unknown>;
+    throw new ApiError(res.status, problem.title ?? `Request failed (${res.status})`, problem.missing, problem);
   }
   return (res.status === 204 ? undefined : await res.json()) as T;
 }

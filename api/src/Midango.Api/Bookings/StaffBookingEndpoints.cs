@@ -192,6 +192,8 @@ public static class StaffBookingEndpoints
             var venue = await db.Venues.AsNoTracking().SingleAsync(v => v.Id == user.StaffVenueId()!.Value, ct);
             var booking = await db.Bookings.SingleOrDefaultAsync(b => b.Id == id && b.VenueId == venue.Id, ct);
             if (booking is null) return ApiErrors.Fail(404, "Booking not found.");
+            if (booking.TournamentId is not null)
+                return ApiErrors.Fail(409, "This time is blocked for a tournament. Edit or cancel the tournament instead.");
             var now = clock.GetUtcNow();
             if (booking.Status != BookingStatus.Confirmed || booking.EndsAt <= now)
                 return ApiErrors.Fail(409, "Only a booking that hasn't finished or been cancelled can be moved.");
@@ -225,6 +227,9 @@ public static class StaffBookingEndpoints
             var venue = await db.Venues.AsNoTracking().SingleAsync(v => v.Id == user.StaffVenueId()!.Value, ct);
             var booking = await db.Bookings.SingleOrDefaultAsync(b => b.Id == id && b.VenueId == venue.Id, ct);
             if (booking is null) return ApiErrors.Fail(404, "Booking not found.");
+            // A tournament's court blocks come and go with the tournament, never one at a time.
+            if (booking.TournamentId is not null && booking.Status == BookingStatus.Confirmed)
+                return ApiErrors.Fail(409, "This time is blocked for a tournament. Cancel the tournament to free it.");
 
             if (booking.Status == BookingStatus.Confirmed)
             {

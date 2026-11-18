@@ -8,13 +8,15 @@ import '../matches/match_page.dart';
 import '../matches/match_widgets.dart';
 import '../session/session.dart';
 import '../theme/midango_colors.dart';
+import '../tournaments/tournament_page.dart';
+import '../tournaments/tournament_widgets.dart';
 import '../venue/venue_page.dart';
 import '../widgets/error_retry.dart';
 import 'pickers.dart';
 import 'venue_card.dart';
 
 /// Pick a sport, a day and a length; see venues with their open times. Or switch to open matches others
-/// started, filtered by level. No account needed.
+/// started, filtered by level; or tournaments for the sport. No account needed.
 class PlayTab extends StatefulWidget {
   const PlayTab({super.key});
 
@@ -33,10 +35,13 @@ class _PlayTabState extends State<PlayTab> {
   bool _venuesFailed = false;
   int _request = 0; // only the newest answer is shown when the customer taps quickly
 
-  bool _matchesMode = false;
+  _Mode _mode = _Mode.courts;
   String? _level; // filter; starts at the customer's own level for the sport
   List<OpenMatch>? _matches;
   bool _matchesFailed = false;
+
+  List<Tournament>? _tournaments;
+  bool _tournamentsFailed = false;
 
   @override
   void initState() {
@@ -73,11 +78,15 @@ class _PlayTabState extends State<PlayTab> {
     _reload();
   }
 
-  Future<void> _reload() => _matchesMode ? _loadMatches() : _loadVenues();
+  Future<void> _reload() => switch (_mode) {
+        _Mode.courts => _loadVenues(),
+        _Mode.matches => _loadMatches(),
+        _Mode.tournaments => _loadTournaments(),
+      };
 
-  Future<void> _setMode(bool matches) async {
-    setState(() => _matchesMode = matches);
-    if (matches) {
+  Future<void> _setMode(_Mode mode) async {
+    setState(() => _mode = mode);
+    if (mode == _Mode.matches) {
       final levels = await SessionScope.read(context).ensureLevels();
       if (!mounted) return;
       setState(() => _level = levels[_sport?.id]);
@@ -106,6 +115,29 @@ class _PlayTabState extends State<PlayTab> {
   void _openMatch(OpenMatch match) {
     Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => MatchPage(matchId: match.id, initial: match),
+    ));
+  }
+
+  Future<void> _loadTournaments() async {
+    final sport = _sport;
+    if (sport == null) return;
+    final request = ++_request;
+    setState(() {
+      _tournaments = null;
+      _tournamentsFailed = false;
+    });
+    try {
+      final json = await SessionScope.read(context).api.get('/tournaments', query: {'categoryId': sport.id}) as List;
+      if (!mounted || request != _request) return;
+      setState(() => _tournaments = json.map((j) => Tournament.fromJson(j as JsonMap)).toList());
+    } catch (_) {
+      if (mounted && request == _request) setState(() => _tournamentsFailed = true);
+    }
+  }
+
+  void _openTournament(Tournament t) {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => TournamentPage(tournamentId: t.id, initial: t),
     ));
   }
 
@@ -158,12 +190,13 @@ class _PlayTabState extends State<PlayTab> {
             else ...[
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: SegmentedButton<bool>(
+                child: SegmentedButton<_Mode>(
                   segments: [
-                    ButtonSegment(value: false, label: Text(s.courtsHeading)),
-                    ButtonSegment(value: true, label: Text(s.openMatches)),
+                    ButtonSegment(value: _Mode.courts, label: Text(s.courtsHeading)),
+                    ButtonSegment(value: _Mode.matches, label: Text(s.openMatches)),
+                    ButtonSegment(value: _Mode.tournaments, label: Text(s.tournaments)),
                   ],
-                  selected: {_matchesMode},
+                  selected: {_mode},
                   showSelectedIcon: false,
                   onSelectionChanged: (choice) => _setMode(choice.first),
                   style: SegmentedButton.styleFrom(
@@ -176,6 +209,10 @@ class _PlayTabState extends State<PlayTab> {
               ),
               SportPicker(categories: categories, selectedId: _sport?.id, onSelected: _selectSport),
               const SizedBox(height: 4),
+              if (_mode == _Mode.tournaments) ...[
+                const SizedBox(height: 8),
+                ..._tournamentList(s, text),
+              ] else ...[
               DayPicker(
                 selected: _day,
                 onSelected: (day) {
@@ -184,7 +221,7 @@ class _PlayTabState extends State<PlayTab> {
                 },
               ),
               const SizedBox(height: 4),
-              if (_matchesMode) ...[
+              if (_mode == _Mode.matches) ...[
                 LevelPicker(
                   selected: _level,
                   onSelected: (level) {
@@ -206,6 +243,7 @@ class _PlayTabState extends State<PlayTab> {
               const SizedBox(height: 12),
               ..._venueList(s, text),
               ],
+              ],
             ],
           ],
         ),
@@ -220,6 +258,15 @@ class _PlayTabState extends State<PlayTab> {
     if (matches == null) return [for (var i = 0; i < 3; i++) padded(const _PlaceholderCard())];
     if (matches.isEmpty) return [padded(Text(s.noMatches, style: text.bodyLarge))];
     return [for (final m in matches) padded(MatchCardView(match: m, onOpen: () => _openMatch(m)))];
+  }
+
+  List<Widget> _tournamentList(Strings s, TextTheme text) {
+    Widget padded(Widget child) => Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: child);
+    final tournaments = _tournaments;
+    if (_tournamentsFailed) return [ErrorRetry(onRetry: _loadTournaments)];
+    if (tournaments == null) return [for (var i = 0; i < 3; i++) padded(const _PlaceholderCard())];
+    if (tournaments.isEmpty) return [padded(Text(s.noTournaments, style: text.bodyLarge))];
+    return [for (final t in tournaments) padded(TournamentCardView(tournament: t, onOpen: () => _openTournament(t)))];
   }
 
   List<Widget> _venueList(Strings s, TextTheme text) {
@@ -238,6 +285,8 @@ class _PlayTabState extends State<PlayTab> {
     ];
   }
 }
+
+enum _Mode { courts, matches, tournaments }
 
 /// A grey card shape while venues load.
 class _PlaceholderCard extends StatelessWidget {

@@ -155,6 +155,40 @@ class Strings {
     required this.pointsApplied,
     required this.pointsRemoved,
     required this.withPoints,
+    required this.tournaments,
+    required this.noTournaments,
+    required this.tournamentTitle,
+    required this.formatName,
+    required this.formatHelp,
+    required this.teamSize,
+    required this.teamsCount,
+    required this.onWaitlist,
+    required this.registrationCloses,
+    required this.registrationClosed,
+    required this.perTeam,
+    required this.feePerTeam,
+    required this.freeEntry,
+    required this.teamsHeading,
+    required this.noTeamsYet,
+    required this.registerTeam,
+    required this.register,
+    required this.teamNameLabel,
+    required this.teammateLabel,
+    required this.captain,
+    required this.teammatesHelp,
+    required this.requiredField,
+    required this.teamRegistered,
+    required this.teamWaitlisted,
+    required this.yourTeam,
+    required this.statusRegistered,
+    required this.statusWaitlist,
+    required this.statusCheckedIn,
+    required this.statusWithdrawn,
+    required this.withdrawTeam,
+    required this.withdrawTitle,
+    required this.withdrawBody,
+    required this.keepTeam,
+    required this.teamWithdrawn,
   });
 
   final bool isArabic;
@@ -336,6 +370,42 @@ class Strings {
   final String pointsRemoved;
   final String Function(String off) withPoints;
 
+  // Tournaments
+  final String tournaments;
+  final String noTournaments;
+  final String tournamentTitle;
+  final String Function(String format) formatName;
+  final String Function(String format) formatHelp;
+  final String Function(int n) teamSize;
+  final String Function(int registered, int max) teamsCount;
+  final String Function(int n) onWaitlist;
+  final String Function(String when) registrationCloses;
+  final String registrationClosed;
+  final String perTeam;
+  final String Function(String price) feePerTeam;
+  final String freeEntry;
+  final String teamsHeading;
+  final String noTeamsYet;
+  final String registerTeam;
+  final String register;
+  final String teamNameLabel;
+  final String Function(int n) teammateLabel;
+  final String captain;
+  final String teammatesHelp;
+  final String requiredField;
+  final String teamRegistered;
+  final String teamWaitlisted;
+  final String Function(String name) yourTeam;
+  final String statusRegistered;
+  final String statusWaitlist;
+  final String statusCheckedIn;
+  final String statusWithdrawn;
+  final String withdrawTeam;
+  final String withdrawTitle;
+  final String withdrawBody;
+  final String keepTeam;
+  final String teamWithdrawn;
+
   static Strings of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<StringsScope>()!.strings;
 }
 
@@ -505,6 +575,40 @@ const en = Strings(
   pointsApplied: 'Points applied.',
   pointsRemoved: 'Points removed.',
   withPoints: _enWithPoints,
+  tournaments: 'Tournaments',
+  noTournaments: 'No upcoming tournaments for this sport.',
+  tournamentTitle: 'Tournament',
+  formatName: _enFormat,
+  formatHelp: _enFormatHelp,
+  teamSize: _enTeamSize,
+  teamsCount: _enTeamsCount,
+  onWaitlist: _enOnWaitlist,
+  registrationCloses: _enRegCloses,
+  registrationClosed: 'Registration closed',
+  perTeam: 'per team',
+  feePerTeam: _enFeePerTeam,
+  freeEntry: 'Free entry',
+  teamsHeading: 'Teams',
+  noTeamsYet: 'No teams yet. Be the first.',
+  registerTeam: 'Register a team',
+  register: 'Register',
+  teamNameLabel: 'Team name',
+  teammateLabel: _enTeammate,
+  captain: 'Captain',
+  teammatesHelp: "Type your teammates' names as they should appear in the tournament.",
+  requiredField: 'Required',
+  teamRegistered: 'Your team is in.',
+  teamWaitlisted: "The tournament is full, so you're on the waitlist. We'll let you know if a place opens.",
+  yourTeam: _enYourTeam,
+  statusRegistered: 'Registered',
+  statusWaitlist: 'Waitlist',
+  statusCheckedIn: 'Checked in',
+  statusWithdrawn: 'Withdrawn',
+  withdrawTeam: 'Withdraw team',
+  withdrawTitle: 'Withdraw your team?',
+  withdrawBody: 'Your team gives up its place. You can register again while registration is open.',
+  keepTeam: 'Keep my team',
+  teamWithdrawn: 'Your team was withdrawn.',
 );
 
 String _enPoints(int n) => n == 1 ? '1 point' : '$n points';
@@ -695,6 +799,40 @@ const ar = Strings(
   pointsApplied: 'تم تطبيق النقاط.',
   pointsRemoved: 'تمت إزالة النقاط.',
   withPoints: _arWithPoints,
+  tournaments: 'البطولات',
+  noTournaments: 'لا توجد بطولات قادمة لهذه الرياضة.',
+  tournamentTitle: 'البطولة',
+  formatName: _arFormat,
+  formatHelp: _arFormatHelp,
+  teamSize: _arTeamSize,
+  teamsCount: _arTeamsCount,
+  onWaitlist: _arOnWaitlist,
+  registrationCloses: _arRegCloses,
+  registrationClosed: 'التسجيل مغلق',
+  perTeam: 'لكل فريق',
+  feePerTeam: _arFeePerTeam,
+  freeEntry: 'المشاركة مجانية',
+  teamsHeading: 'الفرق',
+  noTeamsYet: 'لا توجد فرق بعد. كن الأول.',
+  registerTeam: 'سجّل فريقاً',
+  register: 'تسجيل',
+  teamNameLabel: 'اسم الفريق',
+  teammateLabel: _arTeammate,
+  captain: 'القائد',
+  teammatesHelp: 'اكتب أسماء زملائك كما يجب أن تظهر في البطولة.',
+  requiredField: 'مطلوب',
+  teamRegistered: 'تم تسجيل فريقك.',
+  teamWaitlisted: 'اكتمل عدد الفرق، لذا أنت على قائمة الانتظار. سنُعلمك إذا توفّر مكان.',
+  yourTeam: _arYourTeam,
+  statusRegistered: 'مسجَّل',
+  statusWaitlist: 'قائمة الانتظار',
+  statusCheckedIn: 'تم تسجيل الحضور',
+  statusWithdrawn: 'منسحب',
+  withdrawTeam: 'سحب الفريق',
+  withdrawTitle: 'هل تريد سحب فريقك؟',
+  withdrawBody: 'سيتخلى فريقك عن مكانه. يمكنك التسجيل من جديد ما دام التسجيل مفتوحاً.',
+  keepTeam: 'إبقاء فريقي',
+  teamWithdrawn: 'تم سحب فريقك.',
 );
 
 String _arPoints(int n) => switch (n) {
@@ -760,6 +898,36 @@ String _arCodeSentTo(String phone) => 'أرسلنا رمزاً من 6 أرقام
 String _arResendIn(int s) => 'إعادة الإرسال بعد $s ${s >= 3 && s <= 10 ? 'ثوانٍ' : 'ثانية'}';
 String _arPayAmount(String price) => 'ادفع $price نقداً في المنشأة';
 String _arFreeUntil(String when) => 'الإلغاء مجاني حتى $when';
+
+String _enFormat(String format) => format == 'RoundRobin' ? 'Round-robin groups' : 'Knockout';
+String _enFormatHelp(String format) => format == 'RoundRobin'
+    ? 'Each team plays every team in its group; the best of each group go through.'
+    : "Lose a match and you're out; winners go through to the final.";
+String _enTeamSize(int n) => n == 1 ? '1 player per team' : '$n players per team';
+String _enTeamsCount(int registered, int max) => '$registered/$max teams';
+String _enOnWaitlist(int n) => '$n on the waitlist';
+String _enRegCloses(String when) => 'Registration closes $when';
+String _enFeePerTeam(String price) => '$price per team, paid at the venue';
+String _enTeammate(int n) => 'Teammate $n';
+String _enYourTeam(String name) => 'Your team: $name';
+
+String _arFormat(String format) => format == 'RoundRobin' ? 'دوري المجموعات' : 'خروج المغلوب';
+String _arFormatHelp(String format) => format == 'RoundRobin'
+    ? 'يلعب كل فريق ضد جميع فرق مجموعته، ويتأهل الأفضل من كل مجموعة.'
+    : 'من يخسر مباراة يخرج، ويتأهل الفائزون حتى النهائي.';
+String _arPlayers(int n) => switch (n) {
+      1 => 'لاعب واحد',
+      2 => 'لاعبان',
+      >= 3 && <= 10 => '$n لاعبين',
+      _ => '$n لاعباً',
+    };
+String _arTeamSize(int n) => '${_arPlayers(n)} في كل فريق';
+String _arTeamsCount(int registered, int max) => 'الفرق المسجّلة: ${ltr('$registered/$max')}';
+String _arOnWaitlist(int n) => 'على قائمة الانتظار: $n';
+String _arRegCloses(String when) => 'يُغلق التسجيل $when';
+String _arFeePerTeam(String price) => '$price لكل فريق، تُدفع في المنشأة';
+String _arTeammate(int n) => 'الزميل $n';
+String _arYourTeam(String name) => 'فريقك: $name';
 
 /// Puts the active language's strings above the navigator.
 class StringsScope extends InheritedWidget {

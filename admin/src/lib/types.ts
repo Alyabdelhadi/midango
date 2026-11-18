@@ -279,3 +279,78 @@ export type VenueLead = {
   createdAt: string;
   contactedAt: string | null;
 };
+
+export type TournamentFormat = 'Knockout' | 'RoundRobin';
+export type TournamentStatus = 'Draft' | 'Published' | 'Cancelled';
+export type TeamStatus = 'Registered' | 'Waitlisted' | 'Withdrawn';
+export type PlayLevel = 'Beginner' | 'Intermediate' | 'Advanced';
+
+/** Times carry the venue's offset, like bookings. */
+export type TournamentSummary = {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  categoryId: string;
+  format: TournamentFormat;
+  status: TournamentStatus;
+  startsAt: string;
+  endsAt: string;
+  registrationClosesAt: string;
+  maxTeams: number;
+  registered: number;
+  waitlisted: number;
+  entryFee: number;
+  currency: string;
+};
+
+export type TournamentTeam = {
+  id: string;
+  name: string;
+  status: TeamStatus;
+  registeredAt: string;
+  captain: { name: string; maskedPhone: string };
+  members: string[];
+  checkedInAt: string | null;
+  cashCollected: number | null;
+};
+
+/** The create/update body; the detail carries the same fields. */
+export type TournamentInput = {
+  categoryId: string;
+  nameEn: string;
+  nameAr: string;
+  descriptionEn: string | null;
+  descriptionAr: string | null;
+  format: TournamentFormat;
+  teamSize: number;
+  maxTeams: number;
+  entryFee: number;
+  level: PlayLevel | null;
+  courtIds: string[];
+  startsAt: string;
+  endsAt: string;
+  registrationClosesAt: string;
+};
+
+export type Tournament = TournamentInput & {
+  id: string;
+  currency: string;
+  status: TournamentStatus;
+  courts: { id: string; nameEn: string; nameAr: string }[];
+  teams: TournamentTeam[];
+};
+
+/** A publish 409 lists the bookings in the way. */
+export type TournamentClash = { courtNameEn: string; courtNameAr: string; startsAt: string; endsAt: string; reference: string };
+
+export const FORMAT_KEY: Record<TournamentFormat, MessageKey> = { Knockout: 'formatKnockout', RoundRobin: 'formatRoundRobin' };
+export const TOURNAMENT_STATUS_KEY: Record<TournamentStatus, MessageKey> = {
+  Draft: 'tournamentDraft',
+  Published: 'tournamentPublished',
+  Cancelled: 'tournamentCancelled',
+};
+export const LEVEL_KEY: Record<PlayLevel, MessageKey> = {
+  Beginner: 'levelBeginner',
+  Intermediate: 'levelIntermediate',
+  Advanced: 'levelAdvanced',
+};

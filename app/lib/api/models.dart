@@ -426,3 +426,117 @@ class PointsEntry {
 
   String? venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn);
 }
+
+/// A tournament as players see it. The list sends the summary; the page (`GET /tournaments/{id}`) adds
+/// the description, address, courts and the registered teams.
+class Tournament implements Named {
+  Tournament.fromJson(JsonMap j)
+      : id = j['id'] as String,
+        venueId = j['venueId'] as String,
+        venueNameEn = j['venueNameEn'] as String,
+        venueNameAr = j['venueNameAr'] as String,
+        venueLogoUrl = j['venueLogoUrl'] as String?,
+        categoryId = j['categoryId'] as String,
+        nameEn = j['nameEn'] as String,
+        nameAr = j['nameAr'] as String,
+        format = j['format'] as String,
+        teamSize = j['teamSize'] as int,
+        startsAt = j['startsAt'] as String,
+        endsAt = j['endsAt'] as String,
+        registrationClosesAt = j['registrationClosesAt'] as String,
+        entryFee = _money(j['entryFee']),
+        currency = j['currency'] as String,
+        maxTeams = j['maxTeams'] as int,
+        registered = j['registered'] as int,
+        waitlisted = j['waitlisted'] as int? ?? 0,
+        level = j['level'] as String?,
+        registrationOpen = j['registrationOpen'] as bool,
+        descriptionEn = j['descriptionEn'] as String?,
+        descriptionAr = j['descriptionAr'] as String?,
+        addressEn = j['addressEn'] as String?,
+        addressAr = j['addressAr'] as String?,
+        courts = _list(j['courts'], TournamentCourt.fromJson),
+        teams = _list(j['teams'], TournamentTeam.fromJson);
+  final String id;
+  final String venueId;
+  final String venueNameEn;
+  final String venueNameAr;
+  final String? venueLogoUrl;
+  final String categoryId;
+  @override
+  final String nameEn;
+  @override
+  final String nameAr;
+
+  /// "Knockout" | "RoundRobin"
+  final String format;
+  final int teamSize;
+  final String startsAt;
+  final String endsAt;
+  final String registrationClosesAt;
+  final double entryFee;
+  final String currency;
+  final int maxTeams;
+  final int registered;
+  final int waitlisted;
+
+  /// "Beginner" | "Intermediate" | "Advanced", or null for any level.
+  final String? level;
+  final bool registrationOpen;
+  final String? descriptionEn;
+  final String? descriptionAr;
+  final String? addressEn;
+  final String? addressAr;
+  final List<TournamentCourt> courts;
+
+  /// Registered teams only (the page; empty in the list).
+  final List<TournamentTeam> teams;
+
+  String venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn)!;
+  String? description(bool arabic) => _pick(arabic, descriptionAr, descriptionEn);
+  String? address(bool arabic) => _pick(arabic, addressAr, addressEn);
+  bool get started => !DateTime.parse(startsAt).isAfter(DateTime.now());
+}
+
+class TournamentCourt implements Named {
+  TournamentCourt.fromJson(JsonMap j)
+      : nameEn = j['nameEn'] as String,
+        nameAr = j['nameAr'] as String;
+  @override
+  final String nameEn;
+  @override
+  final String nameAr;
+}
+
+/// A team: on the tournament page just the name and first names; the captain's own team also has its id,
+/// status and check-in.
+class TournamentTeam {
+  TournamentTeam.fromJson(JsonMap j)
+      : id = j['id'] as String?,
+        name = j['name'] as String,
+        status = j['status'] as String?,
+        members = (j['members'] as List? ?? const []).cast<String>(),
+        checkedInAt = j['checkedInAt'] as String?;
+  final String? id;
+  final String name;
+
+  /// "Registered" | "Waitlisted" | "Withdrawn"
+  final String? status;
+
+  /// Captain first.
+  final List<String> members;
+  final String? checkedInAt;
+
+  bool get withdrawn => status == 'Withdrawn';
+  bool get waitlisted => status == 'Waitlisted';
+}
+
+/// A team the customer captains, with its tournament (`GET /me/tournaments`, and what register and withdraw
+/// answer).
+class MyTournament {
+  MyTournament.fromJson(JsonMap j)
+      : tournament = Tournament.fromJson(j['tournament'] as JsonMap),
+        team = TournamentTeam.fromJson(j['team'] as JsonMap);
+  final Tournament tournament;
+  final TournamentTeam team;
+}

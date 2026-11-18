@@ -16,6 +16,8 @@ import { SignInPage } from './pages/SignInPage';
 import { SchedulePage } from './pages/schedule/SchedulePage';
 import { StaffPage } from './pages/StaffPage';
 import { TodayPage } from './pages/TodayPage';
+import { TournamentPage } from './pages/TournamentPage';
+import { TournamentsPage } from './pages/TournamentsPage';
 import { VenuePage } from './pages/venue/VenuePage';
 import { VenuesPage } from './pages/VenuesPage';
 import { Styleguide } from './Styleguide';
@@ -88,6 +90,8 @@ export default function App() {
                     ['schedule', <SchedulePage key="schedule" />],
                     ['bookings', <BookingsPage key="bookings" />],
                     ['customers', <CustomersPage key="customers" />],
+                    ['tournaments', <TournamentsPage key="tournaments" />],
+                    ['tournaments/:id', <TournamentPage key="tournament" />],
                   ] as const
                 ).map(([path, page]) => (
                   <Route

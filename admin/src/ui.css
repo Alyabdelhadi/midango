@@ -287,3 +287,12 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .rules-form { display: grid; gap: 20px; }
 .lead-message { max-width: 360px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .nowrap { white-space: nowrap; }
+
+/* Tournaments */
+.mg-field textarea {
+  min-width: 0; padding: 8px 10px; resize: vertical;
+  border: 1px solid #c9d0db; border-radius: var(--mg-radius);
+  background: var(--mg-white); color: var(--mg-navy); font: var(--mg-text-body);
+}
+.pre-line { white-space: pre-line; }
+.clash-list { display: grid; gap: 4px; margin: 0; padding-inline-start: 20px; color: var(--mg-navy); }

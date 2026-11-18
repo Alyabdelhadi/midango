@@ -22,6 +22,7 @@ class Push {
   late Session _session;
   late FlutterSecureStorage _storage;
   late void Function(String bookingId) _open;
+  late void Function(String tournamentId) _openTournament;
   bool _wasSignedIn = false;
   RemoteMessage? _launchTap;
 
@@ -34,7 +35,10 @@ class Push {
     FlutterSecureStorage storage, {
     required String language,
     required void Function(String bookingId) open,
-    required void Function(String title, String body, String? bookingId) foreground,
+    required void Function(String tournamentId) openTournament,
+
+    /// `view` opens what the message is about (a booking or a tournament), null when it's about neither.
+    required void Function(String title, String body, VoidCallback? view) foreground,
   }) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
@@ -42,14 +46,15 @@ class Push {
       _session = session;
       _storage = storage;
       _open = open;
+      _openTournament = openTournament;
       this.language = language;
       session.addListener(_onSession);
       final messaging = FirebaseMessaging.instance;
       messaging.onTokenRefresh.listen((_) => register());
       FirebaseMessaging.onMessageOpenedApp.listen(_tap);
       // Android shows nothing while the app is open, so the app says it itself.
-      FirebaseMessaging.onMessage.listen((m) =>
-          foreground(m.notification?.title ?? '', m.notification?.body ?? '', m.data['bookingId'] as String?));
+      FirebaseMessaging.onMessage.listen(
+          (m) => foreground(m.notification?.title ?? '', m.notification?.body ?? '', _viewFor(m)));
       _launchTap = await messaging.getInitialMessage(); // opened once the session is restored
       _on = true;
     } catch (_) {
@@ -57,9 +62,14 @@ class Push {
     }
   }
 
-  void _tap(RemoteMessage m) {
-    final id = m.data['bookingId'];
-    if (id is String) _open(id);
+  void _tap(RemoteMessage m) => _viewFor(m)?.call();
+
+  /// Tournament pushes carry `tournamentId`, booking pushes `bookingId`.
+  VoidCallback? _viewFor(RemoteMessage m) {
+    final tournament = m.data['tournamentId'], booking = m.data['bookingId'];
+    if (tournament is String) return () => _openTournament(tournament);
+    if (booking is String) return () => _open(booking);
+    return null;
   }
 
   void _onSession() {

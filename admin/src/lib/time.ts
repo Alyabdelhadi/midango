@@ -14,9 +14,16 @@ function offsetMinutes(iso: string): number {
   return (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3]));
 }
 
+/** The offset suffix of a venue time: "+03:00", or "Z". */
+export const offsetOf = (iso: string) => (iso.endsWith('Z') ? 'Z' : iso.slice(-6));
+
+/** A venue time as a `datetime-local` value ("2026-11-19T20:00"), and back with the venue's offset. */
+export const toLocalInput = (iso: string) => iso.slice(0, 16);
+export const fromLocalInput = (value: string, offset: string) => `${value}:00${offset}`;
+
 /** The same instant format and offset, `minutes` later. */
 export function shift(iso: string, minutes: number): string {
-  const suffix = iso.endsWith('Z') ? 'Z' : iso.slice(-6);
+  const suffix = offsetOf(iso);
   const wall = new Date(new Date(iso).getTime() + (minutes + offsetMinutes(iso)) * 60_000);
   return wall.toISOString().slice(0, 19) + suffix;
 }

@@ -9,6 +9,8 @@ import '../l10n/format.dart';
 import '../l10n/strings.dart';
 import '../session/session.dart';
 import '../theme/midango_colors.dart';
+import '../tournaments/tournament_page.dart';
+import '../tournaments/tournament_widgets.dart';
 import '../widgets/error_retry.dart';
 import 'booking_detail_page.dart';
 
@@ -23,7 +25,7 @@ String? statusLabel(Booking b, Strings s) => switch (b.status) {
       _ => null,
     };
 
-/// Upcoming and past bookings; a sign-in prompt when signed out.
+/// Upcoming and past bookings and the customer's tournament teams; a sign-in prompt when signed out.
 class BookingsTab extends StatefulWidget {
   const BookingsTab({super.key});
 
@@ -33,6 +35,9 @@ class BookingsTab extends StatefulWidget {
 
 class _BookingsTabState extends State<BookingsTab> {
   MyBookings? _data;
+
+  /// Empty when the call fails: the bookings still show.
+  List<MyTournament> _tournaments = const [];
   bool _failed = false;
   bool? _signedIn;
   int _request = 0;
@@ -73,10 +78,26 @@ class _BookingsTabState extends State<BookingsTab> {
     final request = ++_request;
     setState(() => _failed = false);
     try {
+      final tournaments = _loadTournaments(session);
       final data = MyBookings.fromJson(await session.api.get('/me/bookings', auth: true) as JsonMap);
-      if (mounted && request == _request) setState(() => _data = data);
+      final mine = await tournaments;
+      if (mounted && request == _request) {
+        setState(() {
+          _data = data;
+          _tournaments = mine;
+        });
+      }
     } catch (_) {
       if (mounted && request == _request) setState(() => _failed = true);
+    }
+  }
+
+  Future<List<MyTournament>> _loadTournaments(Session session) async {
+    try {
+      final json = await session.api.get('/me/tournaments', auth: true) as List;
+      return json.map((j) => MyTournament.fromJson(j as JsonMap)).toList();
+    } catch (_) {
+      return const [];
     }
   }
 
@@ -115,6 +136,12 @@ class _BookingsTabState extends State<BookingsTab> {
                 ),
               ],
               for (final b in data.upcoming) _BookingRow(booking: b),
+              if (_tournaments.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                Text(s.tournaments, style: text.titleMedium),
+                const SizedBox(height: 8),
+                for (final m in _tournaments) _TournamentRow(mine: m),
+              ],
               if (data.history.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 Text(s.past, style: text.titleMedium),
@@ -181,6 +208,41 @@ class _BookingRow extends StatelessWidget {
                     Text(s.withPoints(money(b.pointsDiscount, b.currency, s)), style: text.bodySmall),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TournamentRow extends StatelessWidget {
+  const _TournamentRow({required this.mine});
+  final MyTournament mine;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final text = Theme.of(context).textTheme;
+    final t = mine.tournament;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+          builder: (_) => TournamentPage(tournamentId: t.id, initial: t),
+        )),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.name(s.isArabic), style: text.titleMedium),
+              const SizedBox(height: 2),
+              Text(tournamentWhen(t, s), style: text.bodyLarge),
+              Text('${t.venueName(s.isArabic)} · ${mine.team.name}', style: text.bodySmall),
+              const SizedBox(height: 8),
+              teamStatusBadge(mine.team, s),
             ],
           ),
         ),

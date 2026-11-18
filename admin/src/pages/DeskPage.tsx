@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 import { BookingStatusPill } from '../components/BookingStatusPill';
 import { Button } from '../components/Button';
 import { DeskActions, MatchPlayers, type Undo } from '../components/DeskActions';
@@ -8,8 +9,8 @@ import { PageHeader } from '../components/PageHeader';
 import { Pill } from '../components/Pill';
 import { api, errorText } from '../lib/api';
 import { useI18n } from '../lib/i18n';
-import { clock, minutesBetween, slotStarts } from '../lib/time';
-import type { Schedule, StaffBooking, Today } from '../lib/types';
+import { clock, dayOf, minutesBetween, slotStarts } from '../lib/time';
+import type { Schedule, StaffBooking, Today, Tournament, TournamentSummary } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 import { useToast } from '../lib/useToast';
 import { BookingPanel } from './schedule/BookingPanel';
@@ -113,6 +114,7 @@ export function DeskPage() {
       <p className="desk-summary">
         {t('cashSummary', { taken: money(d.cashCollected, d.currency), expected: money(d.cashExpected, d.currency) })}
       </p>
+      <TournamentsToday key={`t|${d.date}|${version}`} date={d.date} />
       <DeskLists key={`${d.date}|${version}`} date={d.date} onOpen={setOpenBooking} onDone={done} />
 
       <BookingPanel booking={openBooking} onDone={done} onClose={() => setOpenBooking(undefined)} />
@@ -211,5 +213,31 @@ function DeskRow({
         </div>
       )}
     </li>
+  );
+}
+
+/** A line per published tournament starting today, linking to its check-in page. */
+function TournamentsToday({ date }: { date: string }) {
+  const list = useLoad(() => api<TournamentSummary[]>('/venue/tournaments'));
+  const today = list.data?.filter((x) => x.status === 'Published' && dayOf(x.startsAt) === date) ?? [];
+  return today.map((x) => <TournamentTodayLine key={x.id} id={x.id} />);
+}
+
+function TournamentTodayLine({ id }: { id: string }) {
+  const { t, name } = useI18n();
+  // The list has no check-in counts; the detail does.
+  const detail = useLoad(() => api<Tournament>(`/venue/tournaments/${id}`));
+  if (!detail.data) return null;
+  const registered = detail.data.teams.filter((x) => x.status === 'Registered');
+  return (
+    <Notice tone="info">
+      <Link to={`/tournaments/${id}`}>
+        {t('tournamentToday', {
+          name: name(detail.data),
+          checked: registered.filter((x) => x.checkedInAt).length,
+          registered: registered.length,
+        })}
+      </Link>
+    </Notice>
   );
 }

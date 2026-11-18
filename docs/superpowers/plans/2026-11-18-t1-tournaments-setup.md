@@ -66,3 +66,27 @@ As above. `flutter analyze` clean. Don't commit.
 ### Task 4: Verify (controller)
 - API: create validation; publish creates blocks; publish over an existing booking → 409 with clashes; cancel frees courts + pushes; edit-after-publish locks; registration (open/closed, size, duplicate name, duplicate captain, waitlist when full, concurrent last-spot registrations → one Registered one Waitlisted); withdraw promotes + pushes; raising MaxTeams promotes; desk check-in window + fee + undo; public list/detail; `/me/tournaments`.
 - Browser: Business create → publish → see blocks on the Schedule; app list → register → waitlist; desk check-in; EN + AR.
+
+---
+
+## Verification (2026-11-18)
+
+**Added during review:** a tournament's court blocks can no longer be cancelled or moved one at a time from the Schedule (409 "This time is blocked for a tournament. Cancel the tournament to free it."). The API builder had flagged this gap.
+
+**API** (`t1-check.ps1`): **0 failures.** The first run failed because of two script bugs: the test day was more than 30 days ahead, so the clash booking was refused, and PowerShell variable names ignore case, so the customer `$A` overwrote the acting token `$a`.
+- **Creating:** no courts gets 400. Registration closing after the start gets 400. A draft is created with team size 2 (from padel's 4) and isn't public.
+- **Publishing:** publishing over an existing booking gets 409 with `clashes` listing that booking's reference, and **no blocks are left behind**. After that booking is cancelled, publishing creates 2 court blocks. A block can't be cancelled or moved on its own (409), and an app booking inside the window gets 409.
+- **Editing after publish:** the same body is accepted (200). A changed fee gets 400 "Cancel and create a new tournament…".
+- **Registration:**
+  - The public list shows the tournament with registration open.
+  - The wrong team size gets 400 "Add 1 teammate…". A team registers with the captain first in `members`. A second team from the same captain gets 409. A duplicate name in any case gets 409.
+  - **The race for the last place gives one Registered and one Waitlisted.** The next team is waitlisted at position 2.
+- **Waitlist:** a withdrawal promotes the first waitlisted team, and its captain's fake FCM token was pruned, which shows the push was sent. The venue detail lists teammates only, with the captain's phone masked. Raising the maximum to 3 promotes the next team. `/me/tournaments` lists the team.
+- **On the day:** team check-in takes SAR 200 and undo clears it. Registration after the close gets 409.
+- **Cancelling:** frees the blocks and pushes the captains (fake token pruned).
+
+**Browser:** in Business, as operator inside Smash Padel Club, the "Riyadh Padel Open" detail shows Published, the dates, registration close, the format explanation, courts, "2/8" teams, SAR 250 per team, the description and Cancel. Two registered teams appear with masked captain phones. Checked through the page text, because screenshots timed out.
+
+**Not walked:** the app's Tournaments tab, event page and registration form. They pass `flutter analyze` and the APIs above are verified. They're queued for the final on-phone pass with push and loyalty.
+
+**Demo data:** "Riyadh Padel Open" stays published, 9 days ahead, with two teams.
