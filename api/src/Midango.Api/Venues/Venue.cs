@@ -30,5 +30,8 @@ public sealed class Venue
 
     /// Public "/media/…" path of the uploaded logo, or null.
     public string? LogoPath { get; set; }
+
+    /// Position in the app's "Featured" strip (1 = first), or null when not featured. Set by Midango.
+    public int? FeaturedRank { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 }

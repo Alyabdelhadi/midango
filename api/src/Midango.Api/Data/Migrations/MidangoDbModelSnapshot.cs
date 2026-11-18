@@ -840,6 +840,190 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("customer_devices", (string)null);
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.AppBanner", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean")
+                        .HasColumnName("active");
+
+                    b.Property<string>("BodyAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("body_ar");
+
+                    b.Property<string>("BodyEn")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("body_en");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ImagePath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("image_path");
+
+                    b.Property<string>("LinkTarget")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("link_target");
+
+                    b.Property<string>("LinkType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("link_type");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("TitleAr")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("title_ar");
+
+                    b.Property<string>("TitleEn")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("title_en");
+
+                    b.HasKey("Id")
+                        .HasName("pk_app_banners");
+
+                    b.HasIndex("SortOrder")
+                        .HasDatabaseName("ix_app_banners_sort_order");
+
+                    b.ToTable("app_banners", (string)null);
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.AppContent", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AndroidStoreUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("android_store_url");
+
+                    b.Property<string>("IosStoreUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("ios_store_url");
+
+                    b.Property<bool>("Maintenance")
+                        .HasColumnType("boolean")
+                        .HasColumnName("maintenance");
+
+                    b.Property<string>("MaintenanceMessageAr")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("maintenance_message_ar");
+
+                    b.Property<string>("MaintenanceMessageEn")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("maintenance_message_en");
+
+                    b.Property<int>("MinAndroidBuild")
+                        .HasColumnType("integer")
+                        .HasColumnName("min_android_build");
+
+                    b.Property<int>("MinIosBuild")
+                        .HasColumnType("integer")
+                        .HasColumnName("min_ios_build");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_app_content");
+
+                    b.ToTable("app_content", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_app_content_singleton", "id = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Maintenance = false,
+                            MinAndroidBuild = 1,
+                            MinIosBuild = 1,
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 11, 18, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.Broadcast", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BodyAr")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("body_ar");
+
+                    b.Property<string>("BodyEn")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("body_en");
+
+                    b.Property<int>("Delivered")
+                        .HasColumnType("integer")
+                        .HasColumnName("delivered");
+
+                    b.Property<int>("Devices")
+                        .HasColumnType("integer")
+                        .HasColumnName("devices");
+
+                    b.Property<DateTimeOffset>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<Guid>("SentByStaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sent_by_staff_id");
+
+                    b.Property<string>("TitleAr")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("title_ar");
+
+                    b.Property<string>("TitleEn")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("title_en");
+
+                    b.HasKey("Id")
+                        .HasName("pk_broadcasts");
+
+                    b.HasIndex("SentAt")
+                        .HasDatabaseName("ix_broadcasts_sent_at");
+
+                    b.HasIndex("SentByStaffId")
+                        .HasDatabaseName("ix_broadcasts_sent_by_staff_id");
+
+                    b.ToTable("broadcasts", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Platform.LegalDocument", b =>
                 {
                     b.Property<string>("Kind")
@@ -1422,6 +1606,10 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("character varying(3)")
                         .HasColumnName("currency_code");
 
+                    b.Property<int?>("FeaturedRank")
+                        .HasColumnType("integer")
+                        .HasColumnName("featured_rank");
+
                     b.Property<int>("FreeCancellationHours")
                         .HasColumnType("integer")
                         .HasColumnName("free_cancellation_hours");
@@ -1678,6 +1866,16 @@ namespace Midango.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_customer_devices_customers_customer_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.Broadcast", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("SentByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_broadcasts_staff_sent_by_staff_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Platform.OperatorAction", b =>

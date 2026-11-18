@@ -36,6 +36,9 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<Tournament> Tournaments => Set<Tournament>();
     public DbSet<TournamentTeam> TournamentTeams => Set<TournamentTeam>();
     public DbSet<TournamentMatch> TournamentMatches => Set<TournamentMatch>();
+    public DbSet<AppContent> AppContent => Set<AppContent>();
+    public DbSet<AppBanner> AppBanners => Set<AppBanner>();
+    public DbSet<Broadcast> Broadcasts => Set<Broadcast>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -265,6 +268,40 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(s => s.GoldMultiplier).HasPrecision(4, 2);
             e.Property(s => s.SarPerRedeemStep).HasPrecision(10, 2);
             e.HasData(new PlatformSettings());
+        });
+
+        b.Entity<AppContent>(e =>
+        {
+            e.ToTable("app_content", t => t.HasCheckConstraint("ck_app_content_singleton", "id = 1"));
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.Property(x => x.AndroidStoreUrl).HasMaxLength(500);
+            e.Property(x => x.IosStoreUrl).HasMaxLength(500);
+            e.Property(x => x.MaintenanceMessageEn).HasMaxLength(300);
+            e.Property(x => x.MaintenanceMessageAr).HasMaxLength(300);
+            e.HasData(new AppContent { UpdatedAt = new DateTimeOffset(2026, 11, 18, 0, 0, 0, TimeSpan.Zero) });
+        });
+
+        b.Entity<AppBanner>(e =>
+        {
+            e.ToTable("app_banners");
+            e.Property(x => x.TitleEn).HasMaxLength(80);
+            e.Property(x => x.TitleAr).HasMaxLength(80);
+            e.Property(x => x.BodyEn).HasMaxLength(200);
+            e.Property(x => x.BodyAr).HasMaxLength(200);
+            e.Property(x => x.ImagePath).HasMaxLength(200);
+            e.Property(x => x.LinkType).HasMaxLength(16);
+            e.Property(x => x.LinkTarget).HasMaxLength(500);
+            e.HasIndex(x => x.SortOrder);
+        });
+
+        b.Entity<Broadcast>(e =>
+        {
+            e.Property(x => x.TitleEn).HasMaxLength(80);
+            e.Property(x => x.TitleAr).HasMaxLength(80);
+            e.Property(x => x.BodyEn).HasMaxLength(300);
+            e.Property(x => x.BodyAr).HasMaxLength(300);
+            e.HasIndex(x => x.SentAt);
+            e.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.SentByStaffId).OnDelete(DeleteBehavior.Restrict);
         });
 
         b.Entity<CustomerDevice>(e =>

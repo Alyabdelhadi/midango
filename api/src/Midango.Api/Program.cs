@@ -149,6 +149,7 @@ app.MapVenueInsightEndpoints();
 app.MapDeskEndpoints();
 app.MapReportEndpoints();
 app.MapSettingsEndpoints();
+app.MapAppContentEndpoints();
 app.MapDeviceEndpoints();
 app.MapLeadEndpoints();
 app.MapOperatorEndpoints();
