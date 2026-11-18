@@ -65,3 +65,34 @@ Everything under App. `flutter analyze` clean (PowerShell only). Don't commit.
 ### Task 3: Verify (controller)
 - API script: open at booking + later; max > playersPerMatch → 400; join own → 409; two concurrent joins on the last spot → exactly one 200; full → 409; leave late flag; remove; close with joiners → 409; matches list filters (sport/date/level/full/started/unpublished excluded); share maths; no-show limit counts joined matches; reminders reach joiners; pushes logged/sent for join/full/remove/cancel.
 - Browser (Flutter web, 390×844 without mobile flag): set level, open a match from the confirm sheet, second customer joins from Open matches, organiser sees the player and removes them; Arabic pass.
+
+---
+
+## Verification (2026-11-18)
+
+**API** (`mma-check.ps1`, five fresh customers, API with `Reminders__IntervalSeconds=5`): 47 of 48 checks passed. The one miss was my own expectation: joining a *cancelled* match returns 404 "Match not found", where I expected 409. 404 is the better answer.
+- **Setup and levels:** Padel carries `playersPerMatch` 4. Levels save and clear.
+- **Opening a match:** 5 players gets 400 "Choose between 2 and 4 players for this sport". The share is total/4 (40 of 160).
+- **Listing:** the match is listed. An Intermediate match is hidden from the Advanced filter and shown for Intermediate.
+- **Joining:**
+  - Joining your own match gets 409 "This is your own match", and a second join gets 409 "already in".
+  - The organiser's fake FCM device row was removed after a join, which proves a real FCM send was attempted and the rejected token was pruned.
+  - **Last-spot race: one 200, one 409.** A full match is not listed.
+- **Shares:** the organiser's `myShare` = total − 3 shares.
+- **Remove and leave:** a removed player can't rejoin (409). Leaving before the window is not late, and the player who left sees `playerStatus: left`.
+- **Close and resize:** closing with players in gets 409. Resizing below the players already in gets 400.
+- **No-show limit:** it counts match no-shows as missed and joined matches as upcoming (409 with limit 1). Settings were restored to 3/2/30/1.
+- **Later opening:** opening an existing booking later works.
+- **Reminders:** the active joiner gets the reminder (`reminder_sent_at` set).
+
+**Browser** (Flutter web, 390×844 at 1×. A 2× emulated viewport tiled the canvas and sent taps to the wrong place. In this setup the first click on a node only focuses it and the second activates it.)
+- **Joining:** Open matches → Fri shows Omar's Intermediate 90-minute match (SAR 60 per player, 3 spots left). The match page shows the share, the free-leave time and the organiser. **Join while signed out goes through phone, code and name, then joins**: 2 spots left, Lina listed, Leave shown. The list then reads "Omar, Lina".
+- **Organiser side:**
+  - The confirm sheet's "Open to other players" shows the players stepper (4, "More" disabled at the sport's maximum), level chips, and "Your share SAR 40.00". Booking it created an open match.
+  - My bookings shows both with a "Match" pill. After another customer joined through the API, the organiser's price showed SAR 120.
+  - Booking detail shows the players with Remove. The confirm dialog "Remove Yousef from the match?" works, after which there are 3 spots left, SAR 160, and Close is available.
+- **Fix during review:** booking detail showed the list's stale copy (no new joiner). It now reloads the booking from `/me/bookings` when a match booking opens.
+
+**Not walked:** the Arabic pass of the match screens. The strings exist in `strings.dart`, and the earlier milestones' RTL patterns are reused.
+
+**Known gaps:** the Profile level buttons say only "Beginner / …" to screen readers, without the sport. A venue cancelling an open match from the staff screens doesn't notify the joiners. The organiser's confirmation shows the full price until someone joins (correct, but there's no "drops to SAR 40 when full" hint).

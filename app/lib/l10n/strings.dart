@@ -89,6 +89,53 @@ class Strings {
     required this.privacyPolicy,
     required this.termsConditions,
     required this.lastUpdated,
+    required this.openMatches,
+    required this.noMatches,
+    required this.levelAny,
+    required this.levelName,
+    required this.levelLabel,
+    required this.spotsLeft,
+    required this.perPlayer,
+    required this.matchTitle,
+    required this.playersHeading,
+    required this.organiser,
+    required this.you,
+    required this.sharePayAtDesk,
+    required this.freeLeaveUntil,
+    required this.joinMatch,
+    required this.joinAnyway,
+    required this.matchFull,
+    required this.levelMismatch,
+    required this.joined,
+    required this.leaveMatch,
+    required this.leaveTitle,
+    required this.leaveFree,
+    required this.leaveLate,
+    required this.stayIn,
+    required this.leftMatch,
+    required this.yourMatch,
+    required this.viewBooking,
+    required this.openToOthers,
+    required this.openToOthersHelp,
+    required this.yourShare,
+    required this.openMatch,
+    required this.saveChanges,
+    required this.closeMatch,
+    required this.closeBlocked,
+    required this.remove,
+    required this.removeTitle,
+    required this.notNow,
+    required this.matchOpened,
+    required this.matchClosed,
+    required this.matchPill,
+    required this.statusLeft,
+    required this.statusRemoved,
+    required this.yourLevel,
+    required this.yourLevelHelp,
+    required this.notSet,
+    required this.playerRemoved,
+    required this.fewerPlayers,
+    required this.morePlayers,
   });
 
   final bool isArabic;
@@ -196,6 +243,55 @@ class Strings {
   final String termsConditions;
   final String Function(String date) lastUpdated;
 
+  // Open matches
+  final String openMatches;
+  final String noMatches;
+  final String levelAny;
+  final String Function(String level) levelName;
+  final String levelLabel;
+  final String Function(int n) spotsLeft;
+  final String perPlayer;
+  final String matchTitle;
+  final String playersHeading;
+  final String organiser;
+  final String you;
+  final String Function(String price) sharePayAtDesk;
+  final String Function(String when) freeLeaveUntil;
+  final String joinMatch;
+  final String joinAnyway;
+  final String matchFull;
+  final String Function(String level) levelMismatch;
+  final String joined;
+  final String leaveMatch;
+  final String leaveTitle;
+  final String leaveFree;
+  final String leaveLate;
+  final String stayIn;
+  final String leftMatch;
+  final String yourMatch;
+  final String viewBooking;
+  final String openToOthers;
+  final String openToOthersHelp;
+  final String yourShare;
+  final String openMatch;
+  final String saveChanges;
+  final String closeMatch;
+  final String closeBlocked;
+  final String remove;
+  final String Function(String name) removeTitle;
+  final String notNow;
+  final String matchOpened;
+  final String matchClosed;
+  final String matchPill;
+  final String statusLeft;
+  final String statusRemoved;
+  final String yourLevel;
+  final String yourLevelHelp;
+  final String notSet;
+  final String playerRemoved;
+  final String fewerPlayers;
+  final String morePlayers;
+
   static Strings of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<StringsScope>()!.strings;
 }
 
@@ -299,9 +395,62 @@ const en = Strings(
   privacyPolicy: 'Privacy policy',
   termsConditions: 'Terms & conditions',
   lastUpdated: _enLastUpdated,
+  openMatches: 'Open matches',
+  noMatches: 'No open matches for this sport on this day.',
+  levelAny: 'Any level',
+  levelName: _enLevel,
+  levelLabel: 'Level',
+  spotsLeft: _enSpotsLeft,
+  perPlayer: 'per player',
+  matchTitle: 'Open match',
+  playersHeading: 'Players',
+  organiser: 'Organiser',
+  you: 'You',
+  sharePayAtDesk: _enShareAtDesk,
+  freeLeaveUntil: _enFreeLeave,
+  joinMatch: 'Join match',
+  joinAnyway: 'Join anyway',
+  matchFull: 'This match is full',
+  levelMismatch: _enMismatch,
+  joined: 'You joined the match.',
+  leaveMatch: 'Leave match',
+  leaveTitle: 'Leave this match?',
+  leaveFree: 'Leaving now is free.',
+  leaveLate: 'Leaving now counts as a late cancellation.',
+  stayIn: 'Stay in',
+  leftMatch: 'You left the match.',
+  yourMatch: 'You organise this match.',
+  viewBooking: 'View booking',
+  openToOthers: 'Open to other players',
+  openToOthersHelp: 'Others can join and pay an equal share at the desk. You cover any empty spots.',
+  yourShare: 'Your share',
+  openMatch: 'Open match',
+  saveChanges: 'Save changes',
+  closeMatch: 'Close match',
+  closeBlocked: 'Remove the players who joined first.',
+  remove: 'Remove',
+  removeTitle: _enRemoveTitle,
+  notNow: 'Not now',
+  matchOpened: 'Your match is open to other players.',
+  matchClosed: 'Match closed.',
+  matchPill: 'Match',
+  statusLeft: 'You left',
+  statusRemoved: 'Removed by the organiser',
+  yourLevel: 'Your level',
+  yourLevelHelp: 'Tap your level again to clear it. Open matches start filtered to it.',
+  notSet: 'Not set',
+  playerRemoved: 'Player removed.',
+  fewerPlayers: 'Fewer players',
+  morePlayers: 'More players',
 );
 
 String _enLastUpdated(String date) => 'Last updated $date';
+String _enLevel(String level) => level; // the API's band names are the English words
+String _enSpotsLeft(int n) => n == 1 ? '1 spot left' : '$n spots left';
+String _enShareAtDesk(String price) => 'Your share: $price, paid at the desk';
+String _enFreeLeave(String when) => 'Free to leave until $when';
+String _enMismatch(String level) => 'This match is for $level players';
+String _enRemoveTitle(String name) => 'Remove $name from the match?';
 String _enMinutes(int n) => '$n min';
 String _enFrom(String price) => 'from $price';
 String _enSlotOpen(String time) => '$time, available';
@@ -400,9 +549,76 @@ const ar = Strings(
   privacyPolicy: 'سياسة الخصوصية',
   termsConditions: 'الشروط والأحكام',
   lastUpdated: _arLastUpdated,
+  openMatches: 'مباريات مفتوحة',
+  noMatches: 'لا توجد مباريات مفتوحة لهذه الرياضة في هذا اليوم.',
+  levelAny: 'كل المستويات',
+  levelName: _arLevel,
+  levelLabel: 'المستوى',
+  spotsLeft: _arSpotsLeft,
+  perPlayer: 'للاعب الواحد',
+  matchTitle: 'مباراة مفتوحة',
+  playersHeading: 'اللاعبون',
+  organiser: 'المنظِّم',
+  you: 'أنت',
+  sharePayAtDesk: _arShareAtDesk,
+  freeLeaveUntil: _arFreeLeave,
+  joinMatch: 'انضم إلى المباراة',
+  joinAnyway: 'انضم على أي حال',
+  matchFull: 'اكتملت هذه المباراة',
+  levelMismatch: _arMismatch,
+  joined: 'انضممت إلى المباراة.',
+  leaveMatch: 'مغادرة المباراة',
+  leaveTitle: 'مغادرة هذه المباراة؟',
+  leaveFree: 'المغادرة الآن مجانية.',
+  leaveLate: 'المغادرة الآن تُحتسب إلغاءً متأخراً.',
+  stayIn: 'البقاء',
+  leftMatch: 'غادرت المباراة.',
+  yourMatch: 'أنت منظِّم هذه المباراة.',
+  viewBooking: 'عرض الحجز',
+  openToOthers: 'افتح الحجز للاعبين آخرين',
+  openToOthersHelp: 'يمكن للآخرين الانضمام ودفع حصة متساوية في الاستقبال، وتدفع أنت عن الأماكن الشاغرة.',
+  yourShare: 'حصتك',
+  openMatch: 'افتح المباراة',
+  saveChanges: 'حفظ التغييرات',
+  closeMatch: 'إغلاق المباراة',
+  closeBlocked: 'أزل اللاعبين المنضمّين أولاً.',
+  remove: 'إزالة',
+  removeTitle: _arRemoveTitle,
+  notNow: 'ليس الآن',
+  matchOpened: 'أصبحت مباراتك مفتوحة للاعبين آخرين.',
+  matchClosed: 'تم إغلاق المباراة.',
+  matchPill: 'مباراة',
+  statusLeft: 'غادرت',
+  statusRemoved: 'أزالك المنظِّم',
+  yourLevel: 'مستواك',
+  yourLevelHelp: 'اضغط على مستواك مرة أخرى لإلغائه. تُعرض المباريات المفتوحة حسبه أولاً.',
+  notSet: 'غير محدد',
+  playerRemoved: 'تمت إزالة اللاعب.',
+  fewerPlayers: 'لاعبون أقل',
+  morePlayers: 'لاعبون أكثر',
 );
 
 String _arLastUpdated(String date) => 'آخر تحديث: $date';
+String _arLevel(String level) => switch (level) {
+      'Beginner' => 'مبتدئ',
+      'Intermediate' => 'متوسط',
+      'Advanced' => 'متقدم',
+      _ => level,
+    };
+String _arSpotsLeft(int n) => switch (n) {
+      1 => 'بقي مكان واحد',
+      2 => 'بقي مكانان',
+      >= 3 && <= 10 => 'بقيت $n أماكن',
+      _ => 'بقي $n مكاناً',
+    };
+String _arShareAtDesk(String price) => 'حصتك: $price، تُدفع في الاستقبال';
+String _arFreeLeave(String when) => 'المغادرة مجانية حتى $when';
+String _arMismatch(String level) => 'هذه المباراة مخصّصة ${switch (level) {
+      'Beginner' => 'للمبتدئين',
+      'Advanced' => 'للمتقدمين',
+      _ => 'لذوي المستوى ${_arLevel(level)}',
+    }}';
+String _arRemoveTitle(String name) => 'إزالة $name من المباراة؟';
 String _arFrom(String price) => 'ابتداءً من $price';
 String _arSlotOpen(String time) => '$time، متاح';
 String _arSlotFull(String time) => '$time، محجوز';

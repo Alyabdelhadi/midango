@@ -14,6 +14,8 @@ import 'booking_detail_page.dart';
 
 /// The status in words, or null for a plain confirmed booking.
 String? statusLabel(Booking b, Strings s) => switch (b.status) {
+      _ when b.playerStatus == 'removed' => s.statusRemoved,
+      _ when b.playerStatus == 'left' => s.statusLeft,
       'Cancelled' when b.cancelledByVenue => s.statusCancelledByVenue,
       'Cancelled' when b.lateCancellation => s.statusLateCancellation,
       'Cancelled' => s.statusCancelled,
@@ -156,15 +158,22 @@ class _BookingRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text('${formatDay(dayOf(b.startsAt), s)} · ${timeRange(b.startsAt, b.endsAt)}', style: text.bodyLarge),
                     Text(b.courtName(s.isArabic), style: text.bodySmall),
-                    if (status != null) ...[
+                    if (status != null || b.isPlayer || b.match != null) ...[
                       const SizedBox(height: 8),
-                      StatusBadge(label: status),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (b.isPlayer || b.match != null) StatusBadge(label: s.matchPill, highlight: true),
+                          if (status != null) StatusBadge(label: status),
+                        ],
+                      ),
                     ],
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              Text(money(b.total, b.currency, s), style: text.labelLarge),
+              Text(money(b.myShare ?? b.total, b.currency, s), style: text.labelLarge),
             ],
           ),
         ),
@@ -173,17 +182,23 @@ class _BookingRow extends StatelessWidget {
   }
 }
 
-/// A status in words on a quiet grey pill.
+/// A status in words on a quiet grey pill; `highlight` puts it on lime (the "Match" pill).
 class StatusBadge extends StatelessWidget {
-  const StatusBadge({super.key, required this.label});
+  const StatusBadge({super.key, required this.label, this.highlight = false});
   final String label;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: MidangoColors.disabledBg, borderRadius: BorderRadius.circular(6)),
-      child: Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: MidangoColors.slate)),
+      decoration: BoxDecoration(
+          color: highlight ? MidangoColors.lime : MidangoColors.disabledBg, borderRadius: BorderRadius.circular(6)),
+      child: Text(label,
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall
+              ?.copyWith(color: highlight ? MidangoColors.navy : MidangoColors.slate)),
     );
   }
 }

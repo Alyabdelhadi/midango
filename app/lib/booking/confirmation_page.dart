@@ -110,12 +110,16 @@ class BookingSummary extends StatelessWidget {
         InfoLine(icon: LucideIcons.layoutGrid, text: b.courtName(s.isArabic)),
         // Only a live booking is still to be paid or cancelled.
         if (b.confirmed) ...[
-          InfoLine(icon: LucideIcons.banknote, text: s.payAmountAtVenue(money(b.total, b.currency, s))),
+          // In a match each player pays their share; the organiser covers the empty spots.
+          InfoLine(icon: LucideIcons.banknote, text: s.payAmountAtVenue(money(b.myShare ?? b.total, b.currency, s))),
           InfoLine(
             icon: LucideIcons.calendarX,
             text: DateTime.now().isBefore(DateTime.parse(until))
-                ? s.freeCancellationUntil('${formatDay(dayOf(until), s)} ${ltr(clock(until))}')
-                : s.cancelLate,
+                ? (b.isPlayer ? s.freeLeaveUntil : s.freeCancellationUntil)(
+                    '${formatDay(dayOf(until), s)} ${ltr(clock(until))}')
+                : b.isPlayer
+                    ? s.leaveLate
+                    : s.cancelLate,
           ),
         ],
       ],

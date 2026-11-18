@@ -27,7 +27,8 @@ class Category implements Named {
         nameAr = j['nameAr'] as String,
         iconKey = j['iconKey'] as String,
         iconUrl = j['iconUrl'] as String?,
-        durationsMinutes = (j['durationsMinutes'] as List).cast<int>();
+        durationsMinutes = (j['durationsMinutes'] as List).cast<int>(),
+        playersPerMatch = j['playersPerMatch'] as int? ?? 4;
   final String id;
   @override
   final String nameEn;
@@ -38,6 +39,9 @@ class Category implements Named {
   /// Uploaded icon ("/media/…"); wins over [iconKey] when set.
   final String? iconUrl;
   final List<int> durationsMinutes;
+
+  /// The most players an open match of this sport can have (the operator's setting).
+  final int playersPerMatch;
 }
 
 class SlotCourt {
@@ -209,7 +213,11 @@ class Booking {
         freeCancellationUntil = j['freeCancellationUntil'] as String,
         lateCancellation = j['lateCancellation'] as bool,
         cancelledAt = j['cancelledAt'] as String?,
-        cancelledByVenue = j['cancelledByVenue'] as bool;
+        cancelledByVenue = j['cancelledByVenue'] as bool,
+        role = j['role'] as String? ?? 'organiser',
+        match = j['match'] == null ? null : BookingMatch.fromJson(j['match'] as JsonMap),
+        myShare = j['myShare'] == null ? null : _money(j['myShare']),
+        playerStatus = j['playerStatus'] as String?;
   final String id;
   final String reference;
   final String venueId;
@@ -234,6 +242,20 @@ class Booking {
   final String? cancelledAt;
   final bool cancelledByVenue;
 
+  /// "organiser" (the customer booked it) or "player" (joined someone's open match).
+  final String role;
+
+  /// Set while the booking is open to other players.
+  final BookingMatch? match;
+
+  /// What this customer pays at the desk when in a match.
+  final double? myShare;
+
+  /// A player's place: "joined" | "left" | "removed"; null for the organiser.
+  final String? playerStatus;
+
+  bool get isPlayer => role == 'player';
+
   String venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn)!;
   String courtName(bool arabic) => _pick(arabic, courtNameAr, courtNameEn)!;
   bool get confirmed => status == 'Confirmed';
@@ -245,6 +267,84 @@ class Booking {
   bool get cancellable => confirmed && DateTime.parse(startsAt).isAfter(DateTime.now());
   bool get freeToCancel => DateTime.now().isBefore(DateTime.parse(freeCancellationUntil));
 }
+
+class BookingMatch {
+  BookingMatch.fromJson(JsonMap j)
+      : maxPlayers = j['maxPlayers'] as int,
+        level = j['level'] as String?,
+        share = _money(j['share']),
+        players = _list(j['players'], MatchPlayer.fromJson);
+  final int maxPlayers;
+
+  /// "Beginner" | "Intermediate" | "Advanced", or null for any level.
+  final String? level;
+  final double share;
+  final List<MatchPlayer> players;
+}
+
+class MatchPlayer {
+  MatchPlayer.fromJson(JsonMap j)
+      : customerId = j['customerId'] as String?,
+        firstName = j['firstName'] as String;
+  final String? customerId;
+  final String firstName;
+}
+
+/// An open match as others see it (list, detail, join and leave all answer with this).
+class OpenMatch {
+  OpenMatch.fromJson(JsonMap j)
+      : id = j['id'] as String,
+        venueId = j['venueId'] as String,
+        categoryId = j['categoryId'] as String,
+        venueNameEn = j['venueNameEn'] as String,
+        venueNameAr = j['venueNameAr'] as String,
+        venueLogoUrl = j['venueLogoUrl'] as String?,
+        courtNameEn = j['courtNameEn'] as String,
+        courtNameAr = j['courtNameAr'] as String,
+        startsAt = j['startsAt'] as String,
+        endsAt = j['endsAt'] as String,
+        minutes = j['minutes'] as int,
+        currency = j['currency'] as String,
+        share = _money(j['share']),
+        maxPlayers = j['maxPlayers'] as int,
+        spotsLeft = j['spotsLeft'] as int,
+        level = j['level'] as String?,
+        players = _list(j['players'], MatchPlayer.fromJson),
+        organiserFirstName = j['organiserFirstName'] as String?,
+        addressEn = j['addressEn'] as String?,
+        addressAr = j['addressAr'] as String?,
+        freeCancellationUntil = j['freeCancellationUntil'] as String?;
+  final String id;
+  final String venueId;
+  final String categoryId;
+  final String venueNameEn;
+  final String venueNameAr;
+  final String? venueLogoUrl;
+  final String courtNameEn;
+  final String courtNameAr;
+  final String startsAt;
+  final String endsAt;
+  final int minutes;
+  final String currency;
+  final double share;
+  final int maxPlayers;
+  final int spotsLeft;
+  final String? level;
+
+  /// Organiser first.
+  final List<MatchPlayer> players;
+  final String? organiserFirstName;
+  final String? addressEn;
+  final String? addressAr;
+  final String? freeCancellationUntil;
+
+  String venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn)!;
+  String courtName(bool arabic) => _pick(arabic, courtNameAr, courtNameEn)!;
+  String? address(bool arabic) => _pick(arabic, addressAr, addressEn);
+}
+
+/// The equal share of a court's total, rounded like the API (2 places, halves away from zero).
+double shareOf(double total, int players) => (total / players * 100).round() / 100;
 
 class MyBookings {
   MyBookings.fromJson(JsonMap j)

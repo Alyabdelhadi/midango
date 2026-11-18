@@ -6,6 +6,7 @@ import '../api/models.dart';
 import '../home_shell.dart';
 import '../l10n/format.dart';
 import '../l10n/strings.dart';
+import '../matches/match_widgets.dart';
 import '../push/push.dart';
 import '../session/session.dart';
 import '../theme/midango_colors.dart';
@@ -52,6 +53,16 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
   /// Free courts at this time, cheapest first; the first is preselected.
   late final List<SlotCourt> _courts = [...widget.slot.courts]..sort((a, b) => a.total.compareTo(b.total));
   late SlotCourt _court = _courts.first;
+
+  /// The sport being booked; its operator setting caps the players in an open match.
+  late final int _maxPlayers = widget.venue.categories
+          .where((c) => c.id == widget.venue.court(_court.courtId)?.categoryId)
+          .firstOrNull
+          ?.playersPerMatch ??
+      0;
+  bool _openMatch = false;
+  late int _players = _maxPlayers;
+  String? _level;
   bool _busy = false;
   String? _error;
 
@@ -69,7 +80,14 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
         return;
       }
       final json = await session.api.post(
-          '/bookings', {'courtId': _court.courtId, 'start': widget.slot.start, 'minutes': widget.minutes}, true);
+          '/bookings',
+          {
+            'courtId': _court.courtId,
+            'start': widget.slot.start,
+            'minutes': widget.minutes,
+            if (_openMatch) 'match': {'maxPlayers': _players, 'level': _level},
+          },
+          true);
       final booking = Booking.fromJson(json as JsonMap);
       bookingsChanged.value++;
       nav.pop();
@@ -152,6 +170,27 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
             ],
           ),
           Align(alignment: AlignmentDirectional.centerEnd, child: Text(s.includesVat, style: text.bodySmall)),
+          if (_maxPlayers >= 2) ...[
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(s.openToOthers, style: text.labelLarge),
+              subtitle: Text(s.openToOthersHelp, style: text.bodySmall),
+              value: _openMatch,
+              onChanged: _busy ? null : (on) => setState(() => _openMatch = on),
+            ),
+            if (_openMatch)
+              MatchSettings(
+                min: 2,
+                max: _maxPlayers,
+                players: _players,
+                level: _level,
+                total: _court.total,
+                currency: venue.currency,
+                onPlayers: _busy ? null : (n) => setState(() => _players = n),
+                onLevel: _busy ? null : (l) => setState(() => _level = l),
+              ),
+          ],
           const SizedBox(height: 16),
           InfoLine(icon: LucideIcons.banknote, text: s.payAtVenue),
           InfoLine(icon: LucideIcons.calendarX, text: s.freeCancellationHours(venue.freeCancellationHours)),

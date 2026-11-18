@@ -21,6 +21,9 @@ class Session extends ChangeNotifier implements TokenSource {
   Future<bool>? _refreshing;
   Me? me;
 
+  /// Sport id → "Beginner" | "Intermediate" | "Advanced"; null until loaded.
+  Map<String, String>? levels;
+
   bool get signedIn => _refresh != null;
   bool get hasName => me?.name != null;
   @override
@@ -54,6 +57,30 @@ class Session extends ChangeNotifier implements TokenSource {
 
   Future<void> saveName(String name) async {
     me = Me.fromJson(await api.put('/me', {'name': name}) as Map<String, dynamic>);
+    notifyListeners();
+  }
+
+  /// The customer's levels, loaded once per sign-in. Empty when signed out or offline.
+  Future<Map<String, String>> ensureLevels() async {
+    if (!signedIn) return const {};
+    final cached = levels;
+    if (cached != null) return cached;
+    try {
+      final json = await api.get('/me/levels', auth: true) as List;
+      levels = {for (final l in json.cast<Map<String, dynamic>>()) l['categoryId'] as String: l['level'] as String};
+      notifyListeners();
+      return levels!;
+    } catch (_) {
+      return const {};
+    }
+  }
+
+  /// Null clears the level for that sport.
+  Future<void> setLevel(String categoryId, String? level) async {
+    await api.put('/me/levels/$categoryId', {'level': level});
+    final next = {...?levels};
+    level == null ? next.remove(categoryId) : next[categoryId] = level;
+    levels = next;
     notifyListeners();
   }
 
@@ -96,6 +123,7 @@ class Session extends ChangeNotifier implements TokenSource {
     _access = null;
     _refresh = null;
     me = null;
+    levels = null;
     await _storage.delete(key: _refreshKey);
   }
 }

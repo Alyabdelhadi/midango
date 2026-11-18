@@ -75,6 +75,32 @@ class LengthPicker extends StatelessWidget {
   }
 }
 
+/// The API's level bands, lowest first.
+const matchLevels = ['Beginner', 'Intermediate', 'Advanced'];
+
+/// "Any level" then the three bands. `inline` wraps inside padded content instead of a full-width scroller.
+class LevelPicker extends StatelessWidget {
+  const LevelPicker({super.key, required this.selected, required this.onSelected, this.inline = false});
+
+  final String? selected;
+  final ValueChanged<String?>? onSelected;
+  final bool inline;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final chips = [
+      for (final level in [null, ...matchLevels])
+        _PickerChip(
+          label: level == null ? s.levelAny : s.levelName(level),
+          selected: level == selected,
+          onTap: onSelected == null ? null : () => onSelected!(level),
+        ),
+    ];
+    return inline ? Wrap(spacing: 8, runSpacing: 8, children: chips) : _ChipRow(children: chips);
+  }
+}
+
 class _ChipRow extends StatelessWidget {
   const _ChipRow({required this.children});
   final List<Widget> children;
@@ -100,7 +126,7 @@ class _PickerChip extends StatelessWidget {
   final String label;
   final Widget? icon;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +135,7 @@ class _PickerChip extends StatelessWidget {
       avatar: icon,
       selected: selected,
       showCheckmark: false,
-      onSelected: (_) => onTap(),
+      onSelected: onTap == null ? null : (_) => onTap!(),
       selectedColor: MidangoColors.lime,
       backgroundColor: MidangoColors.white,
       labelStyle: Theme.of(context).textTheme.labelLarge,
