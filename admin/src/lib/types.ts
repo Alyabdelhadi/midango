@@ -281,7 +281,7 @@ export type VenueLead = {
 };
 
 export type TournamentFormat = 'Knockout' | 'RoundRobin';
-export type TournamentStatus = 'Draft' | 'Published' | 'Cancelled';
+export type TournamentStatus = 'Draft' | 'Published' | 'InProgress' | 'Finished' | 'Cancelled';
 export type TeamStatus = 'Registered' | 'Waitlisted' | 'Withdrawn';
 export type PlayLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 
@@ -312,6 +312,9 @@ export type TournamentTeam = {
   members: string[];
   checkedInAt: string | null;
   cashCollected: number | null;
+  /** Set by the draw; groupNo only in round robin. */
+  drawPosition: number | null;
+  groupNo: number | null;
 };
 
 /** The create/update body; the detail carries the same fields. */
@@ -338,7 +341,53 @@ export type Tournament = TournamentInput & {
   status: TournamentStatus;
   courts: { id: string; nameEn: string; nameAr: string }[];
   teams: TournamentTeam[];
+  matchMinutes: number | null;
+  groupCount: number | null;
+  drawnAt: string | null;
+  championTeamId: string | null;
+  /** The drawn schedule runs past the tournament's end. */
+  overrunsEnd: boolean;
+  matches: TournamentMatch[];
+  groups: TournamentGroup[];
 };
+
+/** A side of a match: null until the feeding match is decided. */
+export type MatchTeam = { id: string; name: string };
+
+export type TournamentMatch = {
+  id: string;
+  stage: 'Knockout' | 'Group';
+  round: number;
+  position: number;
+  groupNo: number | null;
+  teamA: MatchTeam | null;
+  teamB: MatchTeam | null;
+  scoreA: number | null;
+  scoreB: number | null;
+  winnerTeamId: string | null;
+  isBye: boolean;
+  courtId: string | null;
+  courtNameEn: string | null;
+  courtNameAr: string | null;
+  startsAt: string | null;
+  nextMatchId: string | null;
+  nextSlot: 'A' | 'B' | null;
+};
+
+export type GroupStanding = {
+  teamId: string;
+  name: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  scoreFor: number;
+  scoreAgainst: number;
+  points: number;
+};
+
+/** Standings arrive already ordered. */
+export type TournamentGroup = { groupNo: number; standings: GroupStanding[] };
 
 /** A publish 409 lists the bookings in the way. */
 export type TournamentClash = { courtNameEn: string; courtNameAr: string; startsAt: string; endsAt: string; reference: string };
@@ -347,6 +396,8 @@ export const FORMAT_KEY: Record<TournamentFormat, MessageKey> = { Knockout: 'for
 export const TOURNAMENT_STATUS_KEY: Record<TournamentStatus, MessageKey> = {
   Draft: 'tournamentDraft',
   Published: 'tournamentPublished',
+  InProgress: 'tournamentInProgress',
+  Finished: 'tournamentFinished',
   Cancelled: 'tournamentCancelled',
 };
 export const LEVEL_KEY: Record<PlayLevel, MessageKey> = {

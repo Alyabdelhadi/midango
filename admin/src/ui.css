@@ -296,3 +296,29 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 }
 .pre-line { white-space: pre-line; }
 .clash-list { display: grid; gap: 4px; margin: 0; padding-inline-start: 20px; color: var(--mg-navy); }
+.table-caption { padding-block-end: 8px; caption-side: top; text-align: start; font: var(--mg-text-label); color: var(--mg-navy); }
+.inline-confirm { display: grid; gap: 8px; }
+.inline-confirm p { margin: 0; color: var(--mg-navy); }
+.match-winner { font-weight: 700; color: var(--mg-navy); }
+.score-inputs { display: inline-flex; align-items: center; gap: 6px; }
+.score-inputs input { width: 64px; }
+/* Bracket: rounds as columns; a pair's two matches join (]) into a stub on the next match. Logical properties mirror it in RTL. */
+.bracket-scroll { overflow-x: auto; }
+.bracket { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 1fr); column-gap: 24px; min-width: max-content; }
+.bracket-round { display: flex; flex-direction: column; gap: 8px; }
+.bracket-round h3 { margin: 0; font: var(--mg-text-label); color: var(--mg-muted); }
+.bracket-body, .bracket-pair { flex: 1; display: flex; flex-direction: column; }
+.bracket-pair { position: relative; }
+.bracket-pair--joined::after {
+  content: ''; position: absolute; inset-inline-end: -12px; inset-block: 25%; width: 12px;
+  border: 1px solid #c9d0db; border-inline-start: 0;
+}
+.bracket-slot { position: relative; flex: 1; display: flex; align-items: center; padding-block: 6px; }
+.bracket-round + .bracket-round .bracket-slot::before {
+  content: ''; position: absolute; inset-inline-start: -12px; inset-block-start: 50%; width: 12px;
+  border-block-start: 1px solid #c9d0db;
+}
+.bracket-match { width: 100%; display: grid; gap: 2px; padding: 6px 10px; background: var(--mg-white); border: 1px solid var(--mg-line); border-radius: var(--mg-radius); }
+.bracket-side { display: flex; justify-content: space-between; gap: 8px; color: var(--mg-slate); }
+.bracket-side--winner { font-weight: 700; color: var(--mg-navy); }
+.bracket-meta { font: var(--mg-text-caption); color: var(--mg-muted); }

@@ -93,7 +93,7 @@ function TournamentForm({
   const courts = venue.courts.filter((c) => c.active);
   // Sports this venue has open courts for (plus the tournament's own, should its courts have closed since).
   const sports = categories.filter((c) => c.id === initial?.categoryId || courts.some((court) => court.categoryId === c.id));
-  const locked = initial?.status === 'Published';
+  const locked = initial !== undefined && initial.status !== 'Draft';
 
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? sports[0]?.id ?? '');
   const [nameEn, setNameEn] = useState(initial?.nameEn ?? '');

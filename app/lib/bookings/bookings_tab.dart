@@ -9,6 +9,7 @@ import '../l10n/format.dart';
 import '../l10n/strings.dart';
 import '../session/session.dart';
 import '../theme/midango_colors.dart';
+import '../tournaments/tournament_draw.dart';
 import '../tournaments/tournament_page.dart';
 import '../tournaments/tournament_widgets.dart';
 import '../widgets/error_retry.dart';
@@ -225,6 +226,8 @@ class _TournamentRow extends StatelessWidget {
     final s = Strings.of(context);
     final text = Theme.of(context).textTheme;
     final t = mine.tournament;
+    final next = mine.team.nextMatch;
+    final nextAt = next?.startsAt;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       clipBehavior: Clip.antiAlias,
@@ -241,6 +244,10 @@ class _TournamentRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(tournamentWhen(t, s), style: text.bodyLarge),
               Text('${t.venueName(s.isArabic)} · ${mine.team.name}', style: text.bodySmall),
+              if (next != null && nextAt != null) ...[
+                const SizedBox(height: 4),
+                Text(s.nextMatchLine(matchTime(nextAt, s), next.courtName(s.isArabic)), style: text.labelLarge),
+              ],
               const SizedBox(height: 8),
               teamStatusBadge(mine.team, s),
             ],

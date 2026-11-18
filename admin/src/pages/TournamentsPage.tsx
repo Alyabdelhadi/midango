@@ -30,7 +30,7 @@ export function TournamentDates({ startsAt, endsAt }: { startsAt: string; endsAt
 export function TournamentStatusPill({ status }: { status: TournamentStatus }) {
   const { t } = useI18n();
   return (
-    <Pill tone={status === 'Published' ? 'success' : status === 'Cancelled' ? 'warning' : 'neutral'}>
+    <Pill tone={status === 'Published' || status === 'InProgress' ? 'success' : status === 'Cancelled' ? 'warning' : 'neutral'}>
       {t(TOURNAMENT_STATUS_KEY[status])}
     </Pill>
   );

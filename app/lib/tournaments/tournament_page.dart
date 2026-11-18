@@ -15,6 +15,7 @@ import '../theme/midango_colors.dart';
 import '../widgets/busy_button.dart';
 import '../widgets/error_retry.dart';
 import '../widgets/media_image.dart';
+import 'tournament_draw.dart';
 import 'tournament_widgets.dart';
 
 /// One tournament: what, where and when, the teams in it, and Register a team or the captain's own team.
@@ -164,6 +165,31 @@ class _TournamentPageState extends State<TournamentPage> {
     final s = Strings.of(context);
     SessionScope.of(context); // rebuild on sign-in
     final t = _tournament;
+    if (t != null && t.matches.isNotEmpty) {
+      final text = Theme.of(context).textTheme;
+      return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(s.tournamentTitle),
+            bottom: TabBar(
+              labelColor: MidangoColors.navy,
+              unselectedLabelColor: MidangoColors.muted,
+              indicatorColor: MidangoColors.navy,
+              labelStyle: text.labelLarge,
+              tabs: [Tab(text: s.tabInfo), Tab(text: s.tabDraw), Tab(text: s.tabFixtures)],
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              RefreshIndicator(onRefresh: _load, child: _body(t, s)),
+              RefreshIndicator(onRefresh: _load, child: DrawTab(tournament: t, myTeamId: _mine?.id)),
+              RefreshIndicator(onRefresh: _load, child: FixturesTab(tournament: t, myTeamId: _mine?.id)),
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(title: Text(s.tournamentTitle)),
       body: _failed
@@ -180,9 +206,14 @@ class _TournamentPageState extends State<TournamentPage> {
     final address = t.address(s.isArabic);
     final description = t.description(s.isArabic);
     final mine = _mine;
+    final champion = championOf(t);
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
+        if (champion != null) ...[
+          ChampionBanner(name: champion),
+          const SizedBox(height: 16),
+        ],
         Text(t.name(s.isArabic), style: text.titleLarge),
         const SizedBox(height: 12),
         Row(

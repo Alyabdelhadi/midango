@@ -15,6 +15,7 @@ import { useLoad } from '../lib/useLoad';
 import { useToast } from '../lib/useToast';
 import { BookingPanel } from './schedule/BookingPanel';
 import { NewBookingDialog, type NewAt } from './schedule/NewBookingDialog';
+import { sideName } from './tournament/matches';
 
 /** The counter: today's bookings as Now / Next / Earlier, a reference box for typed or scanned codes,
  *  one-tap check-in, no-show, walk-ins and the cash taken so far. Refreshes every 30 s. */
@@ -216,10 +217,10 @@ function DeskRow({
   );
 }
 
-/** A line per published tournament starting today, linking to its check-in page. */
+/** A line per live tournament starting today, linking to its check-in page, with the next match once drawn. */
 function TournamentsToday({ date }: { date: string }) {
   const list = useLoad(() => api<TournamentSummary[]>('/venue/tournaments'));
-  const today = list.data?.filter((x) => x.status === 'Published' && dayOf(x.startsAt) === date) ?? [];
+  const today = list.data?.filter((x) => (x.status === 'Published' || x.status === 'InProgress') && dayOf(x.startsAt) === date) ?? [];
   return today.map((x) => <TournamentTodayLine key={x.id} id={x.id} />);
 }
 
@@ -229,6 +230,10 @@ function TournamentTodayLine({ id }: { id: string }) {
   const detail = useLoad(() => api<Tournament>(`/venue/tournaments/${id}`));
   if (!detail.data) return null;
   const registered = detail.data.teams.filter((x) => x.status === 'Registered');
+  // The earliest scheduled match still without a result.
+  const next = detail.data.matches
+    .filter((m) => !m.isBye && m.startsAt && m.scoreA === null)
+    .sort((a, b) => new Date(a.startsAt!).getTime() - new Date(b.startsAt!).getTime())[0];
   return (
     <Notice tone="info">
       <Link to={`/tournaments/${id}`}>
@@ -238,6 +243,17 @@ function TournamentTodayLine({ id }: { id: string }) {
           registered: registered.length,
         })}
       </Link>
+      {next && (
+        <>
+          <br />
+          {t('deskNextMatch', {
+            time: clock(next.startsAt!),
+            court: next.courtNameEn ? name({ nameEn: next.courtNameEn, nameAr: next.courtNameAr ?? next.courtNameEn }) : '',
+            a: sideName(next.teamA, t),
+            b: sideName(next.teamB, t),
+          })}
+        </>
+      )}
     </Notice>
   );
 }

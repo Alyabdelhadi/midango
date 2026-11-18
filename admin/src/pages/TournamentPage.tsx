@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { Trophy } from 'lucide-react';
+import { Fragment, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Button } from '../components/Button';
 import { Notice } from '../components/Notice';
@@ -20,6 +21,10 @@ import { useLoad } from '../lib/useLoad';
 import { useToast } from '../lib/useToast';
 import type { MessageKey } from '../locales/en';
 import { TournamentDialog } from './TournamentDialog';
+import { DrawCard } from './tournament/DrawCard';
+import { Bracket, GroupTables } from './tournament/DrawView';
+import { Fixtures } from './tournament/Fixtures';
+import { hasResult } from './tournament/matches';
 import { TournamentDates, TournamentStatusPill } from './TournamentsPage';
 
 const HOUR = 3_600_000;
@@ -30,7 +35,8 @@ const GROUPS: [TeamStatus, MessageKey][] = [
   ['Withdrawn', 'teamsWithdrawn'],
 ];
 
-/** One tournament: summary, the manager's Edit / Publish / Cancel, and the teams with desk check-in. */
+/** One tournament: summary, the manager's Edit / Publish / Cancel / Draw, the bracket or tables,
+ *  fixtures with results, and the teams with desk check-in. */
 export function TournamentPage() {
   const { id } = useParams();
   const { t, lang, name, money } = useI18n();
@@ -68,6 +74,13 @@ export function TournamentPage() {
   if (!tournament.data) return <p className="page-loading">{t('loading')}</p>;
   const tr = tournament.data;
   const live = tr.status !== 'Cancelled';
+  const cancellable = live && tr.status !== 'Finished';
+  const champion = tr.championTeamId ? tr.teams.find((x) => x.id === tr.championTeamId) : undefined;
+  const changed = (updated: Tournament, message: string) => {
+    tournament.setData(updated);
+    toast.show('success', message);
+  };
+  const failed = (text: string) => toast.show('error', text);
 
   return (
     <div className="page">
@@ -85,6 +98,14 @@ export function TournamentPage() {
           )
         }
       />
+      {champion && (
+        <Notice tone="success">
+          <span className="cell-icon">
+            <Trophy size={18} aria-hidden="true" />
+            {t('championBanner', { name: champion.name })}
+          </span>
+        </Notice>
+      )}
 
       <section className="card">
         <dl className="details">
@@ -151,7 +172,7 @@ export function TournamentPage() {
           </ul>
         )}
         {canManage &&
-          live &&
+          cancellable &&
           (confirmingCancel ? (
             <div className="panel-section">
               <p>{t('confirmCancelTournament')}</p>
@@ -172,6 +193,29 @@ export function TournamentPage() {
             </div>
           ))}
       </section>
+
+      {canManage && (tr.status === 'Published' || tr.status === 'InProgress') && (
+        <DrawCard
+          key={tr.drawnAt ?? 'none'}
+          tournament={tr}
+          onDrawn={(updated) => changed(updated, t('drawDoneNotice'))}
+          onError={failed}
+        />
+      )}
+
+      {tr.matches.length > 0 && (
+        <>
+          <section className="card">
+            <h2>{t(tr.format === 'Knockout' ? 'bracket' : 'standings')}</h2>
+            {tr.format === 'Knockout' ? <Bracket matches={tr.matches} /> : <GroupTables groups={tr.groups} />}
+          </section>
+          <section className="card">
+            <h2>{t('fixtures')}</h2>
+            {tr.overrunsEnd && <Notice tone="error">{t('overrunWarning')}</Notice>}
+            <Fixtures tournament={tr} onChanged={changed} onError={failed} />
+          </section>
+        </>
+      )}
 
       {tr.teams.length === 0 ? (
         <section className="card">
@@ -199,7 +243,7 @@ export function TournamentPage() {
                       }),
                   );
                 }}
-                onError={(text) => toast.show('error', text)}
+                onError={failed}
               />
             </section>
           );
@@ -234,11 +278,14 @@ function TeamsTable({
 }) {
   const { t, money } = useI18n();
   const [busy, setBusy] = useState(false);
+  const [withdrawing, setWithdrawing] = useState<string>();
+  const canWithdraw = (tr.status === 'Published' || tr.status === 'InProgress') && !tr.matches.some(hasResult);
   // The API's window: from an hour before the start until the end.
   // eslint-disable-next-line react/purity -- the buttons follow the clock; the page re-renders on every change
   const now = Date.now();
   const canCheckIn =
-    tr.status === 'Published' && now >= new Date(tr.startsAt).getTime() - HOUR && now <= new Date(tr.endsAt).getTime();
+    (tr.status === 'Published' || tr.status === 'InProgress') &&
+    now >= new Date(tr.startsAt).getTime() - HOUR && now <= new Date(tr.endsAt).getTime();
   const fee = money(tr.entryFee, tr.currency);
   const url = (team: TournamentTeam, action: string) => `/venue/tournaments/${tr.id}/teams/${team.id}/${action}`;
 
@@ -246,6 +293,7 @@ function TeamsTable({
     setBusy(true);
     try {
       const updated = await api<Tournament>(url(team, action), { method: 'POST' });
+      setWithdrawing(undefined);
       onChanged(updated, message, undoAction ? () => api<Tournament>(url(team, undoAction), { method: 'POST' }) : undefined);
     } catch (err) {
       onError(errorText(err));
@@ -269,50 +317,83 @@ function TeamsTable({
       </thead>
       <tbody>
         {teams.map((team) => (
-          <tr key={team.id}>
-            <td>{team.name}</td>
-            <td>
-              {team.captain.name}{' '}
-              <bdi dir="ltr" className="muted">
-                {team.captain.maskedPhone}
-              </bdi>
-            </td>
-            <td>{team.members.join(', ')}</td>
-            <td>
-              {team.checkedInAt ? (
-                <Pill tone="success">{t('statusCheckedInAmount', { amount: money(team.cashCollected ?? tr.entryFee, tr.currency) })}</Pill>
-              ) : team.status === 'Registered' ? (
-                <Pill>{t('teamRegistered')}</Pill>
-              ) : team.status === 'Waitlisted' ? (
-                <Pill tone="warning">{t('teamWaitlisted')}</Pill>
-              ) : (
-                <Pill>{t('teamWithdrawn')}</Pill>
-              )}
-            </td>
-            <td className="row-actions">
-              {team.status === 'Registered' && !team.checkedInAt && canCheckIn && (
-                <Button
-                  disabled={busy}
-                  aria-label={t('takeCashCheckInFor', { amount: fee, name: team.name })}
-                  onClick={() =>
-                    void run(team, 'check-in', t('checkedInNotice', { name: team.name, amount: fee }), 'undo-check-in')
-                  }
-                >
-                  {tr.entryFee > 0 ? t('takeCashCheckIn', { amount: fee }) : t('checkIn')}
-                </Button>
-              )}
-              {recent(team.checkedInAt) && (
-                <Button
-                  variant="secondary"
-                  disabled={busy}
-                  aria-label={t('undoCheckInFor', { name: team.name })}
-                  onClick={() => void run(team, 'undo-check-in', t('undone'))}
-                >
-                  {t('undoCheckIn')}
-                </Button>
-              )}
-            </td>
-          </tr>
+          <Fragment key={team.id}>
+            <tr>
+              <td>{team.name}</td>
+              <td>
+                {team.captain.name}{' '}
+                <bdi dir="ltr" className="muted">
+                  {team.captain.maskedPhone}
+                </bdi>
+              </td>
+              <td>{team.members.join(', ')}</td>
+              <td>
+                {team.checkedInAt ? (
+                  <Pill tone="success">{t('statusCheckedInAmount', { amount: money(team.cashCollected ?? tr.entryFee, tr.currency) })}</Pill>
+                ) : team.status === 'Registered' ? (
+                  <Pill>{t('teamRegistered')}</Pill>
+                ) : team.status === 'Waitlisted' ? (
+                  <Pill tone="warning">{t('teamWaitlisted')}</Pill>
+                ) : (
+                  <Pill>{t('teamWithdrawn')}</Pill>
+                )}
+              </td>
+              <td className="row-actions">
+                {team.status === 'Registered' && !team.checkedInAt && canCheckIn && (
+                  <Button
+                    disabled={busy}
+                    aria-label={t('takeCashCheckInFor', { amount: fee, name: team.name })}
+                    onClick={() =>
+                      void run(team, 'check-in', t('checkedInNotice', { name: team.name, amount: fee }), 'undo-check-in')
+                    }
+                  >
+                    {tr.entryFee > 0 ? t('takeCashCheckIn', { amount: fee }) : t('checkIn')}
+                  </Button>
+                )}
+                {recent(team.checkedInAt) && (
+                  <Button
+                    variant="secondary"
+                    disabled={busy}
+                    aria-label={t('undoCheckInFor', { name: team.name })}
+                    onClick={() => void run(team, 'undo-check-in', t('undone'))}
+                  >
+                    {t('undoCheckIn')}
+                  </Button>
+                )}
+                {team.status === 'Registered' && canWithdraw && withdrawing !== team.id && (
+                  <Button
+                    variant="text"
+                    disabled={busy}
+                    aria-label={t('withdrawFor', { name: team.name })}
+                    onClick={() => setWithdrawing(team.id)}
+                  >
+                    {t('withdraw')}
+                  </Button>
+                )}
+              </td>
+            </tr>
+            {withdrawing === team.id && (
+              <tr>
+                <td colSpan={5}>
+                  <div className="inline-confirm" role="group" aria-label={t('withdrawFor', { name: team.name })}>
+                    <p>{t(tr.drawnAt ? 'confirmWithdrawDrawn' : 'confirmWithdraw', { name: team.name })}</p>
+                    <div className="form-actions">
+                      <Button variant="secondary" onClick={() => setWithdrawing(undefined)}>
+                        {t('keepIt')}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={busy}
+                        onClick={() => void run(team, 'withdraw', t('teamWithdrawnNotice', { name: team.name }))}
+                      >
+                        {t('yesWithdraw')}
+                      </Button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </Fragment>
         ))}
       </tbody>
     </table>

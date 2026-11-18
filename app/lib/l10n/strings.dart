@@ -189,6 +189,19 @@ class Strings {
     required this.withdrawBody,
     required this.keepTeam,
     required this.teamWithdrawn,
+    required this.tabInfo,
+    required this.tabDraw,
+    required this.tabFixtures,
+    required this.knockoutRound,
+    required this.groupRound,
+    required this.groupName,
+    required this.teamColumn,
+    required this.standingsColumns,
+    required this.yourNextMatch,
+    required this.bye,
+    required this.toBeDecided,
+    required this.champion,
+    required this.nextMatchLine,
   });
 
   final bool isArabic;
@@ -406,6 +419,25 @@ class Strings {
   final String keepTeam;
   final String teamWithdrawn;
 
+  // Tournament draw and fixtures
+  final String tabInfo;
+  final String tabDraw;
+  final String tabFixtures;
+
+  /// Named by distance from the final: Final, Semi-finals, Quarter-finals, else Round n.
+  final String Function(int round, int rounds) knockoutRound;
+  final String Function(int round) groupRound;
+  final String Function(int groupNo) groupName;
+  final String teamColumn;
+
+  /// Played, won, drawn, lost, score difference, points.
+  final List<String> standingsColumns;
+  final String yourNextMatch;
+  final String bye;
+  final String toBeDecided;
+  final String champion;
+  final String Function(String when, String? court) nextMatchLine;
+
   static Strings of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<StringsScope>()!.strings;
 }
 
@@ -609,6 +641,19 @@ const en = Strings(
   withdrawBody: 'Your team gives up its place. You can register again while registration is open.',
   keepTeam: 'Keep my team',
   teamWithdrawn: 'Your team was withdrawn.',
+  tabInfo: 'Info',
+  tabDraw: 'Draw',
+  tabFixtures: 'Fixtures',
+  knockoutRound: _enKnockoutRound,
+  groupRound: _enGroupRound,
+  groupName: _enGroupName,
+  teamColumn: 'Team',
+  standingsColumns: ['P', 'W', 'D', 'L', '+/-', 'Pts'],
+  yourNextMatch: 'Your next match',
+  bye: 'Bye',
+  toBeDecided: 'To be decided',
+  champion: 'Champions',
+  nextMatchLine: _enNextMatch,
 );
 
 String _enPoints(int n) => n == 1 ? '1 point' : '$n points';
@@ -833,6 +878,19 @@ const ar = Strings(
   withdrawBody: 'سيتخلى فريقك عن مكانه. يمكنك التسجيل من جديد ما دام التسجيل مفتوحاً.',
   keepTeam: 'إبقاء فريقي',
   teamWithdrawn: 'تم سحب فريقك.',
+  tabInfo: 'المعلومات',
+  tabDraw: 'القرعة',
+  tabFixtures: 'المباريات',
+  knockoutRound: _arKnockoutRound,
+  groupRound: _arGroupRound,
+  groupName: _arGroupName,
+  teamColumn: 'الفريق',
+  standingsColumns: ['لعب', 'فوز', 'تعادل', 'خسارة', '+/-', 'نقاط'],
+  yourNextMatch: 'مباراتك القادمة',
+  bye: 'تأهّل مباشر',
+  toBeDecided: 'يُحدَّد لاحقاً',
+  champion: 'البطل',
+  nextMatchLine: _arNextMatch,
 );
 
 String _arPoints(int n) => switch (n) {
@@ -901,7 +959,7 @@ String _arFreeUntil(String when) => 'الإلغاء مجاني حتى $when';
 
 String _enFormat(String format) => format == 'RoundRobin' ? 'Round-robin groups' : 'Knockout';
 String _enFormatHelp(String format) => format == 'RoundRobin'
-    ? 'Each team plays every team in its group; the best of each group go through.'
+    ? 'Each team plays every team in its group; the table decides the winner.'
     : "Lose a match and you're out; winners go through to the final.";
 String _enTeamSize(int n) => n == 1 ? '1 player per team' : '$n players per team';
 String _enTeamsCount(int registered, int max) => '$registered/$max teams';
@@ -910,10 +968,19 @@ String _enRegCloses(String when) => 'Registration closes $when';
 String _enFeePerTeam(String price) => '$price per team, paid at the venue';
 String _enTeammate(int n) => 'Teammate $n';
 String _enYourTeam(String name) => 'Your team: $name';
+String _enKnockoutRound(int round, int rounds) => switch (rounds - round) {
+      0 => 'Final',
+      1 => 'Semi-finals',
+      2 => 'Quarter-finals',
+      _ => 'Round $round',
+    };
+String _enGroupRound(int round) => 'Round $round';
+String _enGroupName(int n) => 'Group $n';
+String _enNextMatch(String when, String? court) => court == null ? 'Next match $when' : 'Next match $when on $court';
 
 String _arFormat(String format) => format == 'RoundRobin' ? 'دوري المجموعات' : 'خروج المغلوب';
 String _arFormatHelp(String format) => format == 'RoundRobin'
-    ? 'يلعب كل فريق ضد جميع فرق مجموعته، ويتأهل الأفضل من كل مجموعة.'
+    ? 'يلعب كل فريق ضد جميع فرق مجموعته، ويحدد جدول النقاط الفائز.'
     : 'من يخسر مباراة يخرج، ويتأهل الفائزون حتى النهائي.';
 String _arPlayers(int n) => switch (n) {
       1 => 'لاعب واحد',
@@ -928,6 +995,16 @@ String _arRegCloses(String when) => 'يُغلق التسجيل $when';
 String _arFeePerTeam(String price) => '$price لكل فريق، تُدفع في المنشأة';
 String _arTeammate(int n) => 'الزميل $n';
 String _arYourTeam(String name) => 'فريقك: $name';
+String _arKnockoutRound(int round, int rounds) => switch (rounds - round) {
+      0 => 'النهائي',
+      1 => 'نصف النهائي',
+      2 => 'ربع النهائي',
+      _ => 'الدور $round',
+    };
+String _arGroupRound(int round) => 'الجولة $round';
+String _arGroupName(int n) => 'المجموعة $n';
+String _arNextMatch(String when, String? court) =>
+    court == null ? 'مباراتك القادمة $when' : 'مباراتك القادمة $when في $court';
 
 /// Puts the active language's strings above the navigator.
 class StringsScope extends InheritedWidget {

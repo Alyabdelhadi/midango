@@ -61,3 +61,31 @@ Tabs, bracket/tables, fixtures, my next match, Bookings next-match line. `flutte
 ### Task 4: Verify (controller)
 - API: knockout draws for n = 2, 3, 5, 8 (byes, rounds, auto-advance); round robin n = 5 G = 1 and n = 8 G = 2 (every pair once per group); schedule respects courts and rounds; overrun flag; results advance winners; knockout tie refused; edit refused after the next result; clearing re-opens; standings order; Finished + champion; redraw refused after a result; reschedule clash 409; pushes on draw/champion.
 - Browser: Business draw → fixtures → scores → bracket → champion; app Draw/Fixtures tabs (EN + AR) if the automation cooperates.
+
+---
+
+## Verification (2026-11-18)
+
+Teams were inserted into `tournament_teams` with SQL so draws of any size could be tested without the sign-in rate limit.
+
+**API** (`t2-check.ps1`): **0 failures on the first run.**
+- **Drawing:** a draw before registration closes gets 409.
+- **Knockout shapes:** n=2 gives 1 match / 0 byes / 1 round. n=3 gives 3 / 1 / 2. n=5 gives 7 / 3 / 3. n=8 gives 7 / 0 / 3. A team with a bye already sits in round 2.
+- **Schedule (8 teams):** no court is booked twice, and round 2 starts at 08:00 after round 1's last match at 07:00 plus 60 minutes.
+- **Results:** a knockout tie gets 400 "needs a winner". Once a result is in, a redraw gets 409. Playing on gives Finished with a champion. Changing a round-1 result after the next match has one gets 409. Clearing the final reopens the tournament (InProgress, champion cleared). The public detail carries the bracket.
+- **Round robin:**
+  - With 5 teams there are 10 matches and every pair meets once. One team winning all and every other match drawn 2–2 gives standings of 12 points (4 wins) then 3 each, and the group winner is the champion.
+  - With 8 teams there are 2 groups of 4 and 12 matches, and no team is scheduled twice at once.
+- **Other rules:**
+  - A 2-hour window with 90-minute matches gives `overrunsEnd`.
+  - The draw push reached the captain (fake token pruned).
+  - Rescheduling onto another match's court and time gets 409 "Another match of this tournament is on that court then".
+  - Withdrawing a team clears the draw back to Published, and the redraw with 7 teams has 1 bye.
+
+**Browser:** the Business detail for a finished round-robin shows "Champion: Team 1", the Tables (12 / 3 / 3 / 3 / 3 with For/Against) and the Fixtures with times, courts, "(winner)" marks and score entry.
+
+**Fix during review:** the format help said round-robin groups' "best of each group go through", but there's no knockout stage after the groups. Business and the app now say "the table decides the winner", in English and Arabic.
+
+**Not walked:** the app's Draw and Fixtures tabs (analyze is clean). They're queued for the final on-phone pass.
+
+**Known limits:** the scheduler ignores opening hours on multi-day events (marked `ponytail:`). Round robin has no knockout stage after the groups. Groups are numbered, not lettered.

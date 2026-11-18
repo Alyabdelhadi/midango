@@ -456,7 +456,11 @@ class Tournament implements Named {
         addressEn = j['addressEn'] as String?,
         addressAr = j['addressAr'] as String?,
         courts = _list(j['courts'], TournamentCourt.fromJson),
-        teams = _list(j['teams'], TournamentTeam.fromJson);
+        teams = _list(j['teams'], TournamentTeam.fromJson),
+        status = j['status'] as String?,
+        matches = _list(j['matches'], TournamentMatch.fromJson),
+        groups = _list(j['groups'], TournamentGroup.fromJson),
+        championTeamName = j['championTeamName'] as String?;
   final String id;
   final String venueId;
   final String venueNameEn;
@@ -492,6 +496,16 @@ class Tournament implements Named {
   /// Registered teams only (the page; empty in the list).
   final List<TournamentTeam> teams;
 
+  /// "Published" | "InProgress" | "Finished" | "Cancelled"
+  final String? status;
+
+  /// The draw (the page only; empty until the venue makes it).
+  final List<TournamentMatch> matches;
+
+  /// Round-robin standings, one per group.
+  final List<TournamentGroup> groups;
+  final String? championTeamName;
+
   String venueName(bool arabic) => _pick(arabic, venueNameAr, venueNameEn)!;
   String? description(bool arabic) => _pick(arabic, descriptionAr, descriptionEn);
   String? address(bool arabic) => _pick(arabic, addressAr, addressEn);
@@ -516,7 +530,8 @@ class TournamentTeam {
         name = j['name'] as String,
         status = j['status'] as String?,
         members = (j['members'] as List? ?? const []).cast<String>(),
-        checkedInAt = j['checkedInAt'] as String?;
+        checkedInAt = j['checkedInAt'] as String?,
+        nextMatch = j['nextMatch'] == null ? null : TournamentMatch.fromJson(j['nextMatch'] as JsonMap);
   final String? id;
   final String name;
 
@@ -526,6 +541,9 @@ class TournamentTeam {
   /// Captain first.
   final List<String> members;
   final String? checkedInAt;
+
+  /// The captain's own team only (`/me/tournaments`): its next unplayed match.
+  final TournamentMatch? nextMatch;
 
   bool get withdrawn => status == 'Withdrawn';
   bool get waitlisted => status == 'Waitlisted';
@@ -539,4 +557,76 @@ class MyTournament {
         team = TournamentTeam.fromJson(j['team'] as JsonMap);
   final Tournament tournament;
   final TournamentTeam team;
+}
+
+/// One match of the draw. A team is just its id and name; null while the slot waits for a winner.
+class TournamentMatch {
+  TournamentMatch.fromJson(JsonMap j)
+      : id = j['id'] as String,
+        stage = j['stage'] as String,
+        round = j['round'] as int,
+        position = j['position'] as int,
+        groupNo = j['groupNo'] as int?,
+        teamA = j['teamA'] == null ? null : TournamentTeam.fromJson(j['teamA'] as JsonMap),
+        teamB = j['teamB'] == null ? null : TournamentTeam.fromJson(j['teamB'] as JsonMap),
+        scoreA = j['scoreA'] as int?,
+        scoreB = j['scoreB'] as int?,
+        winnerTeamId = j['winnerTeamId'] as String?,
+        isBye = j['isBye'] as bool? ?? false,
+        courtNameEn = j['courtNameEn'] as String?,
+        courtNameAr = j['courtNameAr'] as String?,
+        startsAt = j['startsAt'] as String?;
+  final String id;
+
+  /// "Knockout" | "Group"
+  final String stage;
+  final int round;
+  final int position;
+  final int? groupNo;
+  final TournamentTeam? teamA;
+  final TournamentTeam? teamB;
+  final int? scoreA;
+  final int? scoreB;
+  final String? winnerTeamId;
+  final bool isBye;
+  final String? courtNameEn;
+  final String? courtNameAr;
+  final String? startsAt;
+
+  bool get knockout => stage == 'Knockout';
+  bool get played => scoreA != null && scoreB != null;
+  bool involves(String? teamId) => teamId != null && (teamA?.id == teamId || teamB?.id == teamId);
+  String? courtName(bool arabic) => _pick(arabic, courtNameAr, courtNameEn);
+}
+
+class TournamentGroup {
+  TournamentGroup.fromJson(JsonMap j)
+      : groupNo = j['groupNo'] as int,
+        standings = _list(j['standings'], Standing.fromJson);
+  final int groupNo;
+
+  /// Already in table order.
+  final List<Standing> standings;
+}
+
+class Standing {
+  Standing.fromJson(JsonMap j)
+      : teamId = j['teamId'] as String,
+        name = j['name'] as String,
+        played = j['played'] as int,
+        won = j['won'] as int,
+        drawn = j['drawn'] as int,
+        lost = j['lost'] as int,
+        scoreFor = j['scoreFor'] as int,
+        scoreAgainst = j['scoreAgainst'] as int,
+        points = j['points'] as int;
+  final String teamId;
+  final String name;
+  final int played;
+  final int won;
+  final int drawn;
+  final int lost;
+  final int scoreFor;
+  final int scoreAgainst;
+  final int points;
 }
