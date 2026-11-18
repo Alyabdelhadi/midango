@@ -202,6 +202,11 @@ class Strings {
     required this.toBeDecided,
     required this.champion,
     required this.nextMatchLine,
+    required this.featuredHeading,
+    required this.updateTitle,
+    required this.updateBody,
+    required this.updateButton,
+    required this.maintenanceTitle,
   });
 
   final bool isArabic;
@@ -438,6 +443,13 @@ class Strings {
   final String champion;
   final String Function(String when, String? court) nextMatchLine;
 
+  // App content (operator): featured strip, force update, maintenance
+  final String featuredHeading;
+  final String updateTitle;
+  final String updateBody;
+  final String updateButton;
+  final String maintenanceTitle;
+
   static Strings of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<StringsScope>()!.strings;
 }
 
@@ -654,6 +666,11 @@ const en = Strings(
   toBeDecided: 'To be decided',
   champion: 'Champions',
   nextMatchLine: _enNextMatch,
+  featuredHeading: 'Featured',
+  updateTitle: 'A new version of Midango is ready',
+  updateBody: 'Update the app to keep booking.',
+  updateButton: 'Update',
+  maintenanceTitle: 'Midango is under maintenance',
 );
 
 String _enPoints(int n) => n == 1 ? '1 point' : '$n points';
@@ -891,6 +908,11 @@ const ar = Strings(
   toBeDecided: 'يُحدَّد لاحقاً',
   champion: 'البطل',
   nextMatchLine: _arNextMatch,
+  featuredHeading: 'مميّز',
+  updateTitle: 'إصدار جديد من Midango جاهز',
+  updateBody: 'حدّث التطبيق لمتابعة الحجز.',
+  updateButton: 'تحديث',
+  maintenanceTitle: 'Midango قيد الصيانة',
 );
 
 String _arPoints(int n) => switch (n) {

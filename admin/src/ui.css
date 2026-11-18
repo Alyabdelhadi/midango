@@ -328,3 +328,13 @@ input[type='checkbox'], input[type='radio'] { width: 16px; height: 16px; accent-
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; color: var(--mg-slate); }
 .customer-status { display: grid; gap: 6px; }
 .customer-status p { margin: 0; }
+
+/* App content */
+.content-list { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--mg-line); border-radius: var(--mg-radius); }
+.content-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px; border-block-end: 1px solid var(--mg-line); }
+.content-row:last-child { border-block-end: 0; }
+.content-row-main { display: grid; gap: 4px; flex: 1 1 200px; min-width: 0; }
+.content-row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.content-row-actions .mg-button--secondary { padding-inline: 10px; }
+.banner-thumb { width: 96px; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; border: 1px solid var(--mg-line); }
+.banner-preview { width: 192px; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; border: 1px solid var(--mg-line); }

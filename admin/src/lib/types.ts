@@ -484,3 +484,45 @@ export const TEAM_STATUS_KEY: Record<TeamStatus, MessageKey> = {
   Waitlisted: 'teamWaitlisted',
   Withdrawn: 'teamWithdrawn',
 };
+
+export type BannerLinkType = 'None' | 'Venue' | 'Tournament' | 'Url';
+
+export type Banner = {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  bodyEn: string | null;
+  bodyAr: string | null;
+  imageUrl: string | null;
+  linkType: BannerLinkType;
+  linkTarget: string | null;
+  active: boolean;
+  sortOrder: number;
+};
+
+export type AppContent = {
+  minAndroidBuild: number;
+  minIosBuild: number;
+  androidStoreUrl: string | null;
+  iosStoreUrl: string | null;
+  maintenance: boolean;
+  maintenanceMessageEn: string | null;
+  maintenanceMessageAr: string | null;
+  updatedAt: string;
+  banners: Banner[];
+  featured: { id: string; nameEn: string; nameAr: string; logoUrl: string | null; published: boolean }[];
+  venues: { id: string; nameEn: string; nameAr: string }[];
+  tournaments: { id: string; nameEn: string; nameAr: string; startsAt: string }[];
+};
+
+export type Broadcast = {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  bodyEn: string;
+  bodyAr: string;
+  sentAt: string;
+  sentBy: string | null;
+  devices: number;
+  delivered: number;
+};

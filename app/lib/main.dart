@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'api/api_client.dart';
 import 'api/models.dart';
+import 'app_config.dart';
 import 'bookings/booking_detail_page.dart';
 import 'home_shell.dart';
 import 'l10n/strings.dart';
@@ -133,7 +134,7 @@ class _MidangoAppState extends State<MidangoApp> {
         supportedLocales: const [Locale('en'), Locale('ar')],
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         builder: (context, child) => StringsScope(strings: strings, child: child!),
-        home: HomeShell(onLanguage: _setLanguage),
+        home: AppGate(child: HomeShell(onLanguage: _setLanguage)),
       ),
     );
   }

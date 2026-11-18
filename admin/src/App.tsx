@@ -4,6 +4,7 @@ import { Shell } from './layout/Shell';
 import { AuthProvider, useAuth } from './lib/auth';
 import { I18nProvider } from './lib/i18n';
 import { AllCustomersPage } from './pages/AllCustomersPage';
+import { AppContentPage } from './pages/AppContentPage';
 import { BookingsPage } from './pages/BookingsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
@@ -74,6 +75,14 @@ export default function App() {
                   element={
                     <RequireRole roles={['PlatformOperator']}>
                       <CustomerDetailPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="app-content"
+                  element={
+                    <RequireRole roles={['PlatformOperator']}>
+                      <AppContentPage />
                     </RequireRole>
                   }
                 />

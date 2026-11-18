@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../api/models.dart';
+import '../app_config.dart';
 import '../booking/confirm_sheet.dart';
 import '../home_shell.dart';
 import '../l10n/strings.dart';
@@ -12,6 +13,7 @@ import '../tournaments/tournament_page.dart';
 import '../tournaments/tournament_widgets.dart';
 import '../venue/venue_page.dart';
 import '../widgets/error_retry.dart';
+import 'app_content.dart';
 import 'pickers.dart';
 import 'venue_card.dart';
 
@@ -165,6 +167,59 @@ class _PlayTabState extends State<PlayTab> {
     ));
   }
 
+  /// A banner or featured venue: today, the sport's first length.
+  void _openVenueFor(String venueId, Category sport) {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => VenuePage(
+          venueId: venueId, categoryId: sport.id, date: bookableDays().first, minutes: sport.durationsMinutes.first),
+    ));
+  }
+
+  void _openBanner(AppBanner banner) {
+    final target = banner.linkTarget;
+    if (target == null || target.isEmpty) return;
+    switch (banner.linkType) {
+      case 'Venue':
+        // Banners don't say which sports the venue offers: use the selected one.
+        if (_sport != null) _openVenueFor(target, _sport!);
+      case 'Tournament':
+        Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => TournamentPage(tournamentId: target)));
+      case 'Url':
+        openExternal(target);
+    }
+  }
+
+  void _openFeatured(FeaturedVenue venue) {
+    final sport = _sport;
+    final categories = _categories ?? const <Category>[];
+    final pick = sport != null && venue.categoryIds.contains(sport.id)
+        ? sport
+        : categories.where((c) => c.id == venue.categoryIds.firstOrNull).firstOrNull ?? sport;
+    if (pick != null) _openVenueFor(venue.id, pick);
+  }
+
+  /// The operator's banners and featured venues, above every mode. Nothing when there are none.
+  Widget _appContent() => ValueListenableBuilder<AppConfig?>(
+        valueListenable: appConfig,
+        builder: (context, config, _) {
+          final banners = config?.banners ?? const <AppBanner>[];
+          final featured = config?.featured ?? const <FeaturedVenue>[];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (banners.isNotEmpty) ...[
+                BannerSlider(banners: banners, onOpen: _openBanner),
+                const SizedBox(height: 16),
+              ],
+              if (featured.isNotEmpty) ...[
+                FeaturedStrip(venues: featured, onOpen: _openFeatured),
+                const SizedBox(height: 16),
+              ],
+            ],
+          );
+        },
+      );
+
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
@@ -188,6 +243,7 @@ class _PlayTabState extends State<PlayTab> {
             else if (categories.isEmpty)
               Padding(padding: const EdgeInsets.all(16), child: Text(s.noSports, style: text.bodyLarge))
             else ...[
+              _appContent(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: SegmentedButton<_Mode>(

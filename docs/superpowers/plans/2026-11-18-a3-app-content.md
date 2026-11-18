@@ -55,3 +55,32 @@ As above. `flutter analyze` clean. Don't commit.
 
 ### Task 4: Verify (controller)
 API: validation sentences; banners add/order/off → `/app/config` follows; a banner linked to an unpublished venue is skipped; 11th banner refused; image upload/replace; featured order + unpublished excluded + > 10 refused; broadcast to fake tokens → pruned, `devices`/`delivered` counts, history; manager 403. Browser: Business page in EN + AR; app web: banner + featured strip, maintenance screen, force-update screen (set min build 2).
+
+---
+
+## Verification (2026-11-18)
+
+**Change during the build:** the owner asked for the banner to be a slider, so a single banner became up to 10 ordered banners (`app_banners`).
+
+**API** (`a3-check.ps1`): **0 failures.** The first run had 2 misses, both my test's fault: device registration returns 204, not 200.
+- **Access:** a venue manager gets 403 on both the content page and broadcasts.
+- **Banner validation:** missing Arabic title, `http://` link, unpublished venue and unknown link type each get 400 with a sentence. An 11th banner gets 400 "You can have up to 10 banners."
+- **Banners:** three banners are saved. Replacing an image deletes the old file, and a fake PNG gets 400. `/app/config` returns only the active banners, in order. A partial reorder gets 400 "Send every banner once"; a full reorder and turning a banner on both show up in `/app/config`. Unpublishing the linked venue drops that banner.
+- **Featured:** a repeat, an unpublished venue and 11 venues each get 400. The order holds, with `categoryIds`, and a suspended venue is left out.
+- **Version and maintenance:** build 0, a non-https store link and maintenance with only the English message each get 400. Maintenance and min build 2 reach `/app/config`, and the rest of the API keeps serving.
+- **Broadcast:** a missing Arabic title gets 400. The broadcast tried every registered device. They were all fake, so 0 were delivered and every fake token was pruned. It is listed first in the history with "Midango Operator".
+
+**Browser, Business:** the App content page shows the banner rows (thumbnail, pill, link summary), featured venues, the message history (delivered / devices) and the version and maintenance form. In Arabic it is RTL, and the edit dialog opens with the saved image, the venue selected and the upload control.
+
+**Browser, app (web, 390×844):**
+- **Play tab:** the slider sits on top, with dots, and advances every 5 s (Padel night → Read more → Riyadh Open). The Featured strip shows Smash Courts and Smash Padel Club.
+- **Taps:** tapping a featured card opens that venue page. Tapping the venue-linked banner opens the venue in Arabic.
+- **Maintenance:** turning it on shows the logo, the title, the operator's message and "Try again". Turning it off and pressing Try again brings the Play tab back.
+- **Arabic:** the slider, the strip, the dots and the tabs are mirrored correctly.
+
+**Not walked:**
+- The force-update screen: by design the web app never forces an update. It's queued for the on-phone pass, with min Android build set to 2.
+- A real broadcast reaching a phone, queued with the push test.
+- External links (`url_launcher`) opening on Android.
+
+**Known limits:** broadcasts send inside the request (marked `ponytail:`). There is no audience targeting yet. A featured venue with no photo or logo shows a grey block.
