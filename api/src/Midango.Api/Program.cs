@@ -130,5 +130,6 @@ app.MapDeskEndpoints();
 app.MapReportEndpoints();
 app.MapSettingsEndpoints();
 app.MapDeviceEndpoints();
+app.MapLeadEndpoints();
 
 app.Run();

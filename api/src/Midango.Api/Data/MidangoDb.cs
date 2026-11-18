@@ -24,6 +24,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<PlatformSettings> PlatformSettings => Set<PlatformSettings>();
     public DbSet<CustomerDevice> CustomerDevices => Set<CustomerDevice>();
+    public DbSet<VenueLead> VenueLeads => Set<VenueLead>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -165,6 +166,17 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(d => d.Language).HasMaxLength(2);
             e.HasOne<Customer>().WithMany().HasForeignKey(d => d.CustomerId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(d => d.CustomerId);
+        });
+
+        b.Entity<VenueLead>(e =>
+        {
+            e.Property(x => x.VenueName).HasMaxLength(120);
+            e.Property(x => x.ContactName).HasMaxLength(80);
+            e.Property(x => x.Phone).HasMaxLength(32);
+            e.Property(x => x.City).HasMaxLength(80);
+            e.Property(x => x.Message).HasMaxLength(1000);
+            e.Property(x => x.Language).HasMaxLength(2);
+            e.HasIndex(x => x.CreatedAt);
         });
 
         // Ids are created in code (Guid.CreateVersion7). Left as "generated on add", EF treats a new entity

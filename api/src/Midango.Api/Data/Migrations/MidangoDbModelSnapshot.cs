@@ -680,6 +680,68 @@ namespace Midango.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.VenueLead", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("ContactName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("contact_name");
+
+                    b.Property<DateTimeOffset?>("ContactedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("contacted_at");
+
+                    b.Property<int>("Courts")
+                        .HasColumnType("integer")
+                        .HasColumnName("courts");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("language");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("VenueName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("venue_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_venue_leads");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_venue_leads_created_at");
+
+                    b.ToTable("venue_leads", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Venues.Venue", b =>
                 {
                     b.Property<Guid>("Id")
