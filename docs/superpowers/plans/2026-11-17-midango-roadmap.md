@@ -34,7 +34,10 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M7 | MIDANGO Desk ✅ done | Counter screen: Now & next list, *Take cash & check in*, walk-ins, QR lookup, undo, mark no-show | M6 |
 | M8 | MIDANGO App: booking ✅ done | Play tab (sport chips from categories, venue cards with open times), filters, venue page, confirm sheet, confirmation with QR, Bookings tab, cancel, Profile, guest browsing with sign-in at confirm, Arabic | M5 (M2 for sign-in) |
 | M9a | No-show limit & reminders (server) ✅ done | Rules page (operator), no-show limit, push devices, reminder job (FCM when keyed, log otherwise) | M7, M8 |
-| M9b | Push in the app | firebase_messaging, device registration, open booking from a reminder | M9a + Firebase key and flutterfire configure |
+| M9b | Push in the app | firebase_messaging (Android), device registration, open booking from a reminder | M9a + Firebase (done) |
+| MM | Matchmaking | Open matches: join a booking, split at the desk, levels | M9b |
+| LY | Loyalty | Points for checked-in games, tiers, redeem at the desk | MM |
+| T | Tournaments | Venue events, team sign-up, draw and results | MM, LY |
 | M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
 | W1 | Website ✅ done | Static EN/AR informative site (`website/`), demo form → `POST /leads`, operator "Venue requests" page | M2 |
 | A1 | Venue control ✅ done | Operator opens any venue (1-h acting token, change log), suspend/unsuspend, staff deactivate + reset password | M6 |
