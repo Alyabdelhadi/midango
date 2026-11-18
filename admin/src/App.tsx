@@ -6,6 +6,7 @@ import { I18nProvider } from './lib/i18n';
 import { BookingsPage } from './pages/BookingsPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { CustomersPage } from './pages/CustomersPage';
+import { DeskPage } from './pages/DeskPage';
 import { PricesPage } from './pages/PricesPage';
 import { SignInPage } from './pages/SignInPage';
 import { SchedulePage } from './pages/schedule/SchedulePage';
@@ -55,6 +56,7 @@ export default function App() {
                 {(
                   [
                     ['today', <TodayPage key="today" />],
+                    ['desk', <DeskPage key="desk" />],
                     ['schedule', <SchedulePage key="schedule" />],
                     ['bookings', <BookingsPage key="bookings" />],
                     ['customers', <CustomersPage key="customers" />],

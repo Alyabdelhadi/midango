@@ -1,6 +1,7 @@
 import {
   Building2,
   CalendarDays,
+  ConciergeBell,
   Contact,
   LayoutDashboard,
   ListChecks,
@@ -23,6 +24,7 @@ type NavItem = { to: string; label: MessageKey; icon: LucideIcon; roles: Role[] 
 /** Only screens that work for the role are listed. */
 const NAV: NavItem[] = [
   { to: '/today', label: 'navToday', icon: LayoutDashboard, roles: ['VenueManager', 'DeskStaff'] },
+  { to: '/desk', label: 'navDesk', icon: ConciergeBell, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/schedule', label: 'navSchedule', icon: CalendarDays, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/bookings', label: 'navBookings', icon: ListChecks, roles: ['VenueManager', 'DeskStaff'] },
   { to: '/customers', label: 'navCustomers', icon: Contact, roles: ['VenueManager', 'DeskStaff'] },
