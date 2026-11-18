@@ -34,7 +34,7 @@ Each plan ships something that runs on its own. A plan is written in detail only
 | M7 | MIDANGO Desk ✅ done | Counter screen: Now & next list, *Take cash & check in*, walk-ins, QR lookup, undo, mark no-show | M6 |
 | M8 | MIDANGO App: booking ✅ done | Play tab (sport chips from categories, venue cards with open times), filters, venue page, confirm sheet, confirmation with QR, Bookings tab, cancel, Profile, guest browsing with sign-in at confirm, Arabic | M5 (M2 for sign-in) |
 | M9 | No-shows & reminders | Push notifications (FCM), "Still coming?" reminder 3 h before, no-show limit (2 in 30 days → 1 upcoming booking), settings for those numbers | M7, M8 |
-| M10 | Reports | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
+| M10 | Reports ✅ done | Occupancy heatmap, cash collected by court and week, no-show rate | M6 |
 
 ## Later (not planned)
 

@@ -235,7 +235,7 @@ export const en = {
   rangeWeek: 'Last 7 days',
   rangeMonth: 'Last 4 weeks',
   rangeQuarter: 'Last 3 months',
-  checkInsNote: '{n} check-ins',
+  checkInsNote: 'Check-ins: {n}',
   tileNoShowRate: 'No-show rate',
   noShowOf: '{n} of {m} bookings',
   cancellationsLine: 'Late cancellations: {late} · Cancelled by the venue: {venue}',

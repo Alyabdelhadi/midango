@@ -237,7 +237,7 @@ export const ar: Record<MessageKey, string> = {
   rangeWeek: 'آخر 7 أيام',
   rangeMonth: 'آخر 4 أسابيع',
   rangeQuarter: 'آخر 3 أشهر',
-  checkInsNote: '{n} عملية تسجيل حضور',
+  checkInsNote: 'عمليات تسجيل الحضور: {n}',
   tileNoShowRate: 'نسبة الغياب',
   noShowOf: '{n} من {m} حجز',
   cancellationsLine: 'إلغاءات متأخرة: {late} · ألغتها المنشأة: {venue}',
