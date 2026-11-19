@@ -2,6 +2,10 @@ import type { MessageKey } from '../locales/en';
 
 export type Role = 'PlatformOperator' | 'VenueManager' | 'DeskStaff';
 
+/** A platform operator's admin role (see api Platform/OperatorAccess.cs). */
+export type OperatorRole = 'Owner' | 'Finance' | 'Support' | 'Content';
+export const OPERATOR_ROLES: OperatorRole[] = ['Owner', 'Finance', 'Support', 'Content'];
+
 export type Staff = {
   id: string;
   email: string;
@@ -9,6 +13,8 @@ export type Staff = {
   role: Role;
   venueId: string | null;
   mustChangePassword: boolean;
+  /** Operators only; null for venue staff. */
+  operatorRole: OperatorRole | null;
 };
 
 export type StaffSummary = { id: string; email: string; displayName: string; role: Role; active: boolean };
@@ -103,6 +109,12 @@ export const ROLE_KEY: Record<Role, MessageKey> = {
   PlatformOperator: 'rolePlatformOperator',
   VenueManager: 'roleVenueManager',
   DeskStaff: 'roleDeskStaff',
+};
+export const OP_ROLE_KEY: Record<OperatorRole, MessageKey> = {
+  Owner: 'opRoleOwner',
+  Finance: 'opRoleFinance',
+  Support: 'opRoleSupport',
+  Content: 'opRoleContent',
 };
 
 export const DAY_KEY: Record<Day, MessageKey> = {
@@ -547,3 +559,125 @@ export type SiteContent = {
   androidStoreUrl: string | null;
   iosStoreUrl: string | null;
 };
+
+export type OverviewDay = {
+  date: string;
+  bookings: number;
+  newCustomers: number;
+  checkIns: number;
+  noShows: number;
+  /** In the overview's main currency only. */
+  cash: number;
+};
+
+
+/** GET /admin/overview: "made" = created in the period, "played" = started in it (up to now). */
+export type Overview = {
+  days: number;
+  from: string;
+  to: string;
+  mainCurrency: string;
+  venuesLive: number;
+  venuesDraft: number;
+  venuesSuspended: number;
+  courtsActive: number;
+  customers: number;
+  customersBlocked: number;
+  newCustomers: number;
+  bookingsMade: number;
+  appBookings: number;
+  staffBookings: number;
+  openMatches: number;
+  cancelled: number;
+  played: number;
+  checkIns: number;
+  noShows: number;
+  noShowRatePercent: number;
+  cash: { currency: string; amount: number }[];
+  upcomingBookings: number;
+  leadsWaiting: number;
+  previous: { bookingsMade: number; newCustomers: number; cash: number; noShowRatePercent: number };
+  series: OverviewDay[];
+  topVenues: { id: string; nameEn: string; nameAr: string; bookings: number; checkIns: number; noShows: number }[];
+  bySport: { id: string; nameEn: string; nameAr: string; bookings: number }[];
+  recent: {
+    id: string;
+    reference: string;
+    customerName: string | null;
+    venueNameEn: string;
+    venueNameAr: string;
+    startsAt: string;
+    createdAt: string;
+    status: BookingStatus;
+    source: 'App' | 'Staff';
+    checkedIn: boolean;
+    total: number;
+    currency: string;
+  }[];
+};
+
+export type FeeMode = 'Default' | 'Percent' | 'Fixed';
+
+export type StatementRow = {
+  venueId: string;
+  nameEn: string;
+  nameAr: string;
+  currency: string;
+  published: boolean;
+  suspended: boolean;
+  feeMode: FeeMode;
+  /** The percent in force (the default one for Default); null on a fixed fee. */
+  percent: number | null;
+  feeMonthly: number | null;
+  bookings: number;
+  cash: number;
+  fee: number;
+  pointsOwed: number;
+  /** fee − pointsOwed: positive = the venue owes Midango. */
+  net: number;
+  paidAt: string | null;
+  paidAmount: number | null;
+};
+
+export type Statement = {
+  month: string;
+  defaultPercent: number;
+  rows: StatementRow[];
+  totals: { currency: string; cash: number; fee: number; pointsOwed: number; net: number; paid: number; outstanding: number }[];
+};
+
+export type TeamMember = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: OperatorRole;
+  active: boolean;
+  mustChangePassword: boolean;
+  createdAt: string;
+};
+
+export type AuditEntry = {
+  id: number;
+  at: string;
+  operatorName: string;
+  method: string;
+  path: string;
+  status: number;
+  venueId: string | null;
+  venueNameEn: string | null;
+  venueNameAr: string | null;
+};
+
+export type ErrorEntry = {
+  id: number;
+  at: string;
+  method: string;
+  path: string;
+  exceptionType: string;
+  message: string;
+  detail: string;
+  staffName: string | null;
+  traceId: string;
+};
+
+export type Paged<T> = { items: T[]; total: number };

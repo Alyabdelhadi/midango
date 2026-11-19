@@ -34,6 +34,7 @@ builder.Services.AddSingleton<IPasswordHasher<StaffMember>, PasswordHasher<Staff
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<OtpService>();
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<Midango.Api.Platform.ErrorLogHandler>();
 builder.Services.AddSingleton<MediaStore>();
 
 // The Flutter web build calls the API from another origin in development. Mobile apps don't use CORS.
@@ -102,6 +103,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOperatorAccess();
 app.UseRateLimiter();
 app.UseOperatorActionLog();
 
@@ -153,6 +155,10 @@ app.MapAppContentEndpoints();
 app.MapSiteContentEndpoints();
 app.MapDeviceEndpoints();
 app.MapLeadEndpoints();
+app.MapOverviewEndpoints();
+app.MapAdminToolsEndpoints();
+app.MapAccountingEndpoints();
+app.MapErrorLogEndpoints();
 app.MapOperatorEndpoints();
 app.MapMediaEndpoints();
 app.MapLegalEndpoints();

@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router';
 import { useState, type FormEvent } from 'react';
 import { BookingStatusPill } from '../components/BookingStatusPill';
 import { Button } from '../components/Button';
@@ -38,11 +39,14 @@ export function BookingsPage() {
 
 function BookingsView({ today }: { today: string }) {
   const { t } = useI18n();
-  const [filter, setFilter] = useState<Filter>('today');
-  const [from, setFrom] = useState(today);
-  const [to, setTo] = useState(addDays(today, 6));
-  const [term, setTerm] = useState('');
-  const [q, setQ] = useState('');
+  // The top-bar search lands here with ?q= and its own date range.
+  const [params] = useSearchParams();
+  const initial = params.get('q') ?? '';
+  const [filter, setFilter] = useState<Filter>(params.get('from') ? 'dates' : 'today');
+  const [from, setFrom] = useState(params.get('from') ?? today);
+  const [to, setTo] = useState(params.get('to') ?? addDays(today, 6));
+  const [term, setTerm] = useState(initial);
+  const [q, setQ] = useState(initial);
 
   const range: [string, string] =
     filter === 'today'

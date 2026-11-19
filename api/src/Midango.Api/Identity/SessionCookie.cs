@@ -18,7 +18,8 @@ public static class SessionCookie
             SameSite = SameSiteMode.Strict,
             Path = "/",
             IsEssential = true,
-            Expires = DateTimeOffset.UtcNow + TokenService.RefreshLifetime,
+            // "?remember=0" ("Remember me" unticked): no expiry, so the browser drops it when it closes.
+            Expires = http.Request.Query["remember"] == "0" ? null : DateTimeOffset.UtcNow + TokenService.RefreshLifetime,
         });
 
     public static void Clear(HttpContext http) =>

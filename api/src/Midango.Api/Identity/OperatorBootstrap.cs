@@ -6,7 +6,8 @@ namespace Midango.Api.Identity;
 
 public static class OperatorBootstrap
 {
-    /// Development only: creates the first platform operator from configuration, so someone can sign in.
+    /// Development only: creates the configured platform operator if that email has no account yet,
+    /// so someone can sign in. Override with Bootstrap__OperatorEmail / Bootstrap__OperatorPassword env vars.
     public static async Task RunAsync(IServiceProvider services, IConfiguration config)
     {
         var email = StaffAccounts.NormaliseEmail(config["Bootstrap:OperatorEmail"]);
@@ -15,7 +16,7 @@ public static class OperatorBootstrap
 
         await using var scope = services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<MidangoDb>();
-        if (await db.Staff.AnyAsync(s => s.Role == StaffRole.PlatformOperator)) return;
+        if (await db.Staff.AnyAsync(s => s.Email == email)) return;
 
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<StaffMember>>();
         var operatorAccount = new StaffMember
@@ -23,6 +24,7 @@ public static class OperatorBootstrap
             Email = email,
             DisplayName = "Midango Operator",
             Role = StaffRole.PlatformOperator,
+            OperatorRole = OperatorRole.Owner,
         };
         operatorAccount.PasswordHash = hasher.HashPassword(operatorAccount, password);
         db.Staff.Add(operatorAccount);

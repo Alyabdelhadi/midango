@@ -20,6 +20,8 @@ public static class AppClaims
     public const string VenueId = "venue_id";
     /// Present only on the token a platform operator gets by opening a venue; holds the operator's id.
     public const string ActBy = "act_by";
+    /// A platform operator's admin role (Owner, Finance, Support, Content).
+    public const string OpRole = "op_role";
 
     public static IReadOnlyList<Claim> For(Customer customer) =>
     [
@@ -36,6 +38,7 @@ public static class AppClaims
             new(Role, staff.Role.ToString()),
         ];
         if (staff.VenueId is { } venueId) claims.Add(new(VenueId, venueId.ToString()));
+        if (staff.OperatorRole is { } opRole) claims.Add(new(OpRole, opRole.ToString()));
         return claims;
     }
 

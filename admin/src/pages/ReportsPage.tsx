@@ -159,7 +159,7 @@ function Heatmap({ report: r }: { report: Report }) {
                       key={h}
                       title={title}
                       className={c.percent >= 50 ? 'heat-dark' : undefined}
-                      style={{ backgroundColor: `rgb(7 19 41 / ${0.06 + 0.94 * (c.percent / 100)})` }}
+                      style={{ backgroundColor: `rgb(var(--mg-heat) / ${0.06 + 0.94 * (c.percent / 100)})` }}
                     >
                       {c.percent}%
                     </td>

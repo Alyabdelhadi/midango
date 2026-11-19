@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { Dialog } from '../components/Dialog';
 import { Field } from '../components/Field';
+import { ListToolbar, matches, useInitialQuery } from '../components/ListToolbar';
 import { Notice } from '../components/Notice';
 import { PageHeader } from '../components/PageHeader';
 import { Pill } from '../components/Pill';
@@ -12,7 +13,16 @@ import { useI18n } from '../lib/i18n';
 import type { OperatorAction, VenueSummary } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
 import { useToast } from '../lib/useToast';
+import type { MessageKey } from '../locales/en';
 import { StaffForm } from './StaffForm';
+
+type VenueFilter = 'all' | 'live' | 'draft' | 'suspended';
+const VENUE_FILTERS: [VenueFilter, MessageKey][] = [
+  ['all', 'filterAll'],
+  ['live', 'filterLive'],
+  ['draft', 'filterDraft'],
+  ['suspended', 'filterSuspended'],
+];
 
 export function VenuesPage() {
   const { t, name } = useI18n();
@@ -26,6 +36,14 @@ export function VenuesPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const list = venues.data;
+  const [q, setQ] = useState(useInitialQuery());
+  const [status, setStatus] = useState<VenueFilter>('all');
+  const shown = list?.filter(
+    (v) =>
+      matches(`${v.nameEn} ${v.nameAr}`, q) &&
+      (status === 'all' ||
+        (status === 'suspended' ? v.suspended : !v.suspended && v.published === (status === 'live'))),
+  );
 
   async function enterVenue(venue: VenueSummary) {
     setBusyId(venue.id);
@@ -62,6 +80,19 @@ export function VenuesPage() {
       {venues.error && <Notice tone="error">{venues.error}</Notice>}
       {list?.length === 0 && <p className="empty">{t('noVenues')}</p>}
       {list && list.length > 0 && (
+        <ListToolbar
+          q={q}
+          onQ={setQ}
+          placeholder={t('searchVenues')}
+          filters={VENUE_FILTERS}
+          filter={status}
+          onFilter={setStatus}
+          shown={shown!.length}
+          total={list.length}
+        />
+      )}
+      {shown?.length === 0 && list!.length > 0 && <p className="empty">{t('noMatches')}</p>}
+      {shown && shown.length > 0 && (
         <table className="mg-table">
           <thead>
             <tr>
@@ -74,7 +105,7 @@ export function VenuesPage() {
             </tr>
           </thead>
           <tbody>
-            {list.map((venue) => (
+            {shown.map((venue) => (
               <tr key={venue.id}>
                 <td>{venue.nameEn}</td>
                 <td dir="rtl" lang="ar">

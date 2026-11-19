@@ -25,6 +25,15 @@ public enum StaffRole
     DeskStaff,
 }
 
+/// What a platform operator may do in the admin (see OperatorAccess). Venue staff have none.
+public enum OperatorRole
+{
+    Owner,
+    Finance,
+    Support,
+    Content,
+}
+
 public sealed class StaffMember
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
@@ -34,6 +43,9 @@ public sealed class StaffMember
     public required string DisplayName { get; set; }
     public string PasswordHash { get; set; } = "";
     public StaffRole Role { get; init; }
+
+    /// Set for PlatformOperator only.
+    public OperatorRole? OperatorRole { get; set; }
 
     /// Null only for PlatformOperator, enforced by a database check constraint.
     public Guid? VenueId { get; init; }

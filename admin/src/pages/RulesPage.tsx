@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 import { Button } from '../components/Button';
+import { opRoleOf } from '../layout/nav';
+import { useAuth } from '../lib/auth';
 import { Field } from '../components/Field';
 import { Notice } from '../components/Notice';
 import { PageHeader } from '../components/PageHeader';
@@ -35,25 +38,73 @@ const LOYALTY_FIELDS: RuleField[] = [
 
 const ALL = [...FIELDS, ...LOYALTY_FIELDS];
 
+/** Settings: billing (Owner and Finance) and the platform rules (Owner only), as the API allows. */
 export function RulesPage() {
   const { t } = useI18n();
-  const settings = useLoad(() => api<PlatformSettings>('/admin/settings'));
-
-  if (settings.error) {
-    return (
-      <div className="page">
-        <Notice tone="error">{settings.error}</Notice>
-      </div>
-    );
-  }
-  if (!settings.data) return <p className="page-loading">{t('loading')}</p>;
-
+  const { staff } = useAuth();
+  const owner = !!staff && opRoleOf(staff) === 'Owner';
   return (
     <div className="page">
       <PageHeader title={t('navRules')} />
       <p className="page-intro">{t('rulesIntro')}</p>
-      <RulesForm initial={settings.data} onSaved={settings.setData} />
+      <BillingCard />
+      {owner && <PlatformRules />}
     </div>
+  );
+}
+
+function PlatformRules() {
+  const { t } = useI18n();
+  const settings = useLoad(() => api<PlatformSettings>('/admin/settings'));
+  if (settings.error) return <Notice tone="error">{settings.error}</Notice>;
+  if (!settings.data) return <p className="page-loading">{t('loading')}</p>;
+  return <RulesForm initial={settings.data} onSaved={settings.setData} />;
+}
+
+/** The default fee for venues on the default plan. Per-venue plans are changed on Accounting. */
+function BillingCard() {
+  const { t } = useI18n();
+  const toast = useToast();
+  const billing = useLoad(() => api<{ commissionPercent: number }>('/admin/settings/billing'));
+  const [value, setValue] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const shown = value ?? (billing.data ? String(billing.data.commissionPercent) : '');
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const saved = await api<{ commissionPercent: number }>('/admin/settings/billing', {
+        method: 'PUT',
+        body: { commissionPercent: Number(shown) },
+      });
+      billing.setData(saved);
+      setValue(undefined);
+      toast.show('success', t('billingSaved'));
+    } catch (err) {
+      toast.show('error', errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="card" onSubmit={save}>
+      <div className="card-head">
+        <h2>{t('billingTitle')}</h2>
+        <Link to="/accounting">{t('perVenuePlans')}</Link>
+      </div>
+      <p className="page-intro">{t('billingIntro')}</p>
+      {billing.error && <Notice tone="error">{billing.error}</Notice>}
+      <div className="period-fields">
+        <Field label={t('defaultCommission')} hint={t('defaultCommissionHint')}>
+          <input type="number" required min={0} max={100} step="0.01" value={shown} onChange={(e) => setValue(e.target.value)} />
+        </Field>
+        <Button type="submit" disabled={busy || !billing.data}>
+          {t('save')}
+        </Button>
+      </div>
+    </form>
   );
 }
 

@@ -12,16 +12,24 @@ public static class OperatorEndpoints
     public sealed record ActResponse(string AccessToken, DateTimeOffset ExpiresAt, Guid VenueId, string NameEn, string NameAr);
     public sealed record OperatorActionDto(DateTimeOffset At, string OperatorName, string Method, string Path, int Status);
 
-    /// Records every change made with an operator's acting token, after the endpoint has answered.
+    /// The audit log: every change an operator makes, inside a venue (acting token) or anywhere in /admin,
+    /// recorded after the endpoint has answered.
     public static IApplicationBuilder UseOperatorActionLog(this IApplicationBuilder app) =>
         app.Use(async (http, next) =>
         {
             await next();
             if (HttpMethods.IsGet(http.Request.Method) || HttpMethods.IsHead(http.Request.Method) || HttpMethods.IsOptions(http.Request.Method)) return;
-            if (http.User.ActingOperatorId() is not { } op || http.User.StaffVenueId() is not { } venue) return;
+            var path = http.Request.Path.Value ?? "";
+            Guid op;
+            Guid? venue;
+            if (http.User.ActingOperatorId() is { } acting && http.User.StaffVenueId() is { } actingVenue)
+                (op, venue) = (acting, actingVenue);
+            else if (http.User.FindFirstValue(AppClaims.Role) == nameof(StaffRole.PlatformOperator)
+                     && path.StartsWith("/admin", StringComparison.OrdinalIgnoreCase))
+                (op, venue) = (http.User.SubjectId(), VenueInPath(path));
+            else return;
             var db = http.RequestServices.GetRequiredService<MidangoDb>();
             db.ChangeTracker.Clear(); // don't re-save anything the endpoint left tracked
-            var path = http.Request.Path.Value ?? "";
             db.OperatorActions.Add(new OperatorAction
             {
                 OperatorId = op, VenueId = venue, Method = http.Request.Method,
@@ -31,6 +39,15 @@ public static class OperatorEndpoints
             });
             await db.SaveChangesAsync(CancellationToken.None);
         });
+
+    /// "/admin/venues/{id}/…" and "/admin/accounting/…/{id}…" changes belong to that venue.
+    private static Guid? VenueInPath(string path)
+    {
+        var parts = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        for (var i = 1; i < parts.Length; i++)
+            if (parts[i - 1] is "venues" or "statements" && Guid.TryParse(parts[i], out var id)) return id;
+        return null;
+    }
 
     public static void MapOperatorEndpoints(this IEndpointRouteBuilder app)
     {

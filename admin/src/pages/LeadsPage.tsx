@@ -6,13 +6,29 @@ import { api, errorText } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import type { VenueLead } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
+import type { MessageKey } from '../locales/en';
+import { ListToolbar, matches, useInitialQuery } from '../components/ListToolbar';
 import { useToast } from '../lib/useToast';
+
+type LeadFilter = 'all' | 'waiting' | 'contacted';
+const LEAD_FILTERS: [LeadFilter, MessageKey][] = [
+  ['all', 'filterAll'],
+  ['waiting', 'filterWaiting'],
+  ['contacted', 'filterContacted'],
+];
 
 export function LeadsPage() {
   const { t, lang } = useI18n();
   const toast = useToast();
   const leads = useLoad(() => api<VenueLead[]>('/admin/leads'));
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [q, setQ] = useState(useInitialQuery());
+  const [state, setState] = useState<LeadFilter>('all');
+  const shown = leads.data?.filter(
+    (l) =>
+      matches(`${l.venueName} ${l.contactName} ${l.city} ${l.phone}`, q) &&
+      (state === 'all' || (l.contactedAt === null) === (state === 'waiting')),
+  );
 
   async function toggle(lead: VenueLead) {
     setBusyId(lead.id);
@@ -39,12 +55,26 @@ export function LeadsPage() {
     <div className="page">
       <PageHeader title={t('navLeads')} />
       <p className="page-intro">{t('leadsIntro')}</p>
+      {leads.data && leads.data.length > 0 && (
+        <ListToolbar
+          q={q}
+          onQ={setQ}
+          placeholder={t('searchLeads')}
+          filters={LEAD_FILTERS}
+          filter={state}
+          onFilter={setState}
+          shown={shown!.length}
+          total={leads.data.length}
+        />
+      )}
       {leads.error ? (
         <Notice tone="error">{leads.error}</Notice>
       ) : !leads.data ? (
         <p className="page-loading">{t('loading')}</p>
       ) : leads.data.length === 0 ? (
         <p className="empty">{t('noLeads')}</p>
+      ) : shown!.length === 0 ? (
+        <p className="empty">{t('noMatches')}</p>
       ) : (
         <table className="mg-table">
           <thead>
@@ -58,7 +88,7 @@ export function LeadsPage() {
             </tr>
           </thead>
           <tbody>
-            {leads.data.map((l) => (
+            {shown!.map((l) => (
               <tr key={l.id}>
                 <td>{received.format(new Date(l.createdAt))}</td>
                 <td>

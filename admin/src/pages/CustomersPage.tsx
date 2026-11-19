@@ -8,11 +8,13 @@ import { useI18n } from '../lib/i18n';
 import { clock, dayOf, formatDay } from '../lib/time';
 import type { VenueCustomer } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
+import { useInitialQuery } from '../components/ListToolbar';
 
 export function CustomersPage() {
   const { t } = useI18n();
-  const [term, setTerm] = useState('');
-  const [q, setQ] = useState('');
+  const initial = useInitialQuery();
+  const [term, setTerm] = useState(initial);
+  const [q, setQ] = useState(initial);
 
   function search(e: FormEvent) {
     e.preventDefault();

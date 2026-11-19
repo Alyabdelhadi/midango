@@ -1,6 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { HomeRedirect, RequireRole, RequireStaff } from './app/guards';
+import { CONTENT, FINANCE, OWNER, SUPPORT } from './layout/nav';
 import { Shell } from './layout/Shell';
+import { AccountingPage } from './pages/AccountingPage';
+import { AuditPage } from './pages/AuditPage';
+import { ErrorsPage } from './pages/ErrorsPage';
+import { TeamPage } from './pages/TeamPage';
 import { AuthProvider, useAuth } from './lib/auth';
 import { I18nProvider } from './lib/i18n';
 import { AllCustomersPage } from './pages/AllCustomersPage';
@@ -10,6 +15,7 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { DeskPage } from './pages/DeskPage';
+import { OverviewPage } from './pages/OverviewPage';
 import { PricesPage } from './pages/PricesPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { LeadsPage } from './pages/LeadsPage';
@@ -48,9 +54,49 @@ export default function App() {
               <Route element={<Shell />}>
                 <Route index element={<HomeRedirect />} />
                 <Route
-                  path="categories"
+                  path="overview"
                   element={
                     <RequireRole roles={['PlatformOperator']}>
+                      <OverviewPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="accounting"
+                  element={
+                    <RequireRole roles={['PlatformOperator']} ops={FINANCE}>
+                      <AccountingPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="team"
+                  element={
+                    <RequireRole roles={['PlatformOperator']} ops={OWNER}>
+                      <TeamPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="audit"
+                  element={
+                    <RequireRole roles={['PlatformOperator']} ops={OWNER}>
+                      <AuditPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="errors"
+                  element={
+                    <RequireRole roles={['PlatformOperator']} ops={OWNER}>
+                      <ErrorsPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="categories"
+                  element={
+                    <RequireRole roles={['PlatformOperator']} ops={SUPPORT}>
                       <CategoriesPage />
                     </RequireRole>
                   }
@@ -58,7 +104,7 @@ export default function App() {
                 <Route
                   path="venues"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={SUPPORT}>
                       <VenuesPage />
                     </RequireRole>
                   }
@@ -66,7 +112,7 @@ export default function App() {
                 <Route
                   path="all-customers"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={SUPPORT}>
                       <AllCustomersPage />
                     </RequireRole>
                   }
@@ -74,7 +120,7 @@ export default function App() {
                 <Route
                   path="all-customers/:id"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={SUPPORT}>
                       <CustomerDetailPage />
                     </RequireRole>
                   }
@@ -82,7 +128,7 @@ export default function App() {
                 <Route
                   path="app-content"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={CONTENT}>
                       <AppContentPage />
                     </RequireRole>
                   }
@@ -90,7 +136,7 @@ export default function App() {
                 <Route
                   path="website"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={CONTENT}>
                       <WebsitePage />
                     </RequireRole>
                   }
@@ -98,7 +144,7 @@ export default function App() {
                 <Route
                   path="rules"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={FINANCE}>
                       <RulesPage />
                     </RequireRole>
                   }
@@ -106,7 +152,7 @@ export default function App() {
                 <Route
                   path="leads"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={SUPPORT}>
                       <LeadsPage />
                     </RequireRole>
                   }
@@ -114,7 +160,7 @@ export default function App() {
                 <Route
                   path="legal"
                   element={
-                    <RequireRole roles={['PlatformOperator']}>
+                    <RequireRole roles={['PlatformOperator']} ops={CONTENT}>
                       <LegalPage />
                     </RequireRole>
                   }

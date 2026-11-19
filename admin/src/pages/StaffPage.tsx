@@ -10,19 +10,33 @@ import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
 import { ROLE_KEY, type StaffSummary } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
+import { ListToolbar, matches } from '../components/ListToolbar';
+import type { MessageKey } from '../locales/en';
 import { useToast } from '../lib/useToast';
 import { StaffForm } from './StaffForm';
+
+type StaffFilter = 'all' | 'active' | 'inactive';
+const STAFF_FILTERS: [StaffFilter, MessageKey][] = [
+  ['all', 'filterAll'],
+  ['active', 'active'],
+  ['inactive', 'inactive'],
+];
 
 export function StaffPage() {
   const { t } = useI18n();
   const { staff: me, acting } = useAuth();
   const staff = useLoad(() => api<StaffSummary[]>('/venue/staff'));
+  const [q, setQ] = useState('');
+  const [state, setState] = useState<StaffFilter>('all');
   const toast = useToast();
   const [adding, setAdding] = useState(false);
   const [resetting, setResetting] = useState<StaffSummary | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string>();
   const list = staff.data;
+  const shown = list?.filter(
+    (m) => matches(`${m.displayName} ${m.email}`, q) && (state === 'all' || m.active === (state === 'active')),
+  );
 
   // Never yourself; a manager changes desk staff only, an operator inside the venue anyone.
   const canManage = (member: StaffSummary) => member.id !== me?.id && (acting !== null || member.role === 'DeskStaff');
@@ -46,6 +60,19 @@ export function StaffPage() {
       {staff.error && <Notice tone="error">{staff.error}</Notice>}
       {list?.length === 0 && <p className="empty">{t('noStaff')}</p>}
       {list && list.length > 0 && (
+        <ListToolbar
+          q={q}
+          onQ={setQ}
+          placeholder={t('searchStaff')}
+          filters={STAFF_FILTERS}
+          filter={state}
+          onFilter={setState}
+          shown={shown!.length}
+          total={list.length}
+        />
+      )}
+      {shown?.length === 0 && list!.length > 0 && <p className="empty">{t('noMatches')}</p>}
+      {shown && shown.length > 0 && (
         <table className="mg-table">
           <thead>
             <tr>
@@ -59,7 +86,7 @@ export function StaffPage() {
             </tr>
           </thead>
           <tbody>
-            {list.map((member) => (
+            {shown.map((member) => (
               <tr key={member.id}>
                 <td>{member.displayName}</td>
                 <td dir="ltr">{member.email}</td>

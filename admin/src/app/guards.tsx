@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
-import type { Role } from '../lib/types';
+import { opRoleOf } from '../layout/nav';
+import type { OperatorRole, Role } from '../lib/types';
 import { ChangePasswordPage } from '../pages/ChangePasswordPage';
 
 /** Signed-in staff only. A temporary password must be replaced before anything else. */
@@ -15,13 +16,16 @@ export function RequireStaff() {
   return <Outlet />;
 }
 
-export function RequireRole({ roles, children }: { roles: Role[]; children: ReactNode }) {
+/** `ops` further limits an operator page to those admin roles (the API enforces the same). */
+export function RequireRole({ roles, ops, children }: { roles: Role[]; ops?: OperatorRole[]; children: ReactNode }) {
   const { staff } = useAuth();
-  return staff && roles.includes(staff.role) ? <>{children}</> : <Navigate to="/" replace />;
+  const allowed =
+    staff && roles.includes(staff.role) && (!ops || staff.role !== 'PlatformOperator' || ops.includes(opRoleOf(staff)));
+  return allowed ? <>{children}</> : <Navigate to="/" replace />;
 }
 
 export function HomeRedirect() {
   const { staff } = useAuth();
-  const home = staff?.role === 'PlatformOperator' ? '/categories' : staff?.role === 'DeskStaff' ? '/desk' : '/today';
+  const home = staff?.role === 'PlatformOperator' ? '/overview' : staff?.role === 'DeskStaff' ? '/desk' : '/today';
   return <Navigate to={home} replace />;
 }

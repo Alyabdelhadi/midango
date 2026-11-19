@@ -10,14 +10,16 @@ import { useI18n } from '../lib/i18n';
 import { formatUtcDate } from '../lib/time';
 import type { AdminCustomerList } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
+import { useInitialQuery } from '../components/ListToolbar';
 
 const PAGE_SIZE = 50;
 
 /** Operator: every app customer across venues. The venue-scoped page lives at /customers. */
 export function AllCustomersPage() {
   const { t } = useI18n();
-  const [term, setTerm] = useState('');
-  const [q, setQ] = useState('');
+  const initial = useInitialQuery();
+  const [term, setTerm] = useState(initial);
+  const [q, setQ] = useState(initial);
   const [page, setPage] = useState(1);
 
   function search(e: FormEvent) {

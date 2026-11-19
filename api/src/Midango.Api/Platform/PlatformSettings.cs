@@ -30,4 +30,7 @@ public sealed class PlatformSettings
     public int PointsPerRedeemStep { get; set; } = 100;
     public decimal SarPerRedeemStep { get; set; } = 10;
     public int MaxRedeemPercent { get; set; } = 50;
+
+    /// Billing: what a venue on the default plan pays Midango, as a percent of cash collected.
+    public decimal CommissionPercent { get; set; } = 10;
 }

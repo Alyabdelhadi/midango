@@ -712,6 +712,11 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("must_change_password");
 
+                    b.Property<string>("OperatorRole")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("operator_role");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1024,6 +1029,68 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("broadcasts", (string)null);
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.ErrorEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("at");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(16000)
+                        .HasColumnType("character varying(16000)")
+                        .HasColumnName("detail");
+
+                    b.Property<string>("ExceptionType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("exception_type");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("method");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("path");
+
+                    b.Property<Guid?>("StaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<string>("TraceId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("trace_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_error_entries");
+
+                    b.HasIndex("At")
+                        .HasDatabaseName("ix_error_entries_at");
+
+                    b.ToTable("error_entries", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Platform.LegalDocument", b =>
                 {
                     b.Property<string>("Kind")
@@ -1086,12 +1153,15 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("status");
 
-                    b.Property<Guid>("VenueId")
+                    b.Property<Guid?>("VenueId")
                         .HasColumnType("uuid")
                         .HasColumnName("venue_id");
 
                     b.HasKey("Id")
                         .HasName("pk_operator_actions");
+
+                    b.HasIndex("At")
+                        .HasDatabaseName("ix_operator_actions_at");
 
                     b.HasIndex("OperatorId")
                         .HasDatabaseName("ix_operator_actions_operator_id");
@@ -1107,6 +1177,11 @@ namespace Midango.Api.Data.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("integer")
                         .HasColumnName("id");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("commission_percent");
 
                     b.Property<int>("GoldGames")
                         .HasColumnType("integer")
@@ -1176,6 +1251,7 @@ namespace Midango.Api.Data.Migrations
                         new
                         {
                             Id = 1,
+                            CommissionPercent = 10m,
                             GoldGames = 25,
                             GoldMultiplier = 1.5m,
                             LimitedUpcomingBookings = 1,
@@ -1612,6 +1688,44 @@ namespace Midango.Api.Data.Migrations
                     b.ToTable("venue_leads", (string)null);
                 });
 
+            modelBuilder.Entity("Midango.Api.Platform.VenueStatement", b =>
+                {
+                    b.Property<Guid>("VenueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("venue_id");
+
+                    b.Property<DateOnly>("Month")
+                        .HasColumnType("date")
+                        .HasColumnName("month");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("currency");
+
+                    b.Property<DateTimeOffset>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<Guid>("PaidByStaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("paid_by_staff_id");
+
+                    b.HasKey("VenueId", "Month")
+                        .HasName("pk_venue_statements");
+
+                    b.HasIndex("PaidByStaffId")
+                        .HasDatabaseName("ix_venue_statements_paid_by_staff_id");
+
+                    b.ToTable("venue_statements", (string)null);
+                });
+
             modelBuilder.Entity("Midango.Api.Tournaments.Tournament", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1968,6 +2082,22 @@ namespace Midango.Api.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("featured_rank");
 
+                    b.Property<string>("FeeMode")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("fee_mode");
+
+                    b.Property<decimal?>("FeeMonthly")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("fee_monthly");
+
+                    b.Property<decimal?>("FeePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("fee_percent");
+
                     b.Property<int>("FreeCancellationHours")
                         .HasColumnType("integer")
                         .HasColumnName("free_cancellation_hours");
@@ -2249,8 +2379,24 @@ namespace Midango.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("VenueId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_operator_actions_venues_venue_id");
+                });
+
+            modelBuilder.Entity("Midango.Api.Platform.VenueStatement", b =>
+                {
+                    b.HasOne("Midango.Api.Identity.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("PaidByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_venue_statements_staff_paid_by_staff_id");
+
+                    b.HasOne("Midango.Api.Venues.Venue", null)
+                        .WithMany()
+                        .HasForeignKey("VenueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_venue_statements_venues_venue_id");
                 });
 
             modelBuilder.Entity("Midango.Api.Tournaments.Tournament", b =>

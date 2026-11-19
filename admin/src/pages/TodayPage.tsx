@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { BookingStatusPill } from '../components/BookingStatusPill';
 import { Notice } from '../components/Notice';
 import { PageHeader } from '../components/PageHeader';
+import { useGreeting } from '../lib/greeting';
 import { Pill } from '../components/Pill';
 import { api } from '../lib/api';
 import { useI18n } from '../lib/i18n';
@@ -12,6 +13,7 @@ import { useLoad } from '../lib/useLoad';
 
 export function TodayPage() {
   const { t, lang, name, money } = useI18n();
+  const greeting = useGreeting();
   const today = useLoad(() => api<Today>('/venue/today'));
 
   // A desk screen stays open all evening: keep the numbers current.
@@ -36,7 +38,7 @@ export function TodayPage() {
   return (
     <div className="page">
       <PageHeader
-        title={t('navToday')}
+        title={greeting}
         action={
           <Link className="mg-button mg-button--secondary" to="/schedule">
             {t('openSchedule')}

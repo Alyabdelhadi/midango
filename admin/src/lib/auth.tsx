@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { api, getAccessToken, onActingEnded, onSessionEnded, refreshSession, setAccessToken, setActing } from './api';
+import { api, getAccessToken, onActingEnded, onSessionEnded, refreshSession, setAccessToken, setActing, setRememberSession, withRemember } from './api';
 import type { Staff } from './types';
 
 type Status = 'loading' | 'signedOut' | 'signedIn';
@@ -10,7 +10,7 @@ export type Acting = { venueId: string; nameEn: string; nameAr: string; expiresA
 type Auth = {
   status: Status;
   staff: Staff | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, remember: boolean) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   acting: Acting | null;
@@ -57,8 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(end);
   }, [end, exitVenue, loadMe]);
 
-  const signIn = async (email: string, password: string) => {
-    const result = await api<{ accessToken: string }>('/staff/auth/login?session=cookie', {
+  const signIn = async (email: string, password: string, remember: boolean) => {
+    setRememberSession(remember);
+    const result = await api<{ accessToken: string }>(withRemember('/staff/auth/login?session=cookie'), {
       method: 'POST',
       body: { email, password },
     });
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const changePassword = async (currentPassword: string, newPassword: string) => {
-    const result = await api<{ accessToken: string }>('/staff/me/password?session=cookie', {
+    const result = await api<{ accessToken: string }>(withRemember('/staff/me/password?session=cookie'), {
       method: 'POST',
       body: { currentPassword, newPassword },
     });

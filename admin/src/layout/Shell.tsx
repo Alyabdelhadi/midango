@@ -1,106 +1,108 @@
-import {
-  Building2,
-  CalendarDays,
-  ChartColumnBig,
-  ConciergeBell,
-  Globe,
-  Contact,
-  Inbox,
-  LayoutDashboard,
-  ListChecks,
-  MapPin,
-  Scale,
-  Shapes,
-  Smartphone,
-  ShieldCheck,
-  Tag,
-  Trophy,
-  Users,
-  UserSearch,
-  type LucideIcon,
-} from 'lucide-react';
+import { useState } from 'react';
+import { ChevronsLeft, ChevronsRight, LogOut } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { Button } from '../components/Button';
-import { LanguageToggle } from '../components/LanguageToggle';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../lib/i18n';
-import { ROLE_KEY, type Role } from '../lib/types';
-import type { MessageKey } from '../locales/en';
-
-type NavItem = { to: string; label: MessageKey; icon: LucideIcon; roles: Role[] };
-
-/** Only screens that work for the role are listed. */
-const NAV: NavItem[] = [
-  { to: '/today', label: 'navToday', icon: LayoutDashboard, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/desk', label: 'navDesk', icon: ConciergeBell, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/schedule', label: 'navSchedule', icon: CalendarDays, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/bookings', label: 'navBookings', icon: ListChecks, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/customers', label: 'navCustomers', icon: Contact, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/tournaments', label: 'navTournaments', icon: Trophy, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/reports', label: 'navReports', icon: ChartColumnBig, roles: ['VenueManager'] },
-  { to: '/categories', label: 'navCategories', icon: Shapes, roles: ['PlatformOperator'] },
-  { to: '/venues', label: 'navVenues', icon: Building2, roles: ['PlatformOperator'] },
-  { to: '/all-customers', label: 'navCustomers', icon: UserSearch, roles: ['PlatformOperator'] },
-  { to: '/app-content', label: 'navAppContent', icon: Smartphone, roles: ['PlatformOperator'] },
-  { to: '/website', label: 'navWebsite', icon: Globe, roles: ['PlatformOperator'] },
-  { to: '/rules', label: 'navRules', icon: ShieldCheck, roles: ['PlatformOperator'] },
-  { to: '/leads', label: 'navLeads', icon: Inbox, roles: ['PlatformOperator'] },
-  { to: '/legal', label: 'navLegal', icon: Scale, roles: ['PlatformOperator'] },
-  { to: '/venue', label: 'navVenue', icon: MapPin, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/prices', label: 'navPrices', icon: Tag, roles: ['VenueManager', 'DeskStaff'] },
-  { to: '/staff', label: 'navStaff', icon: Users, roles: ['VenueManager'] },
-];
+import { OP_ROLE_KEY, ROLE_KEY } from '../lib/types';
+import { initials, navFor, opRoleOf } from './nav';
+import { Topbar } from './Topbar';
 
 export function Shell() {
   const { staff, signOut, acting, exitVenue } = useAuth();
   const { t, name } = useI18n();
   const navigate = useNavigate();
+  // Remembered per browser; only affects wide screens (narrow ones lay the nav out in a row).
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('mg-nav') === 'collapsed';
+    } catch {
+      return false;
+    }
+  });
   if (!staff) return null;
 
+  function toggleNav() {
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem('mg-nav', c ? 'open' : 'collapsed');
+      } catch {
+        /* storage blocked */
+      }
+      return !c;
+    });
+  }
+
   return (
-    <div className="shell">
+    <div className={collapsed ? 'shell shell--collapsed' : 'shell'}>
       <aside className="shell-nav">
         <div className="shell-brand">
           <img src="/midango-icon.png" alt="Midango" height={28} />
-          <span>{t('appBusiness')}</span>
+          <span>
+            Midango
+            <small>{t('appBusiness')}</small>
+          </span>
         </div>
-        <nav aria-label={t('navLabel')}>
-          {NAV.filter((item) => item.roles.includes(staff.role)).map((item) => (
-            <NavLink key={item.to} to={item.to} className="shell-link">
-              <item.icon size={18} aria-hidden="true" />
-              {t(item.label)}
-            </NavLink>
+        <nav aria-label={t('navLabel')} className="shell-groups">
+          {navFor(staff).map((group) => (
+            <div key={group.label} className="shell-group">
+              <p className="shell-group-label">{t(group.label)}</p>
+              {group.items.map((item) => (
+                <NavLink key={item.to} to={item.to} className="shell-link" title={collapsed ? t(item.label) : undefined}>
+                  <item.icon size={18} aria-hidden="true" />
+                  <span className="shell-link-text">{t(item.label)}</span>
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label={t(collapsed ? 'expandSidebar' : 'collapseSidebar')}
+          title={collapsed ? t('expandSidebar') : undefined}
+          aria-pressed={collapsed}
+          onClick={toggleNav}
+        >
+          {collapsed ? <ChevronsRight aria-hidden size={18} className="flip-rtl" /> : <ChevronsLeft aria-hidden size={18} className="flip-rtl" />}
+          <span className="shell-link-text">{t('collapseSidebar')}</span>
+        </button>
         <div className="shell-user">
-          <span className="shell-user-name">{staff.displayName}</span>
-          <span className="shell-user-role">{t(ROLE_KEY[staff.role])}</span>
-          <div className="shell-user-actions">
-            <LanguageToggle />
-            <Button variant="text" onClick={() => void signOut()}>
-              {t('signOut')}
-            </Button>
-          </div>
+          <span className="avatar" aria-hidden="true">
+            {initials(staff.displayName)}
+          </span>
+          <span className="shell-user-text">
+            <span className="shell-user-name">{staff.displayName}</span>
+            <span className="shell-user-role">
+              {t(staff.role === 'PlatformOperator' ? OP_ROLE_KEY[opRoleOf(staff)] : ROLE_KEY[staff.role])}
+            </span>
+          </span>
+          <button type="button" className="icon-button" aria-label={t('signOut')} title={t('signOut')} onClick={() => void signOut()}>
+            <LogOut aria-hidden size={18} className="flip-rtl" />
+          </button>
         </div>
       </aside>
-      <main className="shell-main">
-        {acting && (
-          <div className="acting-banner" role="status">
-            <span>{t('actingBanner', { venue: name(acting) })}</span>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                exitVenue();
-                // After the role guard has redirected away from the venue page, land on Venues.
-                setTimeout(() => navigate('/venues'), 0);
-              }}
-            >
-              {t('exitVenue')}
-            </Button>
-          </div>
-        )}
-        <Outlet />
-      </main>
+      <div className="shell-body">
+        <Topbar />
+        <main className="shell-main">
+          {acting && (
+            <div className="acting-banner" role="status">
+              <span>{t('actingBanner', { venue: name(acting) })}</span>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  exitVenue();
+                  // After the role guard has redirected away from the venue page, land on Venues.
+                  setTimeout(() => navigate('/venues'), 0);
+                }}
+              >
+                {t('exitVenue')}
+              </Button>
+            </div>
+          )}
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

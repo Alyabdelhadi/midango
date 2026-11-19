@@ -10,6 +10,8 @@ import { useI18n } from '../lib/i18n';
 import { clock, dayOf, formatDay } from '../lib/time';
 import { FORMAT_KEY, TOURNAMENT_STATUS_KEY, type TournamentStatus, type TournamentSummary } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
+import { ListToolbar, matches } from '../components/ListToolbar';
+import type { MessageKey } from '../locales/en';
 import { TournamentDialog } from './TournamentDialog';
 
 /** "Thu 19 Nov 09:00–18:00", or "Thu 19 Nov 09:00 – Fri 20 Nov 18:00" across days. Venue wall-clock time. */
@@ -36,6 +38,20 @@ export function TournamentStatusPill({ status }: { status: TournamentStatus }) {
   );
 }
 
+type TournamentFilter = 'all' | 'upcoming' | 'live' | 'finished' | 'cancelled';
+const TOURNAMENT_FILTERS: [TournamentFilter, MessageKey][] = [
+  ['all', 'filterAll'],
+  ['upcoming', 'filterUpcoming'],
+  ['live', 'tournamentInProgress'],
+  ['finished', 'tournamentFinished'],
+  ['cancelled', 'tournamentCancelled'],
+];
+const TOURNAMENT_FILTER_STATUS: Record<'live' | 'finished' | 'cancelled', TournamentStatus> = {
+  live: 'InProgress',
+  finished: 'Finished',
+  cancelled: 'Cancelled',
+};
+
 export function TournamentsPage() {
   const { t, lang, name, money } = useI18n();
   const { staff } = useAuth();
@@ -44,6 +60,14 @@ export function TournamentsPage() {
   const list = useLoad(() => api<TournamentSummary[]>('/venue/tournaments'));
   const [creating, setCreating] = useState(false);
   const rows = list.data;
+  const [q, setQ] = useState('');
+  const [state, setState] = useState<TournamentFilter>('all');
+  const shown = rows?.filter(
+    (r) =>
+      matches(`${r.nameEn} ${r.nameAr}`, q) &&
+      (state === 'all' ||
+        (state === 'upcoming' ? r.status === 'Draft' || r.status === 'Published' : r.status === TOURNAMENT_FILTER_STATUS[state])),
+  );
 
   return (
     <div className="page">
@@ -56,6 +80,19 @@ export function TournamentsPage() {
       {!rows && !list.error && <p className="page-loading">{t('loading')}</p>}
       {rows?.length === 0 && <p className="empty">{t('noTournaments')}</p>}
       {rows && rows.length > 0 && (
+        <ListToolbar
+          q={q}
+          onQ={setQ}
+          placeholder={t('searchTournaments')}
+          filters={TOURNAMENT_FILTERS}
+          filter={state}
+          onFilter={setState}
+          shown={shown!.length}
+          total={rows.length}
+        />
+      )}
+      {shown?.length === 0 && rows!.length > 0 && <p className="empty">{t('noMatches')}</p>}
+      {shown && shown.length > 0 && (
         <table className="mg-table">
           <thead>
             <tr>
@@ -68,7 +105,7 @@ export function TournamentsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
+            {shown.map((r) => (
               <tr key={r.id}>
                 <td>
                   <Link to={`/tournaments/${r.id}`}>{name(r)}</Link>

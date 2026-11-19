@@ -29,6 +29,8 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
     public DbSet<CustomerDevice> CustomerDevices => Set<CustomerDevice>();
     public DbSet<VenueLead> VenueLeads => Set<VenueLead>();
     public DbSet<OperatorAction> OperatorActions => Set<OperatorAction>();
+    public DbSet<VenueStatement> VenueStatements => Set<VenueStatement>();
+    public DbSet<ErrorEntry> ErrorEntries => Set<ErrorEntry>();
     public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
     public DbSet<CustomerLevel> CustomerLevels => Set<CustomerLevel>();
     public DbSet<MatchPlayer> MatchPlayers => Set<MatchPlayer>();
@@ -56,6 +58,9 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.Property(v => v.TimeZoneId).HasMaxLength(64);
             e.Property(v => v.CurrencyCode).HasMaxLength(3);
             e.Property(v => v.VatPercent).HasPrecision(5, 2);
+            e.Property(v => v.FeeMode).HasConversion<string>().HasMaxLength(16);
+            e.Property(v => v.FeePercent).HasPrecision(5, 2);
+            e.Property(v => v.FeeMonthly).HasPrecision(12, 2);
             e.Property(v => v.LogoPath).HasMaxLength(200);
         });
 
@@ -84,6 +89,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
             e.HasIndex(s => s.Email).IsUnique();
             e.Property(s => s.DisplayName).HasMaxLength(80);
             e.Property(s => s.Role).HasConversion<string>().HasMaxLength(32);
+            e.Property(s => s.OperatorRole).HasConversion<string>().HasMaxLength(16);
             e.HasOne<Venue>().WithMany().HasForeignKey(s => s.VenueId).OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -266,6 +272,7 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         {
             e.ToTable("platform_settings", t => t.HasCheckConstraint("ck_platform_settings_singleton", "id = 1"));
             e.Property(s => s.Id).ValueGeneratedNever();
+            e.Property(s => s.CommissionPercent).HasPrecision(5, 2);
             e.Property(s => s.PointsPerSar).HasPrecision(6, 2);
             e.Property(s => s.SilverMultiplier).HasPrecision(4, 2);
             e.Property(s => s.GoldMultiplier).HasPrecision(4, 2);
@@ -361,11 +368,32 @@ public sealed class MidangoDb(DbContextOptions<MidangoDb> options) : DbContext(o
         });
 
         // Id is a long database identity; the Guid-only loop below leaves it generated on add.
+        b.Entity<VenueStatement>(e =>
+        {
+            e.HasKey(x => new { x.VenueId, x.Month });
+            e.Property(x => x.Amount).HasPrecision(12, 2);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.PaidByStaffId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<ErrorEntry>(e =>
+        {
+            e.Property(x => x.Method).HasMaxLength(8);
+            e.Property(x => x.Path).HasMaxLength(300);
+            e.Property(x => x.ExceptionType).HasMaxLength(200);
+            e.Property(x => x.Message).HasMaxLength(2000);
+            e.Property(x => x.Detail).HasMaxLength(16000);
+            e.Property(x => x.TraceId).HasMaxLength(64);
+            e.HasIndex(x => x.At);
+        });
+
         b.Entity<OperatorAction>(e =>
         {
             e.Property(x => x.Method).HasMaxLength(8);
             e.Property(x => x.Path).HasMaxLength(300);
             e.HasIndex(x => new { x.VenueId, x.At });
+            e.HasIndex(x => x.At);
             e.HasOne<StaffMember>().WithMany().HasForeignKey(x => x.OperatorId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Venue>().WithMany().HasForeignKey(x => x.VenueId).OnDelete(DeleteBehavior.Cascade);
         });

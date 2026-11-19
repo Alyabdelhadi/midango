@@ -8,13 +8,27 @@ import { useI18n } from '../lib/i18n';
 import { SportIcon } from '../lib/sportIcons';
 import type { Category } from '../lib/types';
 import { useLoad } from '../lib/useLoad';
+import type { MessageKey } from '../locales/en';
+import { ListToolbar, matches, useInitialQuery } from '../components/ListToolbar';
 import { CategoryDialog } from './CategoryDialog';
+
+type CategoryFilter = 'all' | 'shown' | 'hidden';
+const CATEGORY_FILTERS: [CategoryFilter, MessageKey][] = [
+  ['all', 'filterAll'],
+  ['shown', 'shownInApp'],
+  ['hidden', 'hidden'],
+];
 
 export function CategoriesPage() {
   const { t, name } = useI18n();
   const categories = useLoad(() => api<Category[]>('/admin/categories'));
   const [editing, setEditing] = useState<Category | 'new' | null>(null);
   const list = categories.data;
+  const [q, setQ] = useState(useInitialQuery());
+  const [shownFilter, setShownFilter] = useState<CategoryFilter>('all');
+  const shown = list?.filter(
+    (c) => matches(`${c.nameEn} ${c.nameAr}`, q) && (shownFilter === 'all' || c.active === (shownFilter === 'shown')),
+  );
 
   return (
     <div className="page">
@@ -23,6 +37,19 @@ export function CategoriesPage() {
       {categories.error && <Notice tone="error">{categories.error}</Notice>}
       {list?.length === 0 && <p className="empty">{t('noCategories')}</p>}
       {list && list.length > 0 && (
+        <ListToolbar
+          q={q}
+          onQ={setQ}
+          placeholder={t('searchSports')}
+          filters={CATEGORY_FILTERS}
+          filter={shownFilter}
+          onFilter={setShownFilter}
+          shown={shown!.length}
+          total={list.length}
+        />
+      )}
+      {shown?.length === 0 && list!.length > 0 && <p className="empty">{t('noMatches')}</p>}
+      {shown && shown.length > 0 && (
         <table className="mg-table">
           <thead>
             <tr>
@@ -37,7 +64,7 @@ export function CategoriesPage() {
             </tr>
           </thead>
           <tbody>
-            {list.map((category) => (
+            {shown.map((category) => (
               <tr key={category.id}>
                 <td>
                   <span className="cell-icon">

@@ -42,12 +42,35 @@ export function onActingEnded(handler: () => void) {
   actingEnded = handler;
 }
 
+const REMEMBER_KEY = 'mg-remember';
+
+export function setRememberSession(remember: boolean) {
+  try {
+    if (remember) localStorage.removeItem(REMEMBER_KEY);
+    else localStorage.setItem(REMEMBER_KEY, '0');
+  } catch {
+    /* storage blocked: the cookie just stays persistent */
+  }
+}
+
+/** "Remember me" unticked → the API writes the session cookie without an expiry. Every call that
+ *  rewrites the cookie must repeat it, or the next refresh would make the cookie persistent again. */
+export function withRemember(url: string) {
+  let forget = false;
+  try {
+    forget = localStorage.getItem(REMEMBER_KEY) === '0';
+  } catch {
+    /* storage blocked */
+  }
+  return forget ? `${url}${url.includes('?') ? '&' : '?'}remember=0` : url;
+}
+
 /** Trades the HttpOnly session cookie for a new access token. Concurrent callers share one request:
  *  refresh tokens are single-use, and spending one twice signs the user out everywhere. */
 export function refreshSession(): Promise<boolean> {
   refreshing ??= (async () => {
     try {
-      const res = await fetch('/api/auth/refresh', {
+      const res = await fetch(withRemember('/api/auth/refresh'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',

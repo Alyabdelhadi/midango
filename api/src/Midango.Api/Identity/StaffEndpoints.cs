@@ -11,7 +11,8 @@ public static class StaffEndpoints
     public sealed record StaffSignInResponse(
         string AccessToken, DateTimeOffset AccessExpiresAt, string? RefreshToken, bool MustChangePassword);
     public sealed record StaffMeResponse(
-        Guid Id, string Email, string DisplayName, StaffRole Role, Guid? VenueId, bool MustChangePassword);
+        Guid Id, string Email, string DisplayName, StaffRole Role, Guid? VenueId, bool MustChangePassword,
+        OperatorRole? OperatorRole);
     public sealed record ChangePasswordBody(string? CurrentPassword, string? NewPassword);
 
     public static void MapStaffEndpoints(this IEndpointRouteBuilder app)
@@ -40,7 +41,8 @@ public static class StaffEndpoints
             return staff is null
                 ? ApiErrors.Fail(404, "Account not found.")
                 : Results.Ok(new StaffMeResponse(
-                    staff.Id, staff.Email, staff.DisplayName, staff.Role, staff.VenueId, staff.MustChangePassword));
+                    staff.Id, staff.Email, staff.DisplayName, staff.Role, staff.VenueId, staff.MustChangePassword,
+                    staff.OperatorRole));
         });
 
         me.MapPost("/password", async (

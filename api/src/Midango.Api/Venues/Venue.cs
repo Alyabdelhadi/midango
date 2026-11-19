@@ -34,4 +34,11 @@ public sealed class Venue
     /// Position in the app's "Featured" strip (1 = first), or null when not featured. Set by Midango.
     public int? FeaturedRank { get; set; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+
+    /// What the venue pays Midango each month. Default uses the platform commission percent.
+    public Platform.FeeMode FeeMode { get; set; } = Platform.FeeMode.Default;
+    /// Used when FeeMode = Percent: share of cash collected.
+    public decimal? FeePercent { get; set; }
+    /// Used when FeeMode = Fixed: amount per month, in the venue's currency.
+    public decimal? FeeMonthly { get; set; }
 }

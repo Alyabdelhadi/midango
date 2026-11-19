@@ -17,6 +17,20 @@
   --mg-warning-bg: #fff4e5;
   --mg-success-bg: #f3ffe0; /* lime tint for "Checked in" */
 
+  /* Fixed navy: content on lime, and fills that stay dark in both themes (avatars, tooltips, the sign-in panel). */
+  --mg-ink: #071329;
+  /* Surfaces and states that differ between light and dark. */
+  --mg-hover: #fafbfd;
+  --mg-active: #eef2f7;
+  --mg-info: #1c5cab;
+  --mg-info-bg: #e8f1fc;
+  --mg-input-line: #c9d0db;
+  --mg-control-line: #cfd6e0;
+  --mg-topbar: rgb(255 255 255 / 0.92);
+  --mg-good: #006300;
+  /* RGB triplet the Reports heatmap shades with. */
+  --mg-heat: 7 19 41;
+
   /* Type (D5). Arabic falls back to IBM Plex Sans Arabic in every stack. */
   --mg-font-display: "Space Grotesk", "IBM Plex Sans Arabic", system-ui, sans-serif;
   --mg-font-ui: Inter, "IBM Plex Sans Arabic", system-ui, sans-serif;
@@ -33,4 +47,32 @@
   /* Shape */
   --mg-radius: 8px;
   --mg-control-height: 40px;
+}
+
+/* Dark theme: the same roles stepped for a dark surface. index.html sets data-theme before first paint
+   (saved choice, else the system setting), so there is no light flash. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --mg-navy: #e8edf5;      /* primary text */
+  --mg-slate: #c3cad6;
+  --mg-muted: #8d97a9;
+  --mg-cyan-ink: #4fd0e2;
+  --mg-cloud: #0b1324;     /* page */
+  --mg-white: #121c30;     /* cards, bars, inputs */
+  --mg-line: #243149;
+  --mg-disabled-bg: #1f2b44;
+  --mg-error: #ff7a6e;
+  --mg-error-bg: #3a1714;
+  --mg-warning: #ffb35c;
+  --mg-warning-bg: #3a2510;
+  --mg-success-bg: #1e2e0b;
+  --mg-hover: #16223a;
+  --mg-active: #1d2b47;
+  --mg-info: #9cc7ff;
+  --mg-info-bg: #16294b;
+  --mg-input-line: #34445f;
+  --mg-control-line: #34445f;
+  --mg-topbar: rgb(18 28 48 / 0.92);
+  --mg-good: #6edc6e;
+  --mg-heat: 79 208 226;
 }

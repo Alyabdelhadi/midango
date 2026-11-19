@@ -15,29 +15,43 @@
   border: 0;
   font: var(--mg-text-label);
   cursor: pointer;
+  transition: background-color 120ms, border-color 120ms, box-shadow 120ms;
+}
+
+.mg-button--primary:hover:not(:disabled) {
+  background: #9be600;
 }
 
 .mg-button--primary {
   background: var(--mg-lime);
-  color: var(--mg-navy);
+  color: var(--mg-ink);
 }
 
 .mg-button--secondary {
   background: var(--mg-white);
   color: var(--mg-navy);
-  border: 1.5px solid var(--mg-navy);
+  border: 1px solid var(--mg-control-line);
+  box-shadow: 0 1px 2px rgb(7 19 41 / 0.05);
+}
+
+.mg-button--secondary:hover:not(:disabled) {
+  background: var(--mg-cloud);
+  border-color: var(--mg-muted);
 }
 
 .mg-button--text {
   background: transparent;
   color: var(--mg-cyan-ink);
+  padding-inline: 6px;
+}
+
+.mg-button--text:hover:not(:disabled) {
   text-decoration: underline;
-  padding-inline: 4px;
 }
 
 .mg-button--destructive {
   background: var(--mg-error);
-  color: var(--mg-white);
+  color: #fff;
 }
 
 .mg-button:disabled {
